@@ -5,12 +5,12 @@ if (require("RCurl",warn.conflicts=FALSE)==FALSE) {
     }
     
 if (require("doParallel",warn.conflicts=FALSE)==FALSE) {
-    install.packages("RCurl",repos="http://cran.cnr.berkeley.edu/");
+    install.packages("doParallel",repos="http://cran.cnr.berkeley.edu/");
     library("doParallel");
     }
 
 if (require("RPostgreSQL",warn.conflicts=FALSE)==FALSE) {
-    install.packages("RCurl",repos="http://cran.cnr.berkeley.edu/");
+    install.packages("RPostgreSQL",repos="http://cran.cnr.berkeley.edu/");
     library("RPostgreSQL");
     }
 
