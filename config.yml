@@ -12,7 +12,7 @@ email: erika.ito@outlook.com
 
 # The primary language the application is written in - will be used for installing dependencies
 # Current options are Python, R, and Go
-language: R
+language: R 3.3.1
 
 # The NLP product to run the application against (NLP, NLP352, OCR, Cuneiform -- see input/README for more info)
 product: NLP352, docid_terms
