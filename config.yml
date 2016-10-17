@@ -1,0 +1,31 @@
+# The name of the application (no spaces)
+app_name: PBDB_Fidelity
+
+# A brief description of the app.
+description : Identifying fossiliferous stratigraphic units not identified as fossiliferous according to the paleobiology database.
+
+# Your first and last name
+user: Erika Ito
+
+# Your email
+email: erika.ito@outlook.com
+
+# The primary language the application is written in - will be used for installing dependencies
+# Current options are Python, R, and Go
+language: R
+
+# The NLP product to run the application against (NLP, NLP352, OCR, Cuneiform -- see input/README for more info)
+product: NLP352, docid_terms
+
+# How often the application should be run
+frequency: once
+
+# You can choose to specify a list of dictionaries, a list of terms, or both.
+# If both dictionaries and terms are provided, all terms in the dictionary PLUS
+# all listed terms will be used
+dictionaries: PBDB and Macrostrat units
+
+# A list of terms used to subset the corpus
+
+# should the list of terms be case-sensitive?
+case-sensitive: true
