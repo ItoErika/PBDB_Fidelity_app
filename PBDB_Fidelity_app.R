@@ -26,6 +26,7 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 # STEP ONE: Load DeepDiveData 
 # Make SQL query
 DeepDiveData<-dbGetQuery(Connection,"SELECT * FROM nlp_sentences_352")
+# Consider converting to a chracter matrix to cut down on memory. DeepDiveData<-as.matrix(DeepDiveData)
 
 # RECORD INITIAL STATS
 # INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA: 
