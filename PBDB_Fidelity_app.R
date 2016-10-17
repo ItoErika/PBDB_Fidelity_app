@@ -18,7 +18,7 @@ if (require("RPostgreSQL",warn.conflicts=FALSE)==FALSE) {
 Cluster<-makeCluster(8)
     
 # Download the config file
-Credentials<-read.table(text=Credentials.yml)
+Credentials<-read.table(text="Credentials.yml")
 
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
