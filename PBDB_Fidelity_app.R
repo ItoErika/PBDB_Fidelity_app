@@ -25,7 +25,7 @@ Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 # STEP ONE: Load DeepDiveData 
 # Make SQL query
-DeepDiveData<-dbGetQuery(Connection,"SELECT * FROM nlp_sentences_352")
+DeepDiveData<-dbGetQuery(Connection,"SELECT docid, words FROM nlp_sentences_352")
 # Consider converting to a chracter matrix to cut down on memory. DeepDiveData<-as.matrix(DeepDiveData)
 
 # RECORD INITIAL STATS
@@ -98,12 +98,8 @@ StepFiveTuples<-"NA"
 
 # Clean up syntaxical, grammatical, and typographical issues in the words column of DeepDiveData
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
-SubsetDeepDive[,"poses"]<-gsub("\\{|\\}","",SubsetDeepDive[,"poses"])
 # Make a substitute for commas so they are counted correctly as elements for future functions
 SubsetDeepDive[,"words"]<-gsub("\",\"","COMMASUB",SubsetDeepDive[,"words"])
-SubsetDeepDive[,"poses"]<-gsub("\",\"","COMMASUB",SubsetDeepDive[,"poses"])
-# Extract columns of interest from DeepDiveData
-DeepDiveData<-DeepDiveData[,c("docid","sentid","wordidx","words","poses","dep_parents")]
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
 
