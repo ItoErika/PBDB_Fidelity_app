@@ -239,10 +239,10 @@ StepTenTuples<-"NA"
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
 Overlain<-grep("overlain",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 Overlie<-grep("overlie",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
+Overlying<-grep("overlying",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 Underlain<-grep("underlain",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 Underlie<-grep("underlie",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 Underlying<-grep("underlying",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Overlying<-grep("overlying",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
   
 # Combine all of the noisy rows (sentences) into one vector 
 NoisySentences<-c(Overlain,Overlie,Underlain,Underlie,Underlying,Overlying)
