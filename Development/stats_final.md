@@ -61,7 +61,7 @@ Number of Documents | Number or Rows/Sentences | Number of Candidate Unit Matche
 `length(unique(SubsetDeepDive[UnitDataCut[,"MatchLocation"],"docid"]))` | `length(UnitDataCut[,"MatchLocation"])` | `length(unique(UnitDataCut[,"UnitNames"]))`
 ````4,221```` | ````21,771```` | ````1,625````
 
-### STEP 10: Extract sentences which contain the word "fossil" or "fossiliferous". 
+### STEP 10: Extract sentences which contain the word "fossil". 
 Number of Documents | Number or Rows/Sentences | Number of Candidate Unit Matches
  ------------ | ------------ | ------------
 `length(unique(SubsetDeepDive[FossilData[,"MatchLocation"],"docid"]))` | `length(unique(FossilData[,"MatchLocation"]))` | `length(unique(FossilData[,"UnitNames"]))`
