@@ -98,8 +98,6 @@ StepFiveTuples<-"NA"
 
 # Clean up syntaxical, grammatical, and typographical issues in the words column of DeepDiveData
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
-# Make a substitute for commas so they are counted correctly as elements for future functions
-SubsetDeepDive[,"words"]<-gsub("\",\"","COMMASUB",SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
 
