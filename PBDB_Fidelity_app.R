@@ -96,7 +96,7 @@ StepFiveRows<-nrow(SubsetDeepDive)
 StepFiveUnits<-StepFourUnits
 StepFiveTuples<-"NA"
 
-# Clean up syntaxical, grammatical, and typographical issues in the words column of DeepDiveData
+# Clean up typographical issues in the words column of DeepDiveData
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
