@@ -173,11 +173,11 @@ MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary%in%CandidateU
 
 # Run a search for macrostrat units on SingleHitData sentences
 # Record start time
-print(paste("Begin search for double unit sentences.",Sys.time()-Start))
+print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()-Start))
 # Apply grep SingleHitData[,"Sentences"]
 MacroUnitHits<-parSapply(Cluster,MacroUnitDictionary,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),SingleHitData[,"Sentences"])
 # Record end time
-print(paste("Finish search for double unit sentences.",Sys.time()-Start))
+print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()-Start))
     
 # Remove the rows in which macrostrat unit names appear
 UnitData<-SingleHitData[-unique(unlist(MacroUnitHits)),]
