@@ -206,9 +206,6 @@ UnitData<-cbind(UnitData,Chars)
 ShortSents<-which(UnitData[,"Chars"]<=350)
 UnitDataCut<-UnitData[ShortSents,]
     
-# Remove the rows in which macrostrat unit names appear
-UnitData<-SingleHitData[-unique(unlist(MacroUnitHits)),]
-    
 # RECORD STATS
 StepNineDescription<-"Eliminate sentences >350 characters in length"
 # NUMBER OF DOCUMENTS OF INTEREST AFTER CUTTING OUT LONG ROWS
@@ -220,25 +217,13 @@ StepNineUnits<-length(unique(UnitDataCut[,"UnitNames"]))
 StepNineTuples<-"NA"
 
 # STEP 10: Search for words indicating fossil occurrences in units.
-# Search for the word "fossiliferous" in UnitDataCut sentences 
-# NOTE: add space in front of "fossiliferous" in grep search so "unfossiliferous" is not returned as a match
-FossiliferousHits<-grep(" fossiliferous",UnitDataCut[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-# Search for the word "fossils" in SingleHitsCut sentences
-FossilsHits<-grep("fossils",UnitDataCut[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-  
-# Remove the overlap sentences between FossilsHits and FossiliferousHits
-# Remove rows in FossilslHits which also appear in FossiliferousHits
-FossilsHits<-FossilsHits[which(!(FossilsHits%in%FossiliferousHits)==TRUE)]
-# Remove rows in FossiliferousHits which also appear in FossilsHits
-FossiliferousHits<-FossiliferousHits[which(!(FossiliferousHits%in%FossilsHits)==TRUE)]
-# Combine FossilsHits and FossiliferousHits into a single vector
-FossilSentences<-c(FossilsHits,FossiliferousHits)
-    
-# Subset SingleHitsCut to only rows with fossil sentences
-FossilData<-unique(UnitDataCut[FossilSentences,])
+# Search for the word "fossil" in UnitDataCut sentences 
+# NOTE: searching for "fossil" will also return hits for "fossils" and "fossiliferous"
+# NOTE: add space in front of "fossil" in grep search so "unfossiliferous" is not returned as a match
+FossilHits<-grep(" fossil",UnitDataCut[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 
 # Subset SingleHitsCut to only rows with fossil sentences
-FossilData<-unique(UnitDataCut[FossilSentences,])
+FossilData<-unique(UnitDataCut[FossilHits,])    
     
 # RECORD STATS
 StepTenDescription<-"Search for words indicating fossil occurrences"
