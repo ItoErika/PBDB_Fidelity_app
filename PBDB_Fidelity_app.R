@@ -278,9 +278,13 @@ Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberUnits,NumberTuples
 # Stop the cluster
 stopCluster(Cluster)
 
+print(paste("Writing Outputs",Sys.time()-Start))
+    
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory,"/output",sep=""))
     
 write.csv(Stats,"Stats.csv",row.names=FALSE)
 saveRDS(FidelityData,"FidelityData.rds")
 write.csv(FidelityData,"FidelityData.csv")
+    
+print(paste("Complete",Sys.time()-Start))
