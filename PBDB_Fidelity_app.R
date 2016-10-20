@@ -17,7 +17,7 @@ if (require("RPostgreSQL",warn.conflicts=FALSE)==FALSE) {
     }
 
 # Start a cluster for multicore
-Cluster<-makeCluster(8)
+Cluster<-makeCluster(12)
     
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
