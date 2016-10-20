@@ -27,7 +27,7 @@ if (is.na(CommandArgument)) {
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
 
-print(paste("Begin loading postgres tables.",Sys.time()-Start))
+print(paste("Begin loading postgres tables.",Sys.time()))
 
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
@@ -69,7 +69,7 @@ UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 # Subset UnitsFrame to extract only units that are identified as unfossiliferous in PBDB
 NoPBDB<-subset(UnitsFrame, UnitsFrame[,"pbdb_collections"]==0)
 
-print(paste("Finish loading postgres tables.",Sys.time()-Start))
+print(paste("Finish loading postgres tables.",Sys.time()))
 
 # Make a list of units that are unfossiliferous according to PBDB
 CandidateUnits<-as.character(unique(NoPBDB[,"strat_name_long"]))
@@ -115,11 +115,11 @@ CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
 # STEP 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 
 # Record Start Time
-print(paste("Begin search for candidate units.",Sys.time()-Start))
+print(paste("Begin search for candidate units.",Sys.time()))
 # Apply grep to cleaned words
 UnitHits<-parSapply(Cluster,CandidateUnits,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),CleanedWords)
 # Record end time
-print(paste("Finish search for candidate units.",Sys.time()-Start))
+print(paste("Finish search for candidate units.",Sys.time()))
 
 # Create a vector of the number of unit hits for each respective unit name in DeepDiveData
 UnitHitsLength<-sapply(UnitHits,length)
@@ -178,11 +178,11 @@ MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary%in%CandidateU
 
 # Run a search for macrostrat units on SingleHitData sentences
 # Record start time
-print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()-Start))
+print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()))
 # Apply grep SingleHitData[,"Sentences"]
 MacroUnitHits<-parSapply(Cluster,MacroUnitDictionary,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),SingleHitData[,"Sentences"])
 # Record end time
-print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()-Start))
+print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()))
     
 # Remove the rows in which macrostrat unit names appear
 UnitData<-SingleHitData[-unique(unlist(MacroUnitHits)),]
@@ -221,12 +221,12 @@ StepNineTuples<-"NA"
 
 # Search for the word "fossil" in UnitDataCut sentences 
 # Record start time
-print(paste("Begin search for unit and fossil matches.",Sys.time()-Start))
+print(paste("Begin search for unit and fossil matches.",Sys.time()))
 # NOTE: searching for "fossil" will also return hits for "fossils" and "fossiliferous"
 # NOTE: add space in front of "fossil" in grep search so "unfossiliferous" is not returned as a match
 FossilHits<-grep(" fossil",UnitDataCut[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 # Record end time
-print(paste("Finish search for unit and fossil matches.",Sys.time()-Start))
+print(paste("Finish search for unit and fossil matches.",Sys.time()))
     
 # Subset SingleHitsCut to only rows with fossil sentences
 FossilData<-unique(UnitDataCut[FossilHits,])    
@@ -243,7 +243,7 @@ StepTenTuples<-"NA"
     
 # STEP 11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
 # Record start time
-print(paste("Begin search for unwanted matches.",Sys.time()-Start))
+print(paste("Begin search for unwanted matches.",Sys.time()))
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
 Overlain<-grep("overlain",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
 Overlie<-grep("overlie",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
@@ -259,7 +259,7 @@ NoisySentences<-c(Overlain,Overlie,Underlain,Underlie,Underlying,Overlying)
 FidelityData<-FossilData[-NoisySentences,]
 
 # Record end time
-print(paste("Finish removing unwanted matches.",Sys.time()-Start))
+print(paste("Finish removing unwanted matches.",Sys.time()))
   
 # RECORD STATS
 StepElevenDescription<-"Remove sentences with noisy words"
@@ -283,7 +283,7 @@ Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberUnits,NumberTuples
 # Stop the cluster
 stopCluster(Cluster)
 
-print(paste("Writing Outputs",Sys.time()-Start))
+print(paste("Writing Outputs",Sys.time()))
     
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory,"/output",sep=""))
@@ -292,4 +292,4 @@ write.csv(Stats,"Stats.csv",row.names=FALSE)
 saveRDS(FidelityData,"FidelityData.rds")
 write.csv(FidelityData,"FidelityData.csv")
     
-print(paste("Complete",Sys.time()-Start))
+print(paste("Complete",Sys.time()))
