@@ -50,12 +50,10 @@ StepTwoTuples<-dim(DocUnitTuples)[1]
 UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
-# Subset UnitsFrame to extract only units that are identified as unfossiliferous in PBDB
-NoPBDB<-subset(UnitsFrame, UnitsFrame[,"pbdb_collections"]==0)
-
-# Make a list of units that are unfossiliferous according to PBDB
-CandidateUnits<-as.character(unique(NoPBDB[,"strat_name_long"]))
-CandidateUnits<-CandidateUnits[which(sapply(CandidateUnits,nchar)>0)]
+# Group by long strat name and take sum of pbdb_collections values
+Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long"],sum)
+# Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
+CandidateUnits<-names(which(Collections==0))
 
 # RECORD STATS
 StepThreeDescription<-"Make unit dictionary of marine, sedimentary, and unfossiliferous(according to PBDB) units"
