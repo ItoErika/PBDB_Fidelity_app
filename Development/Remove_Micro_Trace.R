@@ -1,3 +1,5 @@
+# REFINE OUTPUT1
+
 # Load the output from Stage 1 which involved extracting DeepDiveData sentences which contain both a word (or words) indicating the occurrence of fossils, and a candidate unit name. 
 # Load the stage 1 output table from postgres
 # Load required library
