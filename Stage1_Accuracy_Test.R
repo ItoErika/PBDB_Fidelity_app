@@ -1,7 +1,5 @@
 # Stage 1: Extracting DeepDiveData sentences which contain both a word (or words) indicating the occurrence of fossils, and a candidate unit name. 
-
 # Load the stage 1 output table from postgres
-
 # Load required library
 library("RPostgreSQL")
 
