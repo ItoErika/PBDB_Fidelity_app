@@ -32,5 +32,12 @@ CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id",all.x="TRUE")
 # Extracts columns of interest
 CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
 
+# Sort CandidatesFrame data by col_id and return state/territory name for each 
+ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique(x[,"name"]))
+  
+
+  
+
+
 
 
