@@ -66,8 +66,6 @@ StepTwoTuples<-dim(DocUnitTuples)[1]
 UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
-# Subset UnitsFrame to extract only units that are identified as unfossiliferous in PBDB
-NoPBDB<-subset(UnitsFrame, UnitsFrame[,"pbdb_collections"]==0)
 
 print(paste("Finish loading postgres tables.",Sys.time()))
 
@@ -125,9 +123,9 @@ print(paste("Finish search for candidate units.",Sys.time()))
 # Create a vector of the number of unit hits for each respective unit name in DeepDiveData
 UnitHitsLength<-sapply(UnitHits,length)
 # Create a vector of candidate unit names, such that each name is repeated by its number of hits in DeepDiveData
-UnitNames<-rep(names(UnitHits),times=UnitHitsLength)
+UnitName<-rep(names(UnitHits),times=UnitHitsLength)
 # Bind the unit name column to the corresponding row location for the match
-UnitHitData<-cbind(UnitNames,unlist(UnitHits))
+UnitHitData<-cbind(UnitName,unlist(UnitHits))
 # convert matrix to data frame
 UnitHitData<-as.data.frame(UnitHitData)
 # Name column denoting row locations within Cleaned Words
@@ -156,8 +154,8 @@ SingleHits<-as.numeric(names(RowHitsTable)[which((RowHitsTable)==1)])
 SingleHitData<-subset(UnitHitData,UnitHitData[,"MatchLocation"]%in%SingleHits==TRUE)
 
 # Create a column of sentences from CleanedWords and bind it to SingleHitData
-Sentences<-CleanedWords[SingleHitData[,"MatchLocation"]]
-SingleHitData<-cbind(SingleHitData,Sentences)
+Sentence<-CleanedWords[SingleHitData[,"MatchLocation"]]
+SingleHitData<-cbind(SingleHitData,Sentence)
 
 # RECORD STATS
 StepSevenDescription<-"Eliminate sentences with more than one candidate unit name" 
@@ -166,7 +164,7 @@ StepSevenDocs<-length(unique(SubsetDeepDive[SingleHitData[,"MatchLocation"],"doc
 # NUMBER OF ROWS (SENTENCES) IN SUBSETDEEPDIVE WITH UNIT NAME HITS OF CANDIDATE UNITS AFTER REMOVING SENTENCES WHICH CONTAIN MORE THAN ONE CANDIDATE UNIT NAME
 StepSevenRows<-length(unique(SingleHitData[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ROWS WITH ONLY ONE CANDIDATE UNIT
-StepSevenUnits<-length(unique(SingleHitData[,"UnitNames"]))
+StepSevenUnits<-length(unique(SingleHitData[,"UnitName"]))
 StepSevenTuples<-"NA"
 
 # STEP 8: Remove sentences from SingleHitData that contain macrostrat unit names which are NOT in CandidateUnits.
@@ -181,7 +179,7 @@ MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary%in%CandidateU
 # Record start time
 print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()))
 # Apply grep SingleHitData[,"Sentences"]
-MacroUnitHits<-parSapply(Cluster,MacroUnitDictionary,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),SingleHitData[,"Sentences"])
+MacroUnitHits<-parSapply(Cluster,MacroUnitDictionary,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),SingleHitData[,"Sentence"])
 # Record end time
 print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()))
     
@@ -195,13 +193,13 @@ StepEightDocs<-length(unique(SubsetDeepDive[UnitData[,"MatchLocation"],"docid"])
 # NUMBER OF ROWS (SENTENCES) IN SUBSETDEEPDIVE WITH SINGLE CANDIDATE UNIT HITS AND NO MACROUNITDICTIONARY NAMES
 StepEightRows<-length(unique(UnitData[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ROWS WITH ONLY ONE CANDIDATE UNIT AND NO OTHER MACROSTRAT NAME
-StepEightUnits<-length(unique(UnitData[,"UnitNames"]))
+StepEightUnits<-length(unique(UnitData[,"UnitName"]))
 StepEightTuples<-"NA"
 
 # STEP 9: Eliminate rows/sentences that are more than 350 characters in length.
 
 # Find the character length for each character string in UnitData sentences
-Chars<-sapply(UnitData[,"Sentences"], function (x) nchar(as.character(x)))
+Chars<-sapply(UnitData[,"Sentence"], function (x) nchar(as.character(x)))
 # bind the number of characters for each sentence to UnitData
 UnitData<-cbind(UnitData,Chars)
 # Locate the rows which have UnitData sentences with less than or equal to 350 characters
@@ -215,7 +213,7 @@ StepNineDocs<-length(unique(SubsetDeepDive[UnitDataCut[,"MatchLocation"],"docid"
 # NUMBER OF SHORT SENTENCES IN SUBSETDEEPDIVE WITH SINGLE CANDIDATE UNIT HITS AND NO MACROUNITDICTIONARY NAMES
 StepNineRows<-length(unique(UnitDataCut[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ONLY SHORT ROWS 
-StepNineUnits<-length(unique(UnitDataCut[,"UnitNames"]))
+StepNineUnits<-length(unique(UnitDataCut[,"UnitName"]))
 StepNineTuples<-"NA"
     
 # STEP 10: Search for words indicating fossil occurrences in units.
@@ -225,7 +223,7 @@ StepNineTuples<-"NA"
 print(paste("Begin search for unit and fossil matches.",Sys.time()))
 # NOTE: searching for "fossil" will also return hits for "fossils" and "fossiliferous"
 # NOTE: add space in front of "fossil" in grep search so "unfossiliferous" is not returned as a match
-FossilHits<-grep(" fossil",UnitDataCut[,"Sentences"], ignore.case=TRUE, perl=TRUE)
+FossilHits<-grep(" fossil",UnitDataCut[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # Record end time
 print(paste("Finish search for unit and fossil matches.",Sys.time()))
     
@@ -239,19 +237,19 @@ StepTenDocs<-length(unique(SubsetDeepDive[FossilData[,"MatchLocation"],"docid"])
 # NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
 StepTenRows<-length(unique(FossilData[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES 
-StepTenUnits<-length(unique(FossilData[,"UnitNames"]))
+StepTenUnits<-length(unique(FossilData[,"UnitName"]))
 StepTenTuples<-"NA"
     
 # STEP 11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
 # Record start time
 print(paste("Begin search for unwanted matches.",Sys.time()))
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
-Overlain<-grep("overlain",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Overlie<-grep("overlie",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Overlying<-grep("overlying",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Underlain<-grep("underlain",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Underlie<-grep("underlie",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
-Underlying<-grep("underlying",FossilData[,"Sentences"], ignore.case=TRUE, perl=TRUE)
+Overlain<-grep("overlain",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlie<-grep("overlie",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlying<-grep("overlying",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlain<-grep("underlain",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlie<-grep("underlie",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlying<-grep("underlying",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
   
 # Combine all of the noisy rows (sentences) into one vector 
 NoisySentences<-c(Overlain,Overlie,Underlain,Underlie,Underlying,Overlying)
@@ -269,7 +267,7 @@ StepElevenDocs<-length(unique(SubsetDeepDive[FidelityData[,"MatchLocation"],"doc
 # NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
 StepElevenRows<-length(unique(FidelityData[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES 
-StepElevenUnits<-length(unique(FidelityData[,"UnitNames"]))
+StepElevenUnits<-length(unique(FidelityData[,"UnitName"]))
 StepElevenTuples<-"NA"
     
 # Create a final data frame for the output
@@ -279,7 +277,7 @@ DocID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"doci
 SentID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"sentid"])
   
 # Remove unnecessary data from the final output data frame
-OutputData<-FidelityData[,c("UnitNames","Sentences")]
+OutputData<-FidelityData[,c("UnitName","Sentence")]
 # bind the unit name match, sentence, document id, and sentence id data into a data frame
 OutputData<-cbind(OutputData,DocID,SentID)
     
