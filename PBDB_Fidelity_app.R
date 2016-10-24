@@ -71,9 +71,10 @@ NoPBDB<-subset(UnitsFrame, UnitsFrame[,"pbdb_collections"]==0)
 
 print(paste("Finish loading postgres tables.",Sys.time()))
 
-# Make a list of units that are unfossiliferous according to PBDB
-CandidateUnits<-as.character(unique(NoPBDB[,"strat_name_long"]))
-CandidateUnits<-CandidateUnits[which(sapply(CandidateUnits,nchar)>0)]
+# Group by long strat name and take sum of pbdb_collections values
+Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long"],sum)
+# Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
+CandidateUnits<-names(which(Collections==0))
 
 # RECORD STATS
 # NUMBER OF UNITS OF INTEREST:
