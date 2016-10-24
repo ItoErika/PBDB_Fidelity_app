@@ -34,7 +34,7 @@ Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 # STEP ONE: Load DeepDiveData 
 # Make SQL query
-DeepDiveData<-dbGetQuery(Connection,"SELECT docid, words FROM nlp_sentences_352")
+DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352")
 # Consider converting to a chracter matrix to cut down on memory. DeepDiveData<-as.matrix(DeepDiveData)
 
 # RECORD INITIAL STATS
