@@ -4,8 +4,8 @@ library("RPostgreSQL")
 
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data")
 
-# Subset DeepDiveData to 200,000 rows 
-DeepDiveData<-DeepDiveData[1:100000,]
+# Subset DeepDiveData to 500,000 rows 
+DeepDiveData<-DeepDiveData[1:500000,]
 
 # RECORD INITIAL STATS
 # INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA: 
