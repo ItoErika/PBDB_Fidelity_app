@@ -28,6 +28,7 @@ CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%i
 
 # Join the territory names which intersect with the unit locations to CandidatesFrame
 CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id",all.x="TRUE")
+CandidatesFrame<-unique(CandidatesFrame)
 
 # Extracts columns of interest
 CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
@@ -35,9 +36,29 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
 # Sort CandidatesFrame data by col_id and return state/territory name for each 
 ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique(x[,"name"]))
   
+OutputFrame<-subset(CandidatesFrame,CandidatesFrame[,"strat_name_long"]%in%unique(OutputData[,"UnitName"])
+UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x[,"name"]))
+             
+for (NAME in names(UnitStates)) {
+    Documents<-subset(OutputData,OutputData[,"UnitName"]==NAME)[,"DocID"]
+    for (DOCID in DOCUMENTS) {
+      DocumentSubset<-subset(DeepDiveData,DeepDiveData[,"docid"]==DOCID)
+        for (STATE in UnitStates[[NAME]]) {
+          grep(STATE,DocumentSubset[,"words"],perl=TRUE)
+          }
+      }
+  }
 
+Test<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)  
   
+goodFunction<-function(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"]){
+    DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
+    CleanedWords<-gsub(","," ",DeepDive[,"words"])
+    LocationHits<-grep(location, CleanedWords[,"words"],perl=TRUE)
+    return(LocationHits)
+    }
+  
+  
+Test2<-mapply(goodFunction,SubsetDeepDive, Test[,"DocID"], Test[,"name"])
 
-
-
-
+    
