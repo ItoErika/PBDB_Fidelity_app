@@ -256,7 +256,7 @@ DocID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"doci
 SentID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"sentid"])
 
 # Remove unnecessary data from the final output data frame
-OutputData<-FidelityData[,c("UnitName","Sentences")]
+OutputData<-FidelityData[,c("UnitName","Sentence")]
 # bind the unit name match, sentence, document id, and sentence id data into a data frame
 OutputData<-cbind(OutputData,DocID,SentID)
 
