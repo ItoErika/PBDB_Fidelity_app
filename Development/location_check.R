@@ -29,6 +29,8 @@ CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%i
 # Join the territory names which intersect with the unit locations to CandidatesFrame
 CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id",all.x="TRUE")
 
+# Extracts columns of interest
+CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
 
 
 
