@@ -1,6 +1,11 @@
+# Load Libraries
 library("RCurl")
 library("doParallel")
 library("RPostgreSQL")
+
+# Connet to PostgreSQL
+Driver <- dbDriver("PostgreSQL") # Establish database driver
+Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
 
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data")
 
