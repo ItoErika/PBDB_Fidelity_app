@@ -62,8 +62,15 @@ LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"DocID"], l
 LocationHits<-unique(LocationHits)
                          
 # Convert UnitOutputData into a matrix of just docid and location names
-UnitDocLocation<-as.matrix(UnitOutputData[,c("DocID","location")])
+UnitDocLocation<-as.matrix(UnitOutputData[,c("DocID","location")])                         
+# Make a column of docid and location data combined for LocationHits and UnitDocLocation
+Doc.Location1<-paste(LocationHits[,"LocationDocs"],LocationHits[,"Location"],sep=".")
+Doc.Location2<-paste(UnitDocLocation[,"DocID"],UnitDocLocation[,"location"],sep=".")
+# Bind these columns to each respective matrix
+LocationHits<-cbind(LocationHits, Doc.Location1)
+UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
+
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
-CheckedUnitData<-UnitOutputData[which(UnitDocLocation[,"DocID"]%in%LocationHits[,"LocationDocs"]&UnitDocLocation[,"location"]%in%LocationHits[,"Location"]),]
+CheckedUnitData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
 
     
