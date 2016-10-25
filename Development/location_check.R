@@ -1,4 +1,5 @@
 # Load Libraries
+library("data.table")
 library("RCurl")
 library("RPostgreSQL")
 
@@ -31,30 +32,38 @@ CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id",all.x="TRUE")
 CandidatesFrame<-unique(CandidatesFrame)
 
 # Extracts columns of interest
-CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
+CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")]
 
 # Sort CandidatesFrame data by col_id and return state/territory name for each 
-ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique(x[,"name"]))
+ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique(x[,"location"]))
   
 OutputFrame<-subset(CandidatesFrame,CandidatesFrame[,"strat_name_long"]%in%unique(OutputData[,"UnitName"]))
-UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x[,"name"]))
-
+UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x[,"location"]))
   
+  
+# rename the output data column of unit names so OutputData can be merged with location data for the units
 colnames(OutputData)[1]<-"strat_name_long"
-Test<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)      
+# Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
+UnitOutputData<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)
+# Remove the columns that are not needed
+UnitOutputData<-UnitOutputData[,c("strat_name_long","DocID","SentID","location")]
   
-locationSearch<-function(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"]){
+locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=UnitOutputData[,"location"]){
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
     CleanedWords<-gsub(","," ",DeepDive[,"words"])
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
     LocationHitsLength<-sapply(LocationHits,length)
-    Locations<-rep(names(LocationHits),times=LocationHitsLength)
+    Location<-rep(names(LocationHits),times=LocationHitsLength)
     LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
-    return(cbind(LocationDocs,Locations))
+    return(cbind(LocationDocs,Location))
     }
                          
-LocationHits<-locationSearch(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"])
+LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=UnitOutputData[,"location"])
 LocationHits<-unique(LocationHits)
-  
+                         
+# Convert UnitOutputData into a matrix of just docid and location names
+UnitOutputData<-as.matrix(UnitOutputData[,c("DocID","location")])
+# Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
+UnitOutputData[which(UnitOutputData%in%LocationHits),]
 
     
