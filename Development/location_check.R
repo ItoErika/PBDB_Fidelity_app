@@ -45,8 +45,6 @@ UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x
 colnames(OutputData)[1]<-"strat_name_long"
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 UnitOutputData<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)
-# Remove the columns that are not needed
-UnitOutputData<-UnitOutputData[,c("strat_name_long","DocID","SentID","location")]
   
 locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=UnitOutputData[,"location"]){
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
@@ -72,5 +70,31 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
 
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
 CheckedUnitData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
+                         
+# Remove hits for microfossils and trace fossils within the output sentences
+Micro<-grep("microfossil", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Trace<-grep("trace fossil", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+# Remove instances of the words "no fossils" to account for reading errors
+NoFossils<-grep(" no fossils", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+LackFossils<-grep("lacks fossils", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+LackOfFossils<-grep("lack of fossils", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+AbsentFossils<-grep("absence of fossils", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+VoidFossils<-grep("void of fossils", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Correlative<-grep("correlative", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Equivalent<-grep("equivalent", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Above<-grep("above", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Below<-grep("below", CheckedUnitData[,"Sentence"], ignore.case=TRUE, perl=TRUE) 
+UnwantedRows<-unique(c(Micro,Trace,NoFossils,LackFossils,LackOfFossils,AbsentFossils,VoidFossils,Correlative,Equivalent,Above,Below))
+                         
+CleanedOutput<-CheckedUnitData[-UnwantedRows,]
+                         
+# Take a random sample of 100 Stage1Output Rows to check accuracy
+CleanedSampleOutput2<-CleanedOutput[sample(c(1:nrow(CleanedOutput)),100,replace=FALSE),]
+
+
+# Save SampleOutput1 to a folder
+write.csv(CleanedSampleOutput2,file="~/Documents/DeepDive/PBDB_Fidelity/R/CleanedSampleOutput2.csv",row.names=FALSE)
+# Open the csv in excel or libre office and perform a manual accuracy test
+# Renamed "CleanedSampleOutput2_Completed.csv"                   
 
     
