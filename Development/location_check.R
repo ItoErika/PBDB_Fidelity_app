@@ -36,29 +36,25 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","name")]
 # Sort CandidatesFrame data by col_id and return state/territory name for each 
 ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique(x[,"name"]))
   
-OutputFrame<-subset(CandidatesFrame,CandidatesFrame[,"strat_name_long"]%in%unique(OutputData[,"UnitName"])
+OutputFrame<-subset(CandidatesFrame,CandidatesFrame[,"strat_name_long"]%in%unique(OutputData[,"UnitName"]))
 UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x[,"name"]))
-             
-for (NAME in names(UnitStates)) {
-    Documents<-subset(OutputData,OutputData[,"UnitName"]==NAME)[,"DocID"]
-    for (DOCID in DOCUMENTS) {
-      DocumentSubset<-subset(DeepDiveData,DeepDiveData[,"docid"]==DOCID)
-        for (STATE in UnitStates[[NAME]]) {
-          grep(STATE,DocumentSubset[,"words"],perl=TRUE)
-          }
-      }
-  }
 
-Test<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)  
   
-goodFunction<-function(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"]){
+colnames(OutputData)[1]<-"strat_name_long"
+Test<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)      
+  
+locationSearch<-function(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"]){
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
     CleanedWords<-gsub(","," ",DeepDive[,"words"])
-    LocationHits<-grep(location, CleanedWords[,"words"],perl=TRUE)
-    return(LocationHits)
+    LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
+    LocationHitsLength<-sapply(LocationHits,length)
+    Locations<-rep(names(LocationHits),times=LocationHitsLength)
+    LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
+    return(cbind(LocationDocs,Locations))
     }
+                         
+LocationHits<-locationSearch(SubsetDeepDive,Document=Test[,"DocID"], location=Test[,"name"])
+LocationHits<-unique(LocationHits)
   
-  
-Test2<-mapply(goodFunction,SubsetDeepDive, Test[,"DocID"], Test[,"name"])
 
     
