@@ -57,3 +57,40 @@ LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(Locat
   
 # Bind the LocationMatrix to LithMatrix
 UnitDataTable<-as.data.frame(cbind(LithMatrix,LocationMatrix))
+
+function(Timescale) {
+	Timescale<-gsub(" ","%20",Timescale)
+	URL<-paste("https://dev.macrostrat.org/api/defs/intervals?format=csv&timescale=",Timescale,sep="")
+	GotURL<-getURL(URL)
+	Intervals<-read.csv(text=GotURL,header=T)
+	Midpoint<-apply(Intervals[,c("t_age","b_age")],1,median)
+	Intervals<-cbind(Intervals,Midpoint)
+	rownames(Intervals)<-Intervals[,"name"]
+	return(Intervals)
+	}
+  
+Periods<-downloadTime("international%20periods")
+  
+multipleAges<-function(SubsetUnitsFrame,Periods) {
+	  FinalMatrix<-matrix(0,nrow=nrow(SubsetUnitsFrame),ncol=nrow(Periods))
+	  SubsetUnitsFrame[,"b_int_name"]<-as.character(SubsetUnitsFrame[,"b_int_name"])
+	  SubsetUnitsFrame[,"t_int_name"]<-as.character(SubsetUnitsFrame[,"t_int_name"])
+	  colnames(FinalMatrix)<-Periods[,"name"]
+	  for (i in 1:nrow(Periods)) {
+		    EarlyPos<-which(SubsetUnitsFrame[,"t_int_age"]>Periods[i,"t_age"] & SubsetUnitsFrame[,"t_int_age"]<=Periods[i,"b_age"])
+		    SubsetUnitsFrame[EarlyPos,"b_int_name"]<-as.character(Periods[i,"name"])
+ 		    LatePos<-which(SubsetUnitsFrame[,"b_int_age"]>=Periods[i,"t_age"] & SubsetUnitsFrame[,"b_int_age"]<Periods[i,"b_age"])
+ 		    SubsetUnitsFrame[LatePos,"t_int_name"]<-as.character(Periods[i,"name"])
+ 		    }
+ 	  EarlyInterval<-match(SubsetUnitsFrame[,"b_int_name"],colnames(FinalMatrix))
+ 	  LateInterval<-match(SubsetUnitsFrame[,"t_int_name"],colnames(FinalMatrix))
+ 	  Positions<-rbind(cbind(1:nrow(FinalMatrix),EarlyInterval),cbind(1:nrow(FinalMatrix),LateInterval))
+ 	  FinalMatrix[Positions]<-1
+	  return(FinalMatrix)
+	  }
+ 
+ AgeMatrix<-multipleAges(SubsetUnitsFrame,Periods)
+  
+  
+  
+  
