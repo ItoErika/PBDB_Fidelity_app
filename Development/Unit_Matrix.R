@@ -1,5 +1,6 @@
 # Load libraries
 library("RCurl")
+library("RPostgreSQL")
 
 # Download all marine, sedimentary unit names from Macrostrat Database
 UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
@@ -18,21 +19,27 @@ Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","br
 
 # Create a matrix showing whether or not each lithology category corresponds with each row of SubsetUnitsFrame[,"lith"]
 LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+# Convert the logical data into numerical data
+LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
 
 # Bind the LithMatrix to the "strat_name_long" column of SubsetUnitsFrame
-# NOTE: this will convert logical data in LithMatrix to numerical data
-LithMatrix<-cbind(SubsetUnitsFrame[,"strat_name_long"],LithMatrix)
+LithMatrix<-as.data.frame(cbind(as.character(SubsetUnitsFrame[,"strat_name_long"]),LithMatrix))
 
+# Create a vector of all the state/location names
+# Connet to PostgreSQL
+Driver <- dbDriver("PostgreSQL") # Establish database driver
+Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
+# Load intersected location tuples table 
+LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersections") 
 
-# Create a community matrix of samples v. species, using elements within one of the PBDB columns
-# (e.g., geoplate, early_interval) as the definition of a sample. This is a presence-absence matrix.
-presenceMatrix<-function(DataPBDB,Rows="geoplate",Columns="genus") {
-  FinalMatrix<-matrix(0,nrow=length(unique(DataPBDB[,Rows])),ncol=length(unique(DataPBDB[,Columns])))
-  rownames(FinalMatrix)<-unique(DataPBDB[,Rows])
-  colnames(FinalMatrix)<-unique(DataPBDB[,Columns])
-  ColumnPositions<-match(DataPBDB[,Columns],colnames(FinalMatrix))
-  RowPositions<-match(DataPBDB[,Rows],rownames(FinalMatrix))
-  Positions<-cbind(RowPositions,ColumnPositions)
-  FinalMatrix[Positions]<-1
-  return(FinalMatrix)
-  }
+# Group LocationTuple data by "col_id" column
+GroupedLocationsList<-tapply(LocationTuples[,"location"],LocationTuples[,"col_id"],as.character)
+# Collapse the elements for each "col_id" in the list so that a vector is returned
+GroupedLocations<-sapply(GroupedLocations, function(x) paste(x, collapse=' '))
+# make a vector of each respective col_id for the collapsed lcoations
+ColID<-as.numeric(names(GroupedLocationsVector))
+# bind the ColID vector with the GroupedLocations vector
+ColIDLocationData<-as.data.frame(cbind(ColID,GroupedLocations))
+# Convert the GroupedLocations column to character data
+ColIDLocationData[,"GroupedLocations"]<-as.character(ColIDLocationData[,"GroupedLocations"])
+  
