@@ -298,6 +298,7 @@ print(paste("Writing Outputs",Sys.time()))
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory,"/output",sep=""))
     
+write.csv(UnitHitData, "UnitHitData.csv")
 write.csv(Stats,"Stats.csv",row.names=FALSE)
 saveRDS(OutputData,"Fidelity_OutputData.rds")
 write.csv(OutputData,"Fidelity_OutputData.csv")
