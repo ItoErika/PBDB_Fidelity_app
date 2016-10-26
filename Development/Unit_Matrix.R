@@ -58,6 +58,8 @@ LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(Locat
 # Bind the LocationMatrix to LithMatrix
 UnitDataTable<-as.data.frame(cbind(LithMatrix,LocationMatrix))
 
+	
+# download timescale data from macrostrat
 function(Timescale) {
 	Timescale<-gsub(" ","%20",Timescale)
 	URL<-paste("https://dev.macrostrat.org/api/defs/intervals?format=csv&timescale=",Timescale,sep="")
@@ -70,27 +72,37 @@ function(Timescale) {
 	}
   
 Periods<-downloadTime("international%20periods")
-  
+	
+# create a matrix showing whether or not each period from Periods corresponds with each unit of SubsetUnitsFrame  
 multipleAges<-function(SubsetUnitsFrame,Periods) {
-	  FinalMatrix<-matrix(0,nrow=nrow(SubsetUnitsFrame),ncol=nrow(Periods))
-	  SubsetUnitsFrame[,"b_int_name"]<-as.character(SubsetUnitsFrame[,"b_int_name"])
-	  SubsetUnitsFrame[,"t_int_name"]<-as.character(SubsetUnitsFrame[,"t_int_name"])
-	  colnames(FinalMatrix)<-Periods[,"name"]
-	  for (i in 1:nrow(Periods)) {
-		    EarlyPos<-which(SubsetUnitsFrame[,"t_int_age"]>Periods[i,"t_age"] & SubsetUnitsFrame[,"t_int_age"]<=Periods[i,"b_age"])
-		    SubsetUnitsFrame[EarlyPos,"b_int_name"]<-as.character(Periods[i,"name"])
- 		    LatePos<-which(SubsetUnitsFrame[,"b_int_age"]>=Periods[i,"t_age"] & SubsetUnitsFrame[,"b_int_age"]<Periods[i,"b_age"])
- 		    SubsetUnitsFrame[LatePos,"t_int_name"]<-as.character(Periods[i,"name"])
- 		    }
- 	  EarlyInterval<-match(SubsetUnitsFrame[,"b_int_name"],colnames(FinalMatrix))
- 	  LateInterval<-match(SubsetUnitsFrame[,"t_int_name"],colnames(FinalMatrix))
- 	  Positions<-rbind(cbind(1:nrow(FinalMatrix),EarlyInterval),cbind(1:nrow(FinalMatrix),LateInterval))
- 	  FinalMatrix[Positions]<-1
-	  return(FinalMatrix)
-	  }
+	FinalMatrix<-matrix(0,nrow=nrow(SubsetUnitsFrame),ncol=nrow(Periods))
+	SubsetUnitsFrame[,"b_int_name"]<-as.character(SubsetUnitsFrame[,"b_int_name"])
+	SubsetUnitsFrame[,"t_int_name"]<-as.character(SubsetUnitsFrame[,"t_int_name"])
+	colnames(FinalMatrix)<-Periods[,"name"]
+	for (i in 1:nrow(Periods)) {
+		  EarlyPos<-which(SubsetUnitsFrame[,"t_int_age"]>Periods[i,"t_age"] & SubsetUnitsFrame[,"t_int_age"]<=Periods[i,"b_age"])
+		  SubsetUnitsFrame[EarlyPos,"b_int_name"]<-as.character(Periods[i,"name"])
+ 		  LatePos<-which(SubsetUnitsFrame[,"b_int_age"]>=Periods[i,"t_age"] & SubsetUnitsFrame[,"b_int_age"]<Periods[i,"b_age"])
+ 		  SubsetUnitsFrame[LatePos,"t_int_name"]<-as.character(Periods[i,"name"])
+ 		  }
+	EarlyInterval<-match(SubsetUnitsFrame[,"b_int_name"],colnames(FinalMatrix))
+ 	LateInterval<-match(SubsetUnitsFrame[,"t_int_name"],colnames(FinalMatrix))
+ 	Positions<-rbind(cbind(1:nrow(FinalMatrix),EarlyInterval),cbind(1:nrow(FinalMatrix),LateInterval))
+ 	FinalMatrix[Positions]<-1
+	return(FinalMatrix)
+	}
  
- AgeMatrix<-multipleAges(SubsetUnitsFrame,Periods)
-  
-  
-  
+AgeMatrix<-multipleAges(SubsetUnitsFrame,Periods)
+	
+# Account for the units which span more than two periods in age
+Distance<-apply(AgeMatrix,1,function(x) diff(which(x==1))>1)
+Separated<-which(Distance==TRUE)
+
+# Assign the value 1 for the periods which fall between the earliest and latest period
+for(i in Separated){
+	AgeMatrix[i,which(AgeMatrix[i,]==1)[1]:which(AgeMatrix[i,]==1)[2]]<-1
+	}	
+	
+# Bind the AgeMatrix to UnitDataTable
+UnitDataTable<-as.data.frame(cbind(UnitDataTable,AgeMatrix))
   
