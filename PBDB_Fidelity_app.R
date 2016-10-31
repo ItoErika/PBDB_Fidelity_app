@@ -143,7 +143,7 @@ StepSixUnits<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))
 StepSixTuples<-"NA"
     
 # STEP 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
-# Make a table showing the number of unit names which occur in each DeeoDiveData row that we know has at least one unit match
+# Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
 RowHitsTable<-table(UnitHitData[,"MatchLocation"])
 # Locate and extract rows which contain only one long unit
 # Remember that the names of RowHitsTable correspond to rows within CleanedWords
