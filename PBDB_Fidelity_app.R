@@ -333,16 +333,17 @@ LocationHits<-cbind(LocationHits, Doc.Location1)
 UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
                          
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
+# NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
 CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
-# remove duplicate rows of strat name, sentence, docid, and sentid data
+# remove duplicate rows of strat name, sentence, docid, and sentid data that were created from the location data merge
 FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long","Sentence","DocID","SentID")])
                          
 # RECORD STATS
 StepTwelveDescription<-"Validate unit locations"
 # NUMBER OF DOCUMENTS OF INTEREST 
-StepTwelveDocs<-length(unique(SubsetDeepDive[FinalOutputData[,"MatchLocation"],"docid"]))
+StepTwelveDocs<-length(unique(FinalOutputData[,"DocID"]))
 # NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
-StepTwelveRows<-length(unique(FinalOutputData[,"MatchLocation"]))
+StepTwelveRows<-length(unique(FinalOutputData[,"Sentence"]))
 # NUMBER OF UNIT MATCHES 
 StepTwelveUnits<-length(unique(FinalOutputData[,"strat_name_long"]))
 StepTwelveTuples<-"NA"                                                
