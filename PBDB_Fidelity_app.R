@@ -310,6 +310,7 @@ locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], locat
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
     # make a column of location names for each associated hit
     LocationHitsLength<-sapply(LocationHits,length)
+    names(LocationHits)<-unique(UnitOutputData[,"location"])
     Location<-rep(names(LocationHits),times=LocationHitsLength)
     # make a column for each document the location name is found in
     LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
