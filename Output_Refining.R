@@ -10,6 +10,8 @@ Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5
 # Load intersected location tuples table 
 LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersections")
 
+#VALIDATE THAT THE UNITS IN THE OUTPUT TABLE ARE CORRECT - CHECK IF THEIR CORRECT LOCATION APPEARS IN THE DOCUMENT WITH THEM#
+
 # Load data for macrostrat units that contain candidate units (marine, sedimentary, unfossiliferous in PBDB)
 
 # Download dictionary of unit names from Macrostrat Database
@@ -22,9 +24,9 @@ Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
 CandidateUnits<-names(which(Collections==0))
 
-# Subset UnitsFrame so it only includes Candidate Units
 # Remove all rows from UnitsFrame with blank "strat_name_long" columns
 UnitsFrame<-UnitsFrame[which(nchar(as.character(UnitsFrame[,"strat_name_long"]))>0),]
+# Subset UnitsFrame so it only includes Candidate Units
 CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%in%CandidateUnits),]
 
 # Join the territory names which intersect with the unit locations to CandidatesFrame
@@ -39,14 +41,16 @@ ColumnStates<-by(CandidatesFrame,CandidatesFrame[,"col_id"], function (x) unique
   
 OutputFrame<-subset(CandidatesFrame,CandidatesFrame[,"strat_name_long"]%in%unique(OutputData[,"UnitName"]))
 UnitStates<-by(OutputFrame, OutputFrame[,"strat_name_long"],function(x) unique(x[,"location"]))
-  
+
+# Load OutputData
+OutputData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_1_2016/Fidelity_OutputData.rds")
   
 # rename the output data column of unit names so OutputData can be merged with location data for the units
 colnames(OutputData)[1]<-"strat_name_long"
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 UnitOutputData<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)
   
-locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=UnitOutputData[,"location"]){
+locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=unique(UnitOutputData[,"location"])){
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
     CleanedWords<-gsub(","," ",DeepDive[,"words"])
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
@@ -56,7 +60,7 @@ locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], locat
     return(cbind(LocationDocs,Location))
     }
                          
-LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=UnitOutputData[,"location"])
+LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=unique(UnitOutputData[,"location"]))
 LocationHits<-unique(LocationHits)
                          
 # Convert UnitOutputData into a matrix of just docid and location names
