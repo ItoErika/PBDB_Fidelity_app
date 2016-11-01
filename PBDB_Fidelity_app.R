@@ -297,6 +297,7 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")]
 # rename the output data column of unit names so OutputData can be merged with location data for the units
 colnames(OutputData)[1]<-"strat_name_long"
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
+# NOTE: this merge will create a row for each location/col_id tuple associated with each match.
 UnitOutputData<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)    
 
 # Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
@@ -333,15 +334,17 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
                          
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
 CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
+# remove duplicate rows of strat name, sentence, docid, and sentid data
+FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long","Sentence","DocID","SentID")])
                          
 # RECORD STATS
 StepTwelveDescription<-"Validate unit locations"
 # NUMBER OF DOCUMENTS OF INTEREST 
-StepTwelveDocs<-length(unique(SubsetDeepDive[CheckedOutputData[,"MatchLocation"],"docid"]))
+StepTwelveDocs<-length(unique(SubsetDeepDive[FinalOutputData[,"MatchLocation"],"docid"]))
 # NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
-StepTwelveRows<-length(unique(CheckedOutputData[,"MatchLocation"]))
+StepTwelveRows<-length(unique(FinalOutputData[,"MatchLocation"]))
 # NUMBER OF UNIT MATCHES 
-StepTwelveUnits<-length(unique(CheckedOutputData[,"strat_name_long"]))
+StepTwelveUnits<-length(unique(FinalOutputData[,"strat_name_long"]))
 StepTwelveTuples<-"NA"                                                
                          
 # Return stats table 
@@ -364,8 +367,9 @@ setwd(paste(CurrentDirectory,"/output",sep=""))
 saveRDS(UnitHitData, "UnitHitData.rds")
 write.csv(UnitHitData, "UnitHitData.csv")
 write.csv(Stats,"Stats.csv",row.names=FALSE)
-saveRDS(CheckedOutputData,"Fidelity_OutputData.rds")
-write.csv(CheckedOutputData,"Fidelity_OutputData.csv")
+                         
+saveRDS(FinalOutputData,"Fidelity_OutputData.rds")
+write.csv(FinalOutputData,"Fidelity_OutputData.csv")
 
     
 print(paste("Complete",Sys.time()))
