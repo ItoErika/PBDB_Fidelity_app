@@ -117,4 +117,14 @@ for(i in Separated){
 	
 # Bind the AgeMatrix to UnitDataTable
 UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
-  
+	
+###################### Find which rows in the UnitDataTable were found in the cleaned app output ########################
+
+# Load CleanedOutput
+CleadedOutput<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_2_2016/OutputRefined/CleanedOutput.rds")
+# Extract the unit names from CleanedOutput (units which have fossils according to app)
+CleanedOutputUnits<-unique(CleanedOutput[,"strat_name_long"])
+# Find the unit_id for each unit in cleaned output using SubsetUnitsFrame
+OutputUnitID<-SubsetUnitsFrame[which(SubsetUnitsFrame[,"strat_name_long"]%in%CleanedOutputUnits),"unit_id"]
+# Find which unit_ids associated with units in CleanedOutput are in UnitDataTable
+FossilUnitIDs<-rownames(UnitDataTable[which(rownames(UnitDataTable)%in%OutputUnitID),])
