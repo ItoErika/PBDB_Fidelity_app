@@ -7,9 +7,14 @@ UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
-# Subset UnitsFrame to only include units from UnitHitData
+#Load all of the candidate units (marine, sedimentary, unfossiliferous) that were matched in the documents
+UnitHitData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_2_2016/UnitHitData.rds")
+# Extract all unit name matches
 MatrixUnits<-unique(UnitHitData[,"UnitName"])
+# Subset UnitsFrame to only include units from UnitHitData
 SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits),]
+
+############################################# CREATE LITHOLOGY COLUMNS ###################################################
 
 # Create a vector of lithology categories from SubsetUnitsFrame
 Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","breccia","chalk","chert","clay","coal","conglomerate",
@@ -21,10 +26,13 @@ Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","br
 LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),SubsetUnitsFrame[,"lith"])
 # Convert the logical data into numerical data
 LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
-
+# Create a column of strat names for LithMatrix
+strat_name_long<-as.character(SubsetUnitsFrame[,"strat_name_long"])	
 # Bind the LithMatrix to the "strat_name_long" column of SubsetUnitsFrame
-UnitDataTable<-as.data.frame(cbind(as.character(SubsetUnitsFrame[,"strat_name_long"]),LithMatrix))
-
+UnitDataTable<-as.data.frame(cbind(strat_name_long,LithMatrix))
+	
+############################################# CREATE LOCATION COLUMNS ####################################################	
+	
 # Create a vector of all the state/location names
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
@@ -35,9 +43,9 @@ LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersectio
 # Group LocationTuple data by "col_id" column
 GroupedLocationsList<-tapply(LocationTuples[,"location"],LocationTuples[,"col_id"],as.character)
 # Collapse the elements for each "col_id" in the list so that a vector is returned
-GroupedLocations<-sapply(GroupedLocations, function(x) paste(x, collapse=' '))
+GroupedLocations<-sapply(GroupedLocationsList, function(x) paste(x, collapse=' '))
 # make a vector of each respective col_id for the collapsed lcoations
-col_id<-as.numeric(names(GroupedLocationsVector))
+col_id<-as.numeric(names(GroupedLocations))
 # bind the ColID vector with the GroupedLocations vector
 ColIDLocationData<-as.data.frame(cbind(col_id,GroupedLocations))
 # Convert the GroupedLocations column to character data
@@ -48,16 +56,18 @@ SubsetUnitsFrame<-merge(SubsetUnitsFrame,ColIDLocationData,by="col_id", all.x=TR
   
 # Create a vector of locations
 Locations<-unique(LocationTuples[,"location"])
-# Remove blanks
-Locations<-na.omit(Locations)
 # Create a matrix showing whether or not each location corresponds with each row or SubsetUnitsFrame[,"GroupedLocations"]
 LocationMatrix<-sapply(Locations,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),as.character(SubsetUnitsFrame[,"GroupedLocations"]))
 # Convert the logical data into numerical data
 LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(LocationMatrix)])
   
 # Bind the LocationMatrix to LithMatrix
-UnitDataTable<-as.data.frame(cbind(LithMatrix,LocationMatrix))
+UnitDataTable<-as.data.frame(cbind(UnitDataTable,LocationMatrix))
 
+############################################## CREATE TIME COLUMNS ###################################################
+	
+# Load communityMatrix.R modgule of paleobiology database r package
+source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
 	
 # download timescale data from macrostrat
 function(Timescale) {
