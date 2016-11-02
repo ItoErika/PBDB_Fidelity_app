@@ -3,7 +3,7 @@
 library("RCurl")
 
 options(timeout=600)
-FossilURL<-"https://paleobiodb.org/data1.2/occs/list.csv?base_name=eukaryota&show=loc,strat,lith,lithext,geo"
+FossilURL<-"https://paleobiodb.org/data1.2/occs/list.csv?base_name=eukaryota&show=genus,loc,strat,lith,lithext,geo"
 GotURL<-getURL(FossilURL)
 FossilsFrame<-read.csv(text=GotURL,header=TRUE)
 
@@ -44,4 +44,32 @@ StateMarineUnits<-cbind(state,StateMarineUnits)
 colnames(StateMarineUnits)[2]<-"NumMarineUnits"
 
 # Merge population, GDP, occurrences, and marine units data
-merge(StateData, StateMarineUnits, by="state", all.x=TRUE)
+StateData<-merge(StateData, StateMarineUnits, by="state", all.x=TRUE)
+
+# Remove unwanted columns
+StateData<-na.omit(StateData)
+StateData<-StateData[-9,]
+
+# Create a vector of unique references for each state
+References<-as.matrix(tapply(FossilsFrame[,"reference_no"],FossilsFrame[,"state"],function(x) length(unique(x))))
+# make a vector for states
+state<-rownames(References)
+# bind states column to References matrix 
+References<-cbind(state, References)
+# name columns
+colnames(References)[2]<-"NumReferences"
+  
+# merge references data to StateData
+StateData<-merge(StateData, References, by="state", all.x=TRUE)
+
+# Create a matrix of unique genus for each state (richness)
+Richness<-as.matrix(tapply(FossilsFrame[,"genus"],FossilsFrame[,"state"],function(x) length(unique(x))))
+# make a vector for states
+state<-rownames(Richness)  
+# bind states column to Richness matrix 
+Richness<-cbind(state, Richness)
+# name columns
+colnames(Richness)[2]<-"NumGenera"
+  
+# merge richness data to StateData
+StateData<-merge(StateData, Richness, by="state", all.x=TRUE)
