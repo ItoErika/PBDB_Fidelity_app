@@ -56,6 +56,8 @@ SubsetUnitsFrame<-merge(SubsetUnitsFrame,ColIDLocationData,by="col_id", all.x=TR
   
 # Create a vector of locations
 Locations<-unique(LocationTuples[,"location"])
+# Remove blanks
+Locations<-na.omit(Locations)
 # Create a matrix showing whether or not each location corresponds with each row or SubsetUnitsFrame[,"GroupedLocations"]
 LocationMatrix<-sapply(Locations,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),as.character(SubsetUnitsFrame[,"GroupedLocations"]))
 # Convert the logical data into numerical data
