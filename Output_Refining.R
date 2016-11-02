@@ -19,11 +19,11 @@ UnwantedRows<-unique(c(Micro,Trace,NoFossils,LackFossils,LackOfFossils,AbsentFos
 CleanedOutput<-OutputData[-UnwantedRows,]
                          
 # Take a random sample of 100 Stage1Output Rows to check accuracy
-CleanedSampleOutput2<-CleanedOutput[sample(c(1:nrow(CleanedOutput)),100,replace=FALSE),]
+# CleanedSampleOutput2<-CleanedOutput[sample(c(1:nrow(CleanedOutput)),100,replace=FALSE),]
 
 
 # Save SampleOutput1 to a folder
-write.csv(CleanedSampleOutput2,file="~/Documents/DeepDive/PBDB_Fidelity/R/CleanedSampleOutput2.csv",row.names=FALSE)
+# write.csv(CleanedSampleOutput2,file="~/Documents/DeepDive/PBDB_Fidelity/R/CleanedSampleOutput2.csv",row.names=FALSE)
 # Open the csv in excel or libre office and perform a manual accuracy test
 # Renamed "CleanedSampleOutput2_Completed.csv"                   
 
