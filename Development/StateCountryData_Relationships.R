@@ -73,3 +73,42 @@ colnames(Richness)[2]<-"NumGenera"
   
 # merge richness data to StateData
 StateData<-merge(StateData, Richness, by="state", all.x=TRUE)
+   
+# Load country IHDI data 
+CountryData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/countryihdi.csv")
+# change column name for merge
+colnames(CountryData)[1]<-"cc"
+
+# Create a matrix of the number of PBDB occurrences per country
+CountryOccurrences<-as.matrix(table(FossilsFrame[,"cc"]))
+# Create a country code column
+cc<-rownames(CountryOccurrences)
+CountryOccurrences<-cbind(cc,CountryOccurrences)
+colnames(CountryOccurrences)[2]<-"NumOccurrences"
+
+# Merge CountryData with CountryOccurrences
+CountryData<-merge(CountryData, CountryOccurrences, by="cc", all.x=TRUE)
+  
+# Create a vector of unique references for each country
+CReferences<-as.matrix(tapply(FossilsFrame[,"reference_no"],FossilsFrame[,"cc"],function(x) length(unique(x))))
+# make a vector for country codes
+cc<-rownames(CReferences)
+# bind cc column to CReferences matrix 
+CReferences<-cbind(cc, CReferences)
+# name columns
+colnames(CReferences)[2]<-"NumReferences"
+  
+# merge references data to StateData
+CountryData<-merge(CountryData, CReferences, by="cc", all.x=TRUE)
+
+# Create a matrix of unique genus for each country (richness)
+CRichness<-as.matrix(tapply(FossilsFrame[,"genus"],FossilsFrame[,"cc"],function(x) length(unique(x))))
+# make a vector for country codes
+cc<-rownames(CRichness)  
+# bind states column to CRichness matrix 
+CRichness<-cbind(cc, CRichness)
+# name columns
+colnames(CRichness)[2]<-"NumGenera"
+  
+# merge richness data to StateData
+CountryData<-merge(CountryData, CRichness, by="cc", all.x=TRUE)
