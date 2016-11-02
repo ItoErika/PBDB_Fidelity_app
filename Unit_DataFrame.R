@@ -1,3 +1,4 @@
+# NOTE: Refine the output prior to running this stage.
 # Load libraries
 library("RCurl")
 library("RPostgreSQL")
@@ -26,10 +27,9 @@ Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","br
 LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),SubsetUnitsFrame[,"lith"])
 # Convert the logical data into numerical data
 LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
-# Create a column of strat names for LithMatrix
-strat_name_long<-as.character(SubsetUnitsFrame[,"strat_name_long"])	
-# Bind the LithMatrix to the "strat_name_long" column of SubsetUnitsFrame
-UnitDataTable<-as.data.frame(cbind(strat_name_long,LithMatrix))
+# Name final matrix
+UnitDataTable<-data.matrix(LithMatrix)
+rownames(UnitDataTable)<-as.character(SubsetUnitsFrame[,"unit_id"])
 	
 ############################################# CREATE LOCATION COLUMNS ####################################################	
 	
@@ -64,7 +64,7 @@ LocationMatrix<-sapply(Locations,function(x,y) grepl(x,y,ignore.case=FALSE, perl
 LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(LocationMatrix)])
   
 # Bind the LocationMatrix to LithMatrix
-UnitDataTable<-as.data.frame(cbind(UnitDataTable,LocationMatrix))
+UnitDataTable<-data.matrix(cbind(UnitDataTable,LocationMatrix))
 
 ############################################## CREATE TIME COLUMNS ###################################################
 	
@@ -116,5 +116,5 @@ for(i in Separated){
 	}	
 	
 # Bind the AgeMatrix to UnitDataTable
-UnitDataTable<-as.data.frame(cbind(UnitDataTable,AgeMatrix))
+UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
   
