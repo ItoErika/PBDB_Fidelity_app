@@ -112,3 +112,16 @@ colnames(CRichness)[2]<-"NumGenera"
   
 # merge richness data to StateData
 CountryData<-merge(CountryData, CRichness, by="cc", all.x=TRUE)
+  
+# Convert CountryData into a data frame
+CountryData<-as.data.frame(CountryData)
+CountryData[,"cc"]<-as.character(CountryData[,"cc"])
+CountryData[,"ihdi"]<-as.numeric(as.character(CountryData[,"ihdi"]))
+CountryData[,"NumOccurrences"]<-as.numeric(as.character(CountryData[,"NumOccurrences"]))
+CountryData[,"NumReferences"]<-as.numeric(as.character(CountryData[,"NumReferences"]))
+CountryData[,"NumGenera"]<-as.numeric(as.character(CountryData[,"NumGenera"]))
+
+# Replace NA's with zeroes
+CountryData[,c("NumOccurrences","NumReferences","NumGenera")][is.na(CountryData[,c("NumOccurrences","NumReferences","NumGenera")])]<-0
+  
+
