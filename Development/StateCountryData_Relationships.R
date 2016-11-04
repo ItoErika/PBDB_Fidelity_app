@@ -1,6 +1,7 @@
 # Test the relationship between the number of PBDB occurrences and the GDP and population of U.S. states.
 
 library("RCurl")
+library("RPostgreSQL")
 
 options(timeout=600)
 FossilURL<-"https://paleobiodb.org/data1.2/occs/list.csv?base_name=eukaryota&show=genus,loc,strat,lith,lithext,geo"
@@ -14,14 +15,19 @@ state<-rownames(StateOccurrences)
 StateOccurrences<-cbind(state,StateOccurrences)
 colnames(StateOccurrences)[2]<-"NumOccurrences"
 
-# Load U.S. state GDP and population data
-StatePopGDP<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/state2015_pop_gdp.csv")
-colnames(StatePopGDP)[1]<-"state"
-colnames(StatePopGDP)[2]<-"Pop2015"
-colnames(StatePopGDP)[3]<-"GDP2015"
+# Load U.S. state area, GDP, and population data
+StateData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/state2015_pop_gdp.csv")
+
+# Convert state land area column from square miles into square kilometers
+StateData[,2]<-StateData[,2]/0.38610
+
+colnames(StateData)[1]<-"state"
+colnames(StateData)[2]<-"LandArea.sqkm"
+colnames(StateData)[3]<-"Pop2015"
+colnames(StateData)[4]<-"GDP2015"
 
 # Merge population, GDP, and occurrences data
-StateData<-merge(StatePopGDP, StateOccurrences, by="state", all.x=TRUE)
+StateData<-merge(StateData, StateOccurrences, by="state", all.x=TRUE)
 
 # Load Macrostrat data
 # Download all marine, sedimentary unit names from Macrostrat Database
@@ -30,6 +36,8 @@ GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 # Load intersected location tuples table 
+Driver <- dbDriver("PostgreSQL") # Establish database driver
+Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
 LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersections") 
 
 # merge the Location to UnitsFrame by col_id
@@ -73,11 +81,25 @@ colnames(Richness)[2]<-"NumGenera"
   
 # merge richness data to StateData
 StateData<-merge(StateData, Richness, by="state", all.x=TRUE)
+  
+# Convert columns in state data into correct format
+StateData[,"state"]<-as.character(StateData[,"state"])
+StateData[,"LandArea.sqkm"]<-as.numeric(as.character(StateData[,"LandArea.sqkm"]))
+StateData[,"Pop2015"]<-as.numeric(as.character(StateData[,"Pop2015"]))
+StateData[,"GDP2015"]<-as.numeric(as.character(StateData[,"GDP2015"]))
+StateData[,"NumOccurrences"]<-as.numeric(as.character(StateData[,"NumOccurrences"]))
+StateData[,"NumMarineUnits"]<-as.numeric(as.character(StateData[,"NumMarineUnits"]))
+StateData[,"NumReferences"]<-as.numeric(as.character(StateData[,"NumReferences"]))
+StateData[,"NumGenera"]<-as.numeric(as.character(StateData[,"NumGenera"]))
+  
+# Add columns of PBDB and macrostrat data normalized according to area of states to StateData
+StateData[,"AreaNormOcc"]<-StateData[,"NumOccurrences"]/StateData[,"LandArea.sqkm"]
+StateData[,"AreaNormUnits"]<-StateData[,"NumMarineUnits"]/StateData[,"LandArea.sqkm"]
+StateData[,"AreaNormRef"]<-StateData[,"NumReferences"]/StateData[,"LandArea.sqkm"]
+StateData[,"AreaNormGen"]<-StateData[,"NumGenera"]/StateData[,"LandArea.sqkm"]
    
 # Load country IHDI data 
 CountryData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/countryihdi.csv")
-# change column name for merge
-colnames(CountryData)[1]<-"cc"
 
 # Create a matrix of the number of PBDB occurrences per country
 CountryOccurrences<-as.matrix(table(FossilsFrame[,"cc"]))
@@ -117,6 +139,9 @@ CountryData<-merge(CountryData, CRichness, by="cc", all.x=TRUE)
 CountryData<-as.data.frame(CountryData)
 CountryData[,"cc"]<-as.character(CountryData[,"cc"])
 CountryData[,"ihdi"]<-as.numeric(as.character(CountryData[,"ihdi"]))
+# Remove commas from area column
+CountryData[,"LandArea.sqkm"]<-gsub(",","",CountryData[,"LandArea.sqkm"])
+CountryData[,"LandArea.sqkm"]<-as.numeric(as.character(CountryData[,"LandArea.sqkm"]))
 CountryData[,"NumOccurrences"]<-as.numeric(as.character(CountryData[,"NumOccurrences"]))
 CountryData[,"NumReferences"]<-as.numeric(as.character(CountryData[,"NumReferences"]))
 CountryData[,"NumGenera"]<-as.numeric(as.character(CountryData[,"NumGenera"]))
@@ -124,4 +149,11 @@ CountryData[,"NumGenera"]<-as.numeric(as.character(CountryData[,"NumGenera"]))
 # Replace NA's with zeroes
 CountryData[,c("NumOccurrences","NumReferences","NumGenera")][is.na(CountryData[,c("NumOccurrences","NumReferences","NumGenera")])]<-0
   
+# Create and add area normalized PBDB data columns to CountryData
+CountryData["AreaNormOcc"]<-CountryData[,"NumOccurrences"]/CountryData[,"LandArea.sqkm"]
+CountryData["AreaNormRef"]<-CountryData[,"NumReferences"]/CountryData[,"LandArea.sqkm"]
+CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqkm"]
 
+# Sources: 
+# State Area Source: http://www.census.gov/prod/cen2010/cph-2-1.pdf
+# Country Area Source: https://www.cia.gov/library/publications/the-world-factbook/fields/2147.html
