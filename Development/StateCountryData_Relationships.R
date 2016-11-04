@@ -62,7 +62,7 @@ StateData<-StateData[-9,]
 References<-as.matrix(tapply(FossilsFrame[,"reference_no"],FossilsFrame[,"state"],function(x) length(unique(x))))
 # make a vector for states
 state<-rownames(References)
-# bind states column to References matrix 
+# bind states column to References matrix
 References<-cbind(state, References)
 # name columns
 colnames(References)[2]<-"NumReferences"
@@ -154,6 +154,121 @@ CountryData["AreaNormOcc"]<-CountryData[,"NumOccurrences"]/CountryData[,"LandAre
 CountryData["AreaNormRef"]<-CountryData[,"NumReferences"]/CountryData[,"LandArea.sqkm"]
 CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqkm"]
 
+#################################################### ANALYSIS ############################################################  
+  
+# ANALYZE UNNORMALIZED DATA
+  
+cor.test(StateData[,"GDP2015"],StateData[,"NumOccurrences"], method="spearman")
+# S = 20242, p-value = 0.8228
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho: -0.0327551 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"NumMarineUnits"], method="spearman")
+# S = 22397, p-value = 0.328
+# alternative hypothesis: true rho is not equal to 0
+#sample estimates: rho -0.1427077 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"NumReferences"], method="spearman")
+# S = 18232, p-value = 0.6337
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.06980126 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"NumGenera"], method="spearman")
+# S = 19730, p-value = 0.9641
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho -0.006632653 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"NumOccurrences"], method="spearman")
+# S = 15530, p-value = 0.1519
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.2076531 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"NumMarineUnits"], method="spearman")
+# S = 14789, p-value = 0.08913
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.2454654 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"NumReferences"], method="spearman")
+# S = 16866, p-value = 0.3391
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.1395005 
+
+cor.test(StateData[,"Pop2015"],StateData[,"NumGenera"], method="spearman") 
+# S = 14432, p-value = 0.06739
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.2636735 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"NumOccurrences"], method="spearman")
+# S = 286110, p-value = 5.483e-11
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho  0.5013716 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"NumReferences"], method="spearman")
+# S = 288340, p-value = 8.11e-11
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.4974978 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"NumGenera"], method="spearman")
+# S = 274520, p-value = 6.561e-12
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho  0.5215739 
+  
+# ANALYZE NORMALIZED DATA 
+cor.test(StateData[,"GDP2015"],StateData[,"AreaNormOcc"], method="spearman")
+# S = 18422, p-value = 0.6808
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.06010204 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"AreaNormUnits"], method="spearman")
+# S = 21002, p-value = 0.6243
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho -0.07153061 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"AreaNormRef"], method="spearman")
+# S = 14816, p-value = 0.09107
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho  0.2440816 
+  
+cor.test(StateData[,"GDP2015"],StateData[,"AreaNormGen"], method="spearman")
+# S = 19694, p-value = 0.9741
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho  -0.004795918 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"AreaNormOcc"], method="spearman")
+# S = 13732, p-value = 0.03704
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.2993878 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"AreaNormUnits"], method="spearman")
+# S = 16532, p-value = 0.2818
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho  0.1565306 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"AreaNormRef"], method="spearman")
+# S = 18294, p-value = 0.6483
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.06663265 
+  
+cor.test(StateData[,"Pop2015"],StateData[,"AreaNormGen"], method="spearman") 
+# S = 14012, p-value = 0.04743
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.285102 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"AreaNormOcc"], method="spearman")
+# S = 218460, p-value < 2.2e-16
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.6192684 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"AreaNormRef"], method="spearman")
+# S = 214300, p-value < 2.2e-16
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.6265281 
+  
+cor.test(CountryData[,"ihdi"], CountryData[,"AreaNormGen"], method="spearman")
+# S = 227920, p-value = 2.631e-16
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates: rho 0.6027868 
+  
 # Sources: 
 # State Area Source: http://www.census.gov/prod/cen2010/cph-2-1.pdf
 # Country Area Source: https://www.cia.gov/library/publications/the-world-factbook/fields/2147.html
