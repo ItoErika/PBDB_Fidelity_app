@@ -62,7 +62,7 @@ StepTwoTuples<-dim(DocUnitTuples)[1]
 
 # STEP THREE: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
 # Download all marine, sedimentary unit names from Macrostrat Database
-UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
+UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv")
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
