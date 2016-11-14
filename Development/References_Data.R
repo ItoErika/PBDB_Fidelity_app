@@ -74,8 +74,9 @@ colnames(PBDBRefs)[4]<-"title"
 colnames(PBDBRefs)[5]<-"pubtitle"
 
   
-  
+
 ### Phase 2: A MATCHING FUNCTION IS BORN
+  ##we should add docid and refid to the output of match bibs function!!!!!!!!!!!  
 matchBibs<-function(Bib1,Bib2) {
     # Title Similarity
     Title<-stringsim(Bib1["title"],Bib2[1,"title"])
@@ -89,10 +90,8 @@ matchBibs<-function(Bib1,Bib2) {
     return(c(Title,Year,Journal,Author))
     }
   
-  ##we should add docid and refid to the output of match bibs function!!!!!!!!!!!
-  
-  
-  
+
+  # make function return only best potential document match (use max function) -- probably use title column 
   
   
   
