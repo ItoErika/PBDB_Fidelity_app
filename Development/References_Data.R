@@ -62,7 +62,7 @@ colnames(DDRefs)[5]<-"pubtitle"
 
  
 PBDBRefs[,"reference_no"]<-as.numeric(as.character(PBDBRefs[,"reference_no"]))
-PBDBRefs[,"authorlast1"]<-as.character(PBDBRefs[,"authorlast1"])
+PBDBRefs[,"author1last"]<-as.character(PBDBRefs[,"author1last"])
 PBDBRefs[,"pubyr"]<-as.numeric(as.character(PBDBRefs[,"pubyr"]))
 PBDBRefs[,"reftitle"]<-as.character(PBDBRefs[,"reftitle"])
 PBDBRefs[,"pubtitle"]<-as.character(PBDBRefs[,"pubtitle"])
