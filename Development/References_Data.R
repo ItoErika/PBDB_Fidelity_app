@@ -1,5 +1,7 @@
 library("RCurl")
 library("RJSONIO")
+library("stringdist")
+library("doParallel")
 
 # download all references from PBDB
 RefsURL<-"https://paleobiodb.org/data1.2/taxa/refs.csv?select=taxonomy&private&all_records"
@@ -73,27 +75,75 @@ colnames(PBDBRefs)[3]<-"pubyr"
 colnames(PBDBRefs)[4]<-"title"
 colnames(PBDBRefs)[5]<-"pubtitle"
 
-  
+
 
 ### Phase 2: A MATCHING FUNCTION IS BORN
-  ##we should add docid and refid to the output of match bibs function!!!!!!!!!!!  
 matchBibs<-function(Bib1,Bib2) {
     # Title Similarity
-    Title<-stringsim(Bib1["title"],Bib2[1,"title"])
+    Title<-stringsim(Bib1["title"],Bib2["title"])
     # Pub year match
-    Year<-Bib1["pubyr"]==Bib2[1,"pubyr"]
+    Year<-Bib1["pubyr"]==Bib2["pubyr"]
     # Journal Similarity
-    Journal<-stringsim(Bib1["pubtitle"],Bib2[1,"pubtitle"])
+    Journal<-stringsim(Bib1["pubtitle"],Bib2["pubtitle"])
     # Author present
-    Author<-length(grep(Bib1["author"],Bib2[1,"author"],perl=TRUE,ignore.case=TRUE))
+    Author<-length(grep(Bib1["author"],Bib2["author"],perl=TRUE,ignore.case=TRUE))
+    # Add docid column 
+    DocID<-as.character(Bib1["reference_no"])
     # Return output     
-    return(c(Title,Year,Journal,Author))
+    return(setNames(c(DocID,Title,Year,Journal,Author),c("DocID","Title","Year","Journal","Author")))
     }
-  
 
-  # make function return only best potential document match (use max function) -- probably use title column 
-  
-  
+macroBibs<-function(PBDBRefs,DDRefs) {    
+    TemporaryMatches<-as.data.frame(t(apply(DDRefs,1,matchBibs,PBDBRefs)))
+    return(TemporaryMatches[which.max(TemporaryMatches[,"Title"]),])
+    }
+
+# Establish a cluster for doParallel
+# Make Core Cluster 
+Cluster<-makeCluster(3)
+# Pass the functions to the cluster
+clusterExport(cl=Cluster,varlist=c("matchBibs","stringsim","macroBibs"))
+MatchReferences<-parApply(Cluster, PBDBRefs, 1, macroBibs, DDRefs)
+
+
+
+
+
+macroBibs<-function(PBDBRefs, DDrefs) {
+    for (i in 1:nrow(PBDBRefs)) {
+        TemporaryMatches<-as.data.frame(t(apply(DDRefs,1,matchBibs,PBDBRefs[i,])))
+        # Extract the best match
+        FinalMatrix[i,]<-TemporaryMatches[which.max(TemporaryMatches[,"Title"]),]
+        }
+    return(FinalMatrix)
+    }
+
+
+    
+
+
+
+macroBibs<-function(PBDBRefs,DDrefs) {
+    FinalMatrix<-data.frame(matrix(NA,nrow=nrow(PBDBRefs),ncol=5))
+    colnames(FinalMatrix)<-c("DocID","Title","Year","Journal","Author")
+    rownames(FinalMatrix)<-PBDBRefs[,"reference_no"]
+    progbar<-txtProgressBar(min=0,max=nrow(PBDBRefs),style=3)      
+        TemporaryMatches<-as.data.frame(t(apply(DDRefs,1,matchBibs,PBDBRefs)))      
+        # Extract the best match
+        for (i in 1:nrow(PBDBRefs)) {
+        FinalMatrix[i,]<-TemporaryMatches[which.max(TemporaryMatches[,"Title"]),]
+        setTxtProgressBar(progbar,i)
+        }
+        close(progbar)
+    return(FinalMatrix)
+    }
+
+ReferenceMatches<-as.data.frame(t(parApply(PBDBRefs, 1, macroBibs, DDRefs)))
+
+         
+# make function return only best potential document match (use max function) -- probably use title column 
+ReferenceMatches<-as.data.frame(t(parApply(DDRefs,1,matchBibs,PBDBRefs)))
+
   
 
 Doc<-read.delim("~/Downloads/Telegram Desktop/sentences_nlp352_55b3d56de138231",header=FALSE)
