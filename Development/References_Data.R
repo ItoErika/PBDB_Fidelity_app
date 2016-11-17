@@ -105,46 +105,19 @@ Cluster<-makeCluster(3)
 clusterExport(cl=Cluster,varlist=c("matchBibs","stringsim","macroBibs"))
 MatchReferences<-parApply(Cluster, PBDBRefs, 1, macroBibs, DDRefs)
 
+# Assign PBDB reference numbers as names to MatchReferencesList
+names(MatchReferences)<-PBDBRefs[,"reference_no"]
 
 
 
 
-macroBibs<-function(PBDBRefs, DDrefs) {
-    for (i in 1:nrow(PBDBRefs)) {
-        TemporaryMatches<-as.data.frame(t(apply(DDRefs,1,matchBibs,PBDBRefs[i,])))
-        # Extract the best match
-        FinalMatrix[i,]<-TemporaryMatches[which.max(TemporaryMatches[,"Title"]),]
-        }
-    return(FinalMatrix)
-    }
 
-
-    
-
-
-
-macroBibs<-function(PBDBRefs,DDrefs) {
-    FinalMatrix<-data.frame(matrix(NA,nrow=nrow(PBDBRefs),ncol=5))
-    colnames(FinalMatrix)<-c("DocID","Title","Year","Journal","Author")
-    rownames(FinalMatrix)<-PBDBRefs[,"reference_no"]
-    progbar<-txtProgressBar(min=0,max=nrow(PBDBRefs),style=3)      
-        TemporaryMatches<-as.data.frame(t(apply(DDRefs,1,matchBibs,PBDBRefs)))      
-        # Extract the best match
-        for (i in 1:nrow(PBDBRefs)) {
-        FinalMatrix[i,]<-TemporaryMatches[which.max(TemporaryMatches[,"Title"]),]
-        setTxtProgressBar(progbar,i)
-        }
-        close(progbar)
-    return(FinalMatrix)
-    }
-
-ReferenceMatches<-as.data.frame(t(parApply(PBDBRefs, 1, macroBibs, DDRefs)))
-
-         
-# make function return only best potential document match (use max function) -- probably use title column 
-ReferenceMatches<-as.data.frame(t(parApply(DDRefs,1,matchBibs,PBDBRefs)))
 
   
+
+
+
+
 
 Doc<-read.delim("~/Downloads/Telegram Desktop/sentences_nlp352_55b3d56de138231",header=FALSE)
 colnames(Doc)[4]<-"words"
