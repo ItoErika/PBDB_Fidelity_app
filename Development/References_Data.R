@@ -86,7 +86,7 @@ matchBibs<-function(Bib1,Bib2) {
     # Journal Similarity
     Journal<-stringsim(Bib1["pubtitle"],Bib2["pubtitle"])
     # Author present
-    Author<-length(grep(Bib1["author"],Bib2["author"],perl=TRUE,ignore.case=TRUE))
+    Author<-grepl(Bib2["author"],Bib1["author"],perl=TRUE,ignore.case=TRUE))
     # Add docid column 
     DocID<-as.character(Bib1["reference_no"])
     # Return output     
@@ -105,14 +105,11 @@ Cluster<-makeCluster(3)
 clusterExport(cl=Cluster,varlist=c("matchBibs","stringsim","macroBibs"))
 MatchReferences<-parApply(Cluster, PBDBRefs, 1, macroBibs, DDRefs)
 
+# Convert PBDBReferences into a data frame
+MatchRefs<-do.call(rbind,MatchReferences)
+
 # Assign PBDB reference numbers as names to MatchReferencesList
-names(MatchReferences)<-PBDBRefs[,"reference_no"]
-
-
-
-
-
-
+rownames(MatchRefs)<-PBDBRefs[,"reference_no"]
   
 
 
