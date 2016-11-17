@@ -86,7 +86,7 @@ matchBibs<-function(Bib1,Bib2) {
     # Journal Similarity
     Journal<-stringsim(Bib1["pubtitle"],Bib2["pubtitle"])
     # Author present
-    Author<-grepl(Bib2["author"],Bib1["author"],perl=TRUE,ignore.case=TRUE))
+    Author<-grepl(Bib2["author"],Bib1["author"],perl=TRUE,ignore.case=TRUE)
     # Add docid column 
     DocID<-as.character(Bib1["reference_no"])
     # Return output     
