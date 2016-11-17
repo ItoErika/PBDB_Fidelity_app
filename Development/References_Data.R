@@ -115,7 +115,7 @@ rownames(MatchRefs)<-PBDBRefs[,"reference_no"]
 
 ############################################ TESTING #################################################
 
-Candiates<-subset(MatchRefs,MatchRefs[,"Title"]>=0.5)
+Candidates<-subset(MatchRefs,MatchRefs[,"Title"]>=0.5)
 PBDBTest<-as.numeric(as.character(rownames(Candidates)))
 PBDBCandidates<-subset(PBDBRefs,PBDBRefs[,"reference_no"]%in%PBDBTest)
 DDCandidates<-vector("list",length=nrow(Candidates))
@@ -124,7 +124,7 @@ for(i in 1:nrow(Candidates)){
     }
 DDCandidates<-do.call(rbind,DDCandidates)
     
-TestSEt<-cbind(rownames(Candidates),as.character(Candidates[,"DocID"]))
+TestSet<-cbind(rownames(Candidates),as.character(Candidates[,"DocID"]))
 
 
 
