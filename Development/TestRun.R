@@ -39,9 +39,13 @@ StepTwoTuples<-dim(DocUnitTuples)[1]
 
 # STEP THREE: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
 # Download all marine, sedimentary unit names from Macrostrat Database
-UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
-GotURL<-getURL(UnitsURL)
-UnitsFrame<-read.csv(text=GotURL,header=TRUE)
+UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
+UnitURL<-getURL(UnitsURL)
+UnitsFrame<-read.csv(text=UnitURL,header=TRUE)
+
+StratURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
+StratURL<-getURL(StratURL)
+StratFrame<-read.csv(text=StratURL,header=TRUE)
 
 print(paste("Finish loading postgres tables.",Sys.time()))
 
@@ -49,6 +53,7 @@ print(paste("Finish loading postgres tables.",Sys.time()))
 Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long"],sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
 CandidateUnits<-names(which(Collections==0))
+CandidateUnits<-subset(CandidateUnits,CandidateUnits%in%StratFrame[,"strat_name_long"])
 
 # RECORD STATS
 # NUMBER OF UNITS OF INTEREST:
