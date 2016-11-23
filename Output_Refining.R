@@ -20,7 +20,7 @@ CleanedOutput<-OutputData[-UnwantedRows,]
 
 
 
-Make a sample table of unique unit name matches and sentences
+# Make a sample table of unique unit name matches and sentences
 Sample<-unique(CleanedOutput[,c("strat_name_long","Sentence")])
                          
 # Take a random sample of 100  Sample rows to check accuracy
