@@ -106,19 +106,65 @@ UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
 ##################################### ADD ENVIRONMENTS COLUMNS ###########################################
 
 # download a list of environmnets from Macrostrat database
-EnvironsURL<-"https://macrostrat.org/api/defs/environments?all&format=csv"
-GotURL<-getURL(EnvironsURL)
-EnvironsFrame<-read.csv(text=GotURL,header=TRUE)
-Environments<-unique(EnvironsFrame[,"name"])
+# EnvironsURL<-"https://macrostrat.org/api/defs/environments?all&format=csv"
+# GotURL<-getURL(EnvironsURL)
+# EnvironsFrame<-read.csv(text=GotURL,header=TRUE)
+# Environments<-unique(EnvironsFrame[,"name"])
+peritidal                       reef                                
+buildup or bioherm              perireef                              intrashelf/intraplatform reef        platform/shelf-margin reef           slope/ramp reef                      basin reef                          
+offshore ramp                        offshore shelf                   offshore indet.                     
+slope                                basinal                          paralic indet.                                                    coastal indet.                       foreshore                           
+shoreface                        barrier bar                    offshore                                                                     
+interdistributary bay            deep-water indet.                    abyss                                submarine fan                       
+marginal marine                  dune                                 interdune                            loess                               
+channel                              channel lag                      floodplain                          
+levee                           crevasse splay                        estuary/bay                                                      
+pond                                                        
+playa  karst indet.    fissure fill    cave                                
+sinkhole    alluvial fan             mire/swamp                           spring                               tar                                  weathering surface                  
+non-marine                           colluvial slope                      tidal flat                                                
+
+lacustrine<-c("lacustrine - small","lacustrine prodelta","lacustrine delta front","lacustrine deltaic indet.","crater lake",
+"lacustrine delta plain","fluvial-lacustrine indet.","lacustrine interdistributary bay","lacustrine - small",
+"lacustrine - large","lacustrine indet.")
+fluvial<-c("fluvial indet.","fluvial-lacustrine indet.","fluvial meandering","fluvial braided","fluvial indet.",
+"fluvial-deltaic indet.")	   
+shallowsubtidal<-c("shallow subtidal","open shallow subtidal")
+deepsubtidal<-c("deep subtidal indet.","deep subtidal shelf","deep subtidal ramp")
+eolian<-c("eolian indet.")
+glacial<-c("ground moraine","esker","drumlin","outwash plain","glacial indet.","end moraine")
+lagoon<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal")
+transitionzone<-c("transition zone/lower shoreface")
+marine<-c("marine","inferred marine")
+deltaic<-c("delta front","deltaic indet.","delta plain","prodelta")
+
+# remove channel and channel lag columns 
 	
 # Create a matrix showing whether or not each environment category corresponds with each row of SubsetUnitsFrame[,"environ"]
-EnvironMatrix<-sapply(Environments,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+EnvironMatrix<-sapply(Environments,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 # assign column names
 colnames(EnvironMatrix)<-Environments
 
 UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
 	
-# UnitDataTable[which(UnitDataTable[,"non-marine"]=="1"),"marine"]<-0
+####################################### ADDRESS MARINE / NON-MARINE ISSUE ############################################
+
+# Make a vector of environments from SubsetUnitsFrame
+EnvironString<-SubsetUnitsFrame[,"environ"]
+# Add a space in front of every EnvironString element for grepl search
+EnvironVector<-sapply(" ", paste, EnvironString)	
+# Search for " marine" in EnvironString
+Marine<-sapply(" marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
+# Search for "non-marine" in EnvironString
+NonMarine<-sapply("non-marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
+# Bind vectors
+MarineMatrix<-cbind(Marine, NonMarine)
+# Assign column names
+colnames(MarineMatrix)<-c("marine","non-marine")
+# Extract rows form EnvironString which are non-marine but NOT marine
+NonMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"non-marine"]==TRUE)
+# Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
+UnitDataTable[NonMarineRows,"marine"]<-0
 	
 ###################### Find which rows in the UnitDataTable were found in the cleaned app output ########################
 
