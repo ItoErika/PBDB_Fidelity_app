@@ -1,5 +1,5 @@
 # Load output data from application
-OutputData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_2_2016/Fidelity_OutputData.rds")
+OutputData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/Fidelity_OutputData.rds")
 
 # Remove hits for microfossils and trace fossils within the output sentences
 Micro<-grep("microfossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
