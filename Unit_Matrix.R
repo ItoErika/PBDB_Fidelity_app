@@ -103,43 +103,77 @@ for(i in Separated){
 # Bind the AgeMatrix to UnitDataTable
 UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
 
-##################################### ADD ENVIRONMENTS COLUMNS ###########################################
+########################################## ADD ENVIRONMENTS COLUMNS ##################################################
 
 # download a list of environmnets from Macrostrat database
 # EnvironsURL<-"https://macrostrat.org/api/defs/environments?all&format=csv"
 # GotURL<-getURL(EnvironsURL)
 # EnvironsFrame<-read.csv(text=GotURL,header=TRUE)
 # Environments<-unique(EnvironsFrame[,"name"])
-peritidal                       reef                                
-buildup or bioherm              perireef                              intrashelf/intraplatform reef        platform/shelf-margin reef           slope/ramp reef                      basin reef                          
-offshore ramp                        offshore shelf                   offshore indet.                     
-slope                                basinal                          paralic indet.                                                    coastal indet.                       foreshore                           
-shoreface                        barrier bar                    offshore                                                                     
-interdistributary bay            deep-water indet.                    abyss                                submarine fan                       
-marginal marine                  dune                                 interdune                            loess                               
-channel                              channel lag                      floodplain                          
-levee                           crevasse splay                        estuary/bay                                                      
-pond                                                        
-playa  karst indet.    fissure fill    cave                                
-sinkhole    alluvial fan             mire/swamp                           spring                               tar                                  weathering surface                  
-non-marine                           colluvial slope                      tidal flat                                                
-
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             	                                                                                       
+####################################### CATEGORIZED ENVIRONMENTS OPTION ###############################################
+	
+tar<-"tar"
 lacustrine<-c("lacustrine - small","lacustrine prodelta","lacustrine delta front","lacustrine deltaic indet.","crater lake",
 "lacustrine delta plain","fluvial-lacustrine indet.","lacustrine interdistributary bay","lacustrine - small",
-"lacustrine - large","lacustrine indet.")
+"lacustrine - large","lacustrine indet.","playa")
 fluvial<-c("fluvial indet.","fluvial-lacustrine indet.","fluvial meandering","fluvial braided","fluvial indet.",
-"fluvial-deltaic indet.")	   
+"fluvial-deltaic indet.","alluvial fan","crevasse splay","floodplain","channel lag","levee","channel","interdistributary bay",
+"pond",)	   
 shallowsubtidal<-c("shallow subtidal","open shallow subtidal")
 deepsubtidal<-c("deep subtidal indet.","deep subtidal shelf","deep subtidal ramp")
-eolian<-c("eolian indet.")
+aeolian<-c("eolian indet.","loess","dune","interdune")
 glacial<-c("ground moraine","esker","drumlin","outwash plain","glacial indet.","end moraine")
-lagoon<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal")
+lagoon<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","tidal flat")
 transitionzone<-c("transition zone/lower shoreface")
-marine<-c("marine","inferred marine")
-deltaic<-c("delta front","deltaic indet.","delta plain","prodelta")
+deepwater<-c("abyss","submarine fan","deep-water indet.","basinal","slope","basin reef")
+marine<-c("marine","inferred marine","marginal marine")
+deltaic<-c("delta front","deltaic indet.","delta plain","prodelta","lacustrine delta front","fluvial-deltaic indet.",
+"lacustrine prodelta","lacustrine deltaic indet.","lacustrine delta plain")
+nonmarine<-c("non-marine","marginal marine"
+cave<-c("fissure fill","cave","karst indet.","sinkhole")
+coastal<-c("coastal indet.","barrier bar","peritidal", paralic,nondeltaiccoastal)
+deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front","shoreface")
+nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore","offshore indet.","offshore shelf",
+"shoreface","offshore ramp")
+paraliccoastal<-c("paralic indet.","lagoonal/restricted shallow subtidal sand shoal","lagoonal","tidal flat","estuary/bay")	     	     
+shallowreef<-c("intrashelf/intraplatform reef","perireef")
+shelfmarginreef<-c("platform/shelf-margin reef")
+carbonateslopereef<-c("slope/ramp reef")
+deepreef<-c("basin reef")
+reef<-c("buildup or bioherm","reef","peritidal",deepreef,carbonateslopereef,shelfmarginreef,shallowreef)
+wetlands<-c("mire/swamp","spring")
+terrestrial<-c("weathering surface","colluvial slope")
 
-# remove channel and channel lag columns 
-	
+####################################### MORE CATEGORIZED ENVIRONMENTS OPTION ########################################
+
+deepwater<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
+"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf","basinal","barrier bar")
+coastal<-c("coastal indet.",paralic,nondeltaiccoastal)
+paraliccoastal<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","paralic indet.","tidal flat")
+nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore ramp","offshore","offshore indet.","shoreface",
+"offshore shelf")
+deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front")
+glacial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain")
+fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee")
+"fluvial-lacustrine indet.","crevasse splay","fluvial-deltaic indet.","alluvial fan")
+lacustrine<-c("lacustrine - small","lacustrine - large","lacustrine delta front","fluvial-lacustrine indet.","pond",
+"crater lake","lacustrine interdistributary bay","lacustrine delta plain","lacustrine indet.","lacustrine deltaic indet.",
+"lacustrine prodelta")
+carbonate<-c("reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
+"platform/shelf-margin reef","peritidal","slope")
+aeolian<-c("eolian indet.","dune","interdune","loess")
+cave<-c("cave","fissure fill","karst indet.","sinkhole")
+terrestrial<-c("weathering surface","colluvial slope","tar","playa")
+wetland<-c("spring","mire/swamp")
+non-marine<-"non-marine"
+
+
+################################ EVEN MORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
+	     
+	     
+	     
+	     
 # Create a matrix showing whether or not each environment category corresponds with each row of SubsetUnitsFrame[,"environ"]
 EnvironMatrix<-sapply(Environments,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 # assign column names
