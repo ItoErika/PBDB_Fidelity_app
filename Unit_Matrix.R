@@ -64,7 +64,8 @@ LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
 UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
 
 ############################################## CREATE TIME COLUMNS ###################################################
-	
+############################################## PERIODS OPTION ###################################################
+
 # Load communityMatrix.R modgule of paleobiology database r package
 source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
 	
@@ -96,6 +97,45 @@ Distance<-apply(AgeMatrix,1,function(x) diff(which(x==1))>1)
 Separated<-which(Distance==TRUE)
 
 # Assign the value 1 for the periods which fall between the earliest and latest period
+for(i in Separated){
+	AgeMatrix[i,which(AgeMatrix[i,]==1)[1]:which(AgeMatrix[i,]==1)[2]]<-1
+	}	
+	
+# Bind the AgeMatrix to UnitDataTable
+UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
+	
+############################################## EPOCHS OPTION ###################################################
+
+# Load communityMatrix.R modgule of paleobiology database r package
+source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
+Epochs<-downloadTime("international%20epochs")
+	
+# create a matrix showing whether or not each epoch from epochs corresponds with each unit of SubsetUnitsFrame  
+multipleAges<-function(SubsetUnitsFrame,Epochs) {
+	FinalMatrix<-matrix(0,nrow=nrow(SubsetUnitsFrame),ncol=nrow(Epochs))
+	SubsetUnitsFrame[,"b_int_name"]<-as.character(SubsetUnitsFrame[,"b_int_name"])
+	SubsetUnitsFrame[,"t_int_name"]<-as.character(SubsetUnitsFrame[,"t_int_name"])
+	colnames(FinalMatrix)<-Epochs[,"name"]
+	for (i in 1:nrow(Epochs)) {
+		  EarlyPos<-which(SubsetUnitsFrame[,"t_int_age"]>Epochs[i,"t_age"] & SubsetUnitsFrame[,"t_int_age"]<=Epochs[i,"b_age"])
+		  SubsetUnitsFrame[EarlyPos,"b_int_name"]<-as.character(Epochs[i,"name"])
+ 		  LatePos<-which(SubsetUnitsFrame[,"b_int_age"]>=Epochs[i,"t_age"] & SubsetUnitsFrame[,"b_int_age"]<Epochs[i,"b_age"])
+ 		  SubsetUnitsFrame[LatePos,"t_int_name"]<-as.character(Epochs[i,"name"])
+ 		  }
+	EarlyInterval<-match(SubsetUnitsFrame[,"b_int_name"],colnames(FinalMatrix))
+ 	LateInterval<-match(SubsetUnitsFrame[,"t_int_name"],colnames(FinalMatrix))
+ 	Positions<-rbind(cbind(1:nrow(FinalMatrix),EarlyInterval),cbind(1:nrow(FinalMatrix),LateInterval))
+ 	FinalMatrix[Positions]<-1
+	return(FinalMatrix)
+	}
+	
+AgeMatrix<-multipleAges(SubsetUnitsFrame,Epochs)
+	
+# Account for the units which span more than two epochs in age
+Distance<-apply(AgeMatrix,1,function(x) diff(which(x==1))>1)
+Separated<-which(Distance==TRUE)
+	
+# Assign the value 1 for the epochs which fall between the earliest and latest epoch
 for(i in Separated){
 	AgeMatrix[i,which(AgeMatrix[i,]==1)[1]:which(AgeMatrix[i,]==1)[2]]<-1
 	}	
