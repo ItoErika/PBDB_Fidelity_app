@@ -244,7 +244,7 @@ nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore ram
 deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front")
 coastal<-c("coastal indet.",paraliccoastal,nondeltaiccoastal)
 glacial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain")
-fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee")
+fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee",)
 "fluvial-lacustrine indet.","crevasse splay","fluvial-deltaic indet.","alluvial fan")
 lacustrine<-c("lacustrine - small","lacustrine - large","lacustrine delta front","fluvial-lacustrine indet.","pond",
 "crater lake","lacustrine interdistributary bay","lacustrine delta plain","lacustrine indet.","lacustrine deltaic indet.",
