@@ -281,7 +281,7 @@ EnvironMatrix12<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl
 colnames(EnvironMatrix12)<-nonmarine
 
 UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix1,EnvironMatrix2,EnvironMatrix3,EnvironMatrix4,EnvironMatrix5
-,EnvironMatri6,EnvironMatrix7,EnvironMatrix8,EnvironMatrix9,EnvironMatrix10,EnvironMatrix11,EnvironMatrix12))
+,EnvironMatrix6,EnvironMatrix7,EnvironMatrix8,EnvironMatrix9,EnvironMatrix10,EnvironMatrix11,EnvironMatrix12))
 
 ################################ EVEN MORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
 marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
@@ -319,7 +319,7 @@ EnvironMatrix8<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl 
 colnames(EnvironMatrix8)<-nonmarine
 	
 UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix1,EnvironMatrix2,EnvironMatrix3,EnvironMatrix4,EnvironMatrix5
-,EnvironMatri6,EnvironMatrix7,EnvironMatrix8))
+,EnvironMatrix6,EnvironMatrix7,EnvironMatrix8))
 	
 ####################################### ADDRESS MARINE / NON-MARINE ISSUE ############################################
 
