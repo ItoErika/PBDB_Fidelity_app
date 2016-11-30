@@ -165,9 +165,23 @@ terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fiss
 non-marine<-"non-marine"
 
 ################################ EVEN MORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
-	     
-	     
-	     
+marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
+"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf",
+"basinal","barrier bar","reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
+"platform/shelf-margin reef","peritidal","slope")
+coastal<-c("coastal indet.","lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","paralic indet."
+,"tidal flat","foreshore","transition zone/lower shoreface","offshore ramp","offshore","offshore indet.","shoreface",
+"offshore shelf","interdistributary bay","deltaic indet.","prodelta","delta plain","delta front")
+glacial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain")
+fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee")
+"fluvial-lacustrine indet.","crevasse splay","fluvial-deltaic indet.","alluvial fan")	     
+lacustrine<-c("lacustrine - small","lacustrine - large","lacustrine delta front","fluvial-lacustrine indet.","pond",
+"crater lake","lacustrine interdistributary bay","lacustrine delta plain","lacustrine indet.","lacustrine deltaic indet.",
+"lacustrine prodelta")
+aeolian<-c("eolian indet.","dune","interdune","loess")
+terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp") # misc. terrestrial
+non-marine<-"non-marine"
+
 	     
 # Create a matrix showing whether or not each environment category corresponds with each row of SubsetUnitsFrame[,"environ"]
 EnvironMatrix<-sapply(Environments,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
