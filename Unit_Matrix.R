@@ -50,20 +50,6 @@ rownames(UnitDataTable)<-as.character(SubsetUnitsFrame[,"unit_id"])
 ############################################# CREATE LITHOLOGY COLUMNS ###################################################
 ############################################### UNCATEGORIZED OPTION #####################################################
 
-# Create a vector of lithology categories from SubsetUnitsFrame
-#Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","breccia","chalk","chert","clay","coal","conglomerate",
-#"dacite","diamictite","dolomite","gabbro","gneiss","gravel","graywacke","greywacke","evaporite","lignite","limestone","marble",
-#"marl","mudstone","oolitic limestone","phosophorite","phyllite","quartzite","rhyolite","sand ","sandstone","schist","shale",
-#"siliciclastic","silt ","siltstone","silty clay","silty sand ","skeletal silt","slate","tuff","volcanic"))
-
-# Create a matrix showing whether or not each lithology category corresponds with each row of SubsetUnitsFrame[,"lith"]
-#LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-# Convert the logical data into numerical data
-#LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
-
-# Bind the LithMatrix to UnitDataTable
-#UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
-
 # download a list of lithologies from Macrostrat database
 LithologyURL<-"https://macrostrat.org/api/defs/lithologies?all&format=csv"
 GotURL<-getURL(LithologyURL)
@@ -86,7 +72,60 @@ UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
 LithologyTypes<-split(LithologyFrame[,"name"],LithologyFrame[,"type"])	
 
 # make a vector of lithology names associated with each type
-carbonate<-LithologyTypes["carbonate"]
+carbonate<-as.character(unlist(LithologyTypes["carbonate"]))
+cataclastic<-as.character(unlist(LithologyTypes["cataclastic"]))
+chemical<-as.character(unlist(LithologyTypes["chemical"]))
+evaporite<-as.character(unlist(LithologyTypes["evaporite"]))
+igneous<-as.character(unlist(LithologyTypes["igneous"]))
+metaigneous<-as.character(unlist(LithologyTypes["metaigneous"]))
+metamorphic<-as.character(unlist(LithologyTypes["metamorphic"]))
+metasedimentary<-as.character(unlist(LithologyTypes["metasedimentary"]))
+organic<-as.character(unlist(LithologyTypes["organic"]))
+plutonic<-as.character(unlist(LithologyTypes["plutonic"]))
+regolith<-as.character(unlist(LithologyTypes["regolith"]))
+sedimentary<-as.character(unlist(LithologyTypes["sedimentary"]))
+siliciclastic<-as.character(unlist(LithologyTypes["siliciclastic"]))
+volcanic<-as.character(unlist(LithologyTypes["volcanic"]))
+
+# run greps for all of the words in each type
+LithMatrix1<-sapply(carbonate,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix2<-sapply(cataclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix3<-sapply(chemical,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix4<-sapply(evaporite,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix5<-sapply(igneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix6<-sapply(metaigneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix7<-sapply(metamorphic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix8<-sapply(metasedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix9<-sapply(organic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix10<-sapply(plutonic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix11<-sapply(regolith,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix12<-sapply(sedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix13<-sapply(siliciclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithMatrix14<-sapply(volcanic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+
+# find if any of the names within each type had a hit in the grepl search
+carbonate<-apply(LithMatrix1, 1, function(x) any(x)==TRUE)
+cataclastic<-apply(LithMatrix2, 1, function(x) any(x)==TRUE)
+chemical<-apply(LithMatrix3, 1, function(x) any(x)==TRUE)
+evaporite<-apply(LithMatrix4, 1, function(x) any(x)==TRUE)
+igneous<-apply(LithMatrix5, 1, function(x) any(x)==TRUE)
+metaigneous<-apply(LithMatrix6, 1, function(x) any(x)==TRUE)
+metamorphic<-apply(LithMatrix7, 1, function(x) any(x)==TRUE)
+metasedimentary<-apply(LithMatrix8, 1, function(x) any(x)==TRUE)
+organic<-apply(LithMatrix9, 1, function(x) any(x)==TRUE)
+plutonic<-apply(LithMatrix10, 1, function(x) any(x)==TRUE)
+regolith<-apply(LithMatrix11, 1, function(x) any(x)==TRUE)
+sedimentary<-apply(LithMatrix12, 1, function(x) any(x)==TRUE)
+siliciclastic<-apply(LithMatrix13, 1, function(x) any(x)==TRUE)
+volcanic<-apply(LithMatrix14, 1, function(x) any(x)==TRUE)
+
+LithMatrix<-data.matrix(cbind(carbonate,cataclastic,chemical,evaporite,igneous,metaigneous,metamorphic,metasedimentary,
+organic,plutonic,regolith,sedimentary,siliciclastic,volcanic))
+colnames(LithMatrix)<-c("carbonate","cataclastic","chemical","evaporite","igneous","metaigneous","metamorphic"
+,"metasedimentary","organic","plutonic","regolith","sedimentary","siliciclastic","volcanic")
+	
+
+UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
 	
 ############################################## CREATE TIME COLUMNS ###################################################
 ################################################# PERIODS OPTION #####################################################
