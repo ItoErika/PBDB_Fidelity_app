@@ -355,6 +355,18 @@ NonMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"non-marine"]=
 # Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
 UnitDataTable[NonMarineRows,"marine"]<-0
 	
+##################################### rownames as strat_name_long option ################################################
+
+# Sort UnitDataTable by unit id
+SortUnitMatrix<-UnitDataTable[order(as.numeric(as.character(row.names(UnitDataTable)))),]
+# Sort SubsetUnitsFrame by unti id
+SortSubsetUnitsFrame<-SubsetUnitsFrame[order(as.numeric(as.character(SubsetUnitsFrame[,"unit_id"]))),]
+# extract strat_name_long column from SortSubsetUnitsFrame in the same order as associated unit ids in SortUnitMatrix
+strat_name_long<-as.character(SortSubsetUnitsFrame[,"strat_name_long"])	
+
+# bind strat_name_long column to UnitDataMatrix
+UnitDataTable<-data.matrix(cbind(UnitDataTable,strat_name_long))
+	
 ###################### Find which rows in the UnitDataTable were found in the cleaned app output ########################
 
 # Load CleanedOutput
