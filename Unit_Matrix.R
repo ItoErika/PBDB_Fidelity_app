@@ -407,7 +407,7 @@ marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal",
 "basinal","barrier bar","reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
 "platform/shelf-margin reef","peritidal","slope","offshore ramp","offshore","offshore indet.","shoreface",
 "transition zone/lower shoreface","paralic indet.","foreshore","coastal indet.","tidal flat","offshore shelf")
-aquatic<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay",,"interdistributary bay",
+aquatic<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","interdistributary bay",
 "deltaic indet.","prodelta","delta plain","delta front")   
 terrestrial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain","fluvial indet.",
 "fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee","fluvial-lacustrine indet.",
@@ -419,6 +419,10 @@ terrestrial<-c("esker","ground moraine","drumlin","end moraine","glacial indet."
 EnvironMatrix1<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 EnvironMatrix2<-sapply(aquatic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 EnvironMatrix3<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+
+marine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
+aquatic<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
+terrestrial<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)	
 	
 EnvironMatrix<-data.matrix(cbind(marine,aquatic,terrestrial))
 colnames(EnvironMatrix)<-c("marine","aquatic","terrestrial")
