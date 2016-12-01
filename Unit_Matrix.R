@@ -451,6 +451,12 @@ barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab
 ################################################### PERIODS BAR PLOT ##################################################
 
 Periods<-downloadTime("international%20periods")
+# get rid of preCambrian rows
+# make a vector of preCambrian Periods
+PreCambrian<-c("Ediacaran","Cryogenian","Tonian","Stenian","Ectasian","Calymmian","Statherian","Orosirian","Rhyacian",
+"Siderian")
+# remove PreCambrian rows
+Periods<-Periods[-which(rownames(Periods)%in%PreCambrian),]
 
 # subset OutputUnitMatrix to only epoch columns (NOTE: rownames of Periods are period names)
 PeriodOutputMatrix<-OutputUnitMatrix[,rownames(Periods)]
