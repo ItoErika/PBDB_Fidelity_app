@@ -400,6 +400,31 @@ colnames(EnvironMatrix)<-c("marine","coastal","glacial","fluvial","lacustrine","
 	
 UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
 	
+################################ EVEN MOOOOOORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
+
+marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
+"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf",
+"basinal","barrier bar","reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
+"platform/shelf-margin reef","peritidal","slope","offshore ramp","offshore","offshore indet.","shoreface",
+"transition zone/lower shoreface","paralic indet.","foreshore","coastal indet.","tidal flat","offshore shelf")
+aquatic<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay",,"interdistributary bay",
+"deltaic indet.","prodelta","delta plain","delta front")   
+terrestrial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain","fluvial indet.",
+"fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee","fluvial-lacustrine indet.",
+"crevasse splay","fluvial-deltaic indet.","alluvial fan","lacustrine - small","lacustrine - large","lacustrine delta front",
+"fluvial-lacustrine indet.","pond","crater lake","lacustrine interdistributary bay","lacustrine delta plain",
+"lacustrine indet.","lacustrine deltaic indet.","lacustrine prodelta","weathering surface","colluvial slope","tar","playa",
+"cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp","eolian indet.","dune","interdune","loess")
+
+EnvironMatrix1<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+EnvironMatrix2<-sapply(aquatic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+EnvironMatrix3<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+	
+EnvironMatrix<-data.matrix(cbind(marine,aquatic,terrestrial))
+colnames(EnvironMatrix)<-c("marine","aquatic","terrestrial")
+	
+UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
+	
 ####################################### ADDRESS MARINE / NON-MARINE ISSUE ############################################
 
 # Make a vector of environments from SubsetUnitsFrame
