@@ -516,6 +516,15 @@ EpochPercentages<-EpochSums/EpochTotalSums
 # make percentages barplot
 barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="% of Fidelity Output Units", col=colors)
 	
+#abline(h=0.2311304)
+#abline(h=0.2311304,lwd=5)
+#abline(h=0.2311304,lwd=5,col="pink")
+#abline(h=0.2311304,lwd=5,col="pink",lty=4)
+#abline(h=0.2311304,lwd=5,col="pink",lty=3)
+#abline(h=0.2311304,lwd=5,col="blue",lty=3)
+#abline(h=0.2311304,lwd=5,col="grey",lty=3)
+#abline(h=0.2311304,lwd=5,col="black",lty=3)
+	
 ################################################### PERIODS BAR PLOT ##################################################
 
 Periods<-downloadTime("international%20periods")
