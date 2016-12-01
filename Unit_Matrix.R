@@ -177,7 +177,7 @@ deepwater<-c("abyss","submarine fan","deep-water indet.","basinal","slope","basi
 marine<-c("marine","inferred marine","marginal marine")
 deltaic<-c("delta front","deltaic indet.","delta plain","prodelta","lacustrine delta front","fluvial-deltaic indet.",
 "lacustrine prodelta","lacustrine deltaic indet.","lacustrine delta plain")
-nonmarine<-c("non-marine","marginal marine"
+nonmarine<-c("non-marine","marginal marine")
 cave<-c("fissure fill","cave","karst indet.","sinkhole","tar","mire/swamp","spring")
 deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front","shoreface")
 nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore","offshore indet.","offshore shelf",
@@ -190,8 +190,6 @@ carbonateslopereef<-c("slope/ramp reef")
 deepreef<-c("basin reef")
 reef<-c("buildup or bioherm","reef","peritidal",deepreef,carbonateslopereef,shelfmarginreef,shallowreef)
 terrestrial<-c("weathering surface","colluvial slope")
-	     
-# FIX BELOW
 	     
 EnvironMatrix1<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 EnvironMatrix2<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
@@ -237,7 +235,7 @@ terrestrial<-apply(EnvironMatrix19, 1, function(x) any(x)==TRUE)
 EnvironMatrix<-data.matrix(cbind(lacustrine,fluvial,shallowsubtidal,deepsubtidal,aeolian,lagoon,shallowsubtidal,
 transitionzone,marine,cave,deltaiccoastal,paraliccoastal,coastal,shallowreef,shelfmarginreef,carbonateslopereef,
 reef,terrestrial))
-colnames(EnvironMatric)<-c("lacustrine","fluvial","shallowsubtidal","deepsubtidal","aeolian","lagoon","shallowsubtidal",
+colnames(EnvironMatrix)<-c("lacustrine","fluvial","shallowsubtidal","deepsubtidal","aeolian","lagoon","shallowsubtidal",
 "transitionzone","marine","cave","deltaiccoastal","paraliccoastal","coastal","shallowreef","shelfmarginreef",
 "carbonateslopereef","reef","terrestrial")
 
