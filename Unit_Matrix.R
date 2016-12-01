@@ -48,23 +48,48 @@ UnitDataTable<-data.matrix(LocationMatrix)
 rownames(UnitDataTable)<-as.character(SubsetUnitsFrame[,"unit_id"])
 	
 ############################################# CREATE LITHOLOGY COLUMNS ###################################################
+############################################### UNCATEGORIZED OPTION #####################################################
 
 # Create a vector of lithology categories from SubsetUnitsFrame
-Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","breccia","chalk","chert","clay","coal","conglomerate",
-"dacite","diamictite","dolomite","gabbro","gneiss","gravel","graywacke","greywacke","evaporite","lignite","limestone","marble",
-"marl","mudstone","oolitic limestone","phosophorite","phyllite","quartzite","rhyolite","sand ","sandstone","schist","shale",
-"siliciclastic","silt ","siltstone","silty clay","silty sand ","skeletal silt","slate","tuff","volcanic"))
+#Lithologies<-(c("amphibolite","ash","andesite","argillite","arkose","basalt","breccia","chalk","chert","clay","coal","conglomerate",
+#"dacite","diamictite","dolomite","gabbro","gneiss","gravel","graywacke","greywacke","evaporite","lignite","limestone","marble",
+#"marl","mudstone","oolitic limestone","phosophorite","phyllite","quartzite","rhyolite","sand ","sandstone","schist","shale",
+#"siliciclastic","silt ","siltstone","silty clay","silty sand ","skeletal silt","slate","tuff","volcanic"))
 
 # Create a matrix showing whether or not each lithology category corresponds with each row of SubsetUnitsFrame[,"lith"]
-LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+#LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+# Convert the logical data into numerical data
+#LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
+
+# Bind the LithMatrix to UnitDataTable
+#UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
+
+# download a list of lithologies from Macrostrat database
+LithologyURL<-"https://macrostrat.org/api/defs/lithologies?all&format=csv"
+GotURL<-getURL(LithologyURL)
+LithologyFrame<-read.csv(text=GotURL,header=TRUE)
+Lithologies<-unique(LithologyFrame[,"name"])
+
+# Create a matrix showing whether or not each lithology category corresponds with each row of SubsetUnitsFrame[,"lith"]
+LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+# Assign column names
+colnames(LithMatrix)<-Lithologies
 # Convert the logical data into numerical data
 LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
 
 # Bind the LithMatrix to UnitDataTable
 UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
+	
+######################################### CATEGORIZED LITHOLOGY OPTION ###############################################
 
+# group lithology names into their associated types based on the Macrostrat API (NOTE: this function creates a list)
+LithologyTypes<-split(LithologyFrame[,"name"],LithologyFrame[,"type"])	
+
+# make a vector of lithology names associated with each type
+carbonate<-LithologyTypes["carbonate"]
+	
 ############################################## CREATE TIME COLUMNS ###################################################
-############################################## PERIODS OPTION ###################################################
+################################################# PERIODS OPTION #####################################################
 
 # Load communityMatrix.R modgule of paleobiology database r package
 source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
@@ -369,9 +394,6 @@ SortUnitMatrix<-UnitDataTable[order(as.numeric(as.character(row.names(UnitDataTa
 SortSubsetUnitsFrame<-SubsetUnitsFrame[order(as.numeric(as.character(SubsetUnitsFrame[,"unit_id"]))),]
 # extract strat_name_long column from SortSubsetUnitsFrame in the same order as associated unit ids in SortUnitMatrix
 strat_name_long<-as.character(SortSubsetUnitsFrame[,"strat_name_long"])	
-
-# bind strat_name_long column to UnitDataMatrix
-# UnitDataTable<-data.matrix(cbind(SortSubsetUnitsFrame,strat_name_long))
 	
 UnitMatrix<-by(SortUnitMatrix,strat_name_long,function(x) apply(x,2,max))
 UnitMatrix<-do.call(rbind,UnitMatrix)
@@ -417,10 +439,12 @@ EpochSums<-apply(EpochOutputMatrix,2,sum)
 barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="# of Fidelity Output Units",col=colors)
 
 # make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
-# find the total number of units in OutputUnitMatrix
-TotalUnits<-nrow(OutputUnitMatrix)
-# divide EpochSums by TotalUnits
-EpochPercentages<-EpochSums/TotalUnits
+# subset UnitMatrix to only include epoch columns
+EpochMatrix<-UnitMatrix[,rownames(Epochs)]
+# find the total number of units in UnitMatrix that fall into each epoch category
+EpochTotalSums<-apply(EpochMatrix,2,sum)
+# divide EpochSums by EpochTotalSums
+EpochPercentages<-EpochSums/EpochTotalSums
 # make percentages barplot
 barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="% of Fidelity Output Units", col=colors)
 	
@@ -446,9 +470,11 @@ PeriodSums<-apply(PeriodOutputMatrix,2,sum)
 barplot(PeriodSums, names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="# of Fidelity Output Units",col=colors)	
 	
 # make a bar plot showing the PERCENTAGE of units in PeriodOutputMatrix which fall into each period category
-# find the total number of units in PeriodOutputMatrix
-TotalUnits<-nrow(OutputUnitMatrix)
-# divide EpochSums by TotalUnits
-PeriodPercentages<-PeriodSums/TotalUnits
+# subset UnitMatrix to only include period columns
+PeriodMatrix<-UnitMatrix[,rownames(Periods)]
+# find the total number of units in UnitMatrix that fall into each epoch category
+PeriodTotalSums<-apply(PeriodMatrix,2,sum)
+# divide PeriodSums by PeriodTotalSums
+PeriodPercentages<-PeriodSums/PeriodTotalSums
 # make percentages barplot
 barplot(PeriodPercentages,names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="% of Fidelity Output Units", col=colors)
