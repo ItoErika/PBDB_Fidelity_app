@@ -90,19 +90,19 @@ multipleAges<-function(SubsetUnitsFrame,Periods) {
 	return(FinalMatrix)
 	}
  
-AgeMatrix<-multipleAges(SubsetUnitsFrame,Periods)
+PeriodMatrix<-multipleAges(SubsetUnitsFrame,Periods)
 	
 # Account for the units which span more than two periods in age
-Distance<-apply(AgeMatrix,1,function(x) diff(which(x==1))>1)
+Distance<-apply(PeriodMatrix,1,function(x) diff(which(x==1))>1)
 Separated<-which(Distance==TRUE)
 
 # Assign the value 1 for the periods which fall between the earliest and latest period
 for(i in Separated){
-	AgeMatrix[i,which(AgeMatrix[i,]==1)[1]:which(AgeMatrix[i,]==1)[2]]<-1
+	PeriodMatrix[i,which(PeriodMatrix[i,]==1)[1]:which(PeriodMatrix[i,]==1)[2]]<-1
 	}	
 	
-# Bind the AgeMatrix to UnitDataTable
-UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
+# Bind the PeriodMatrix to UnitDataTable
+UnitDataTable<-data.matrix(cbind(UnitDataTable,PeriodMatrix))
 	
 ############################################## EPOCHS OPTION ###################################################
 
@@ -129,19 +129,19 @@ multipleAges<-function(SubsetUnitsFrame,Epochs) {
 	return(FinalMatrix)
 	}
 	
-AgeMatrix<-multipleAges(SubsetUnitsFrame,Epochs)
+EpochMatrix<-multipleAges(SubsetUnitsFrame,Epochs)
 	
 # Account for the units which span more than two epochs in age
-Distance<-apply(AgeMatrix,1,function(x) diff(which(x==1))>1)
+Distance<-apply(EpochMatrix,1,function(x) diff(which(x==1))>1)
 Separated<-which(Distance==TRUE)
 	
 # Assign the value 1 for the epochs which fall between the earliest and latest epoch
 for(i in Separated){
-	AgeMatrix[i,which(AgeMatrix[i,]==1)[1]:which(AgeMatrix[i,]==1)[2]]<-1
+	EpochMatrix[i,which(EpochMatrix[i,]==1)[1]:which(EpochMatrix[i,]==1)[2]]<-1
 	}	
 	
-# Bind the AgeMatrix to UnitDataTable
-UnitDataTable<-data.matrix(cbind(UnitDataTable,AgeMatrix))
+# Bind the EpochMatrix to UnitDataTable
+UnitDataTable<-data.matrix(cbind(UnitDataTable,EpochMatrix))
 
 ########################################## ADD ENVIRONMENTS COLUMNS ##################################################
 ########################################## NO CATEGORIES OPTION ##################################################
