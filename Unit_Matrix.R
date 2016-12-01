@@ -194,47 +194,54 @@ terrestrial<-c("weathering surface","colluvial slope")
 # FIX BELOW
 	     
 EnvironMatrix1<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix1)<-lacustrine
 EnvironMatrix2<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix2)<-fluvial
 EnvironMatrix3<-sapply(shallowsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix3)<-shallowsubtidal
 EnvironMatrix4<-sapply(deepsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix4)<-deepsubtidal
 EnvironMatrix5<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix5)<-aeolian
 EnvironMatrix6<-sapply(lagoon,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix6)<-lagoon
 EnvironMatrix7<-sapply(shallowsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix7)<-shallowsubtidal
 EnvironMatrix8<-sapply(transitionzone,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix8)<-transitionzone
 EnvironMatrix9<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix9)<-marine
 EnvironMatrix10<-sapply(cave,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix10)<-cave
 EnvironMatrix11<-sapply(deltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix11)<-deltaiccoastal
 EnvironMatrix12<-sapply(nondeltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix12)<-nondeltaiccoastal
 EnvironMatrix13<-sapply(paraliccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix13)<-paraliccoastal
 EnvironMatrix14<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix14)<-coastal
 EnvironMatrix15<-sapply(shallowreef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix15)<-shallowreef
 EnvironMatrix16<-sapply(shelfmarginreef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix16)<-shelfmarginreef
 EnvironMatrix17<-sapply(carbonateslopereef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix17)<-carbonateslopereef
 EnvironMatrix18<-sapply(reef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix18)<-reef
 EnvironMatrix19<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
 colnames(EnvironMatrix19)<-terrestrial
+	
+lacustrine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
+fluvial<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
+shallowsubtidal<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
+deepsubtidal<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
+aeolian<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
+lagoon<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
+shallowsubtidal<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
+transitionzone<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)
+marine<-apply(EnvironMatrix9, 1, function(x) any(x)==TRUE)
+cave<-apply(EnvironMatrix10, 1, function(x) any(x)==TRUE)
+deltaiccoastal<-apply(EnvironMatrix11, 1, function(x) any(x)==TRUE)
+nondeltaiccoastal<-apply(EnvironMatrix12, 1, function(x) any(x)==TRUE)
+paraliccoastal<-apply(EnvironMatrix13, 1, function(x) any(x)==TRUE)
+coastal<-apply(EnvironMatrix14, 1, function(x) any(x)==TRUE)
+shallowreef<-apply(EnvironMatrix15, 1, function(x) any(x)==TRUE)
+shelfmarginreef<-apply(EnvironMatrix16, 1, function(x) any(x)==TRUE)
+carbonateslopereef<-apply(EnvironMatrix17, 1, function(x) any(x)==TRUE)
+reef<-apply(EnvironMatrix18, 1, function(x) any(x)==TRUE)
+terrestrial<-apply(EnvironMatrix19, 1, function(x) any(x)==TRUE)
 
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix1,EnvironMatrix2,EnvironMatrix3,EnvironMatrix4,EnvironMatrix5
-,EnvironMatri6,EnvironMatrix7,EnvironMatrix8,EnvironMatrix9,EnvironMatrix10,EnvironMatrix11,EnvironMatrix12,EnvironMatrix13
-,EnvironMatrix14,EnvironMatrix15,EnvironMatrix16,EnvironMatrix17,EnvironMatrix19))
+EnvironMatrix<-data.matrix(cbind(lacustrine,fluvial,shallowsubtidal,deepsubtidal,aeolian,lagoon,shallowsubtidal,
+transitionzone,marine,cave,deltaiccoastal,paraliccoastal,coastal,shallowreef,shelfmarginreef,carbonateslopereef,
+reef,terrestrial))
+colnames(EnvironMatric)<-c("lacustrine","fluvial","shallowsubtidal","deepsubtidal","aeolian","lagoon","shallowsubtidal",
+"transitionzone","marine","cave","deltaiccoastal","paraliccoastal","coastal","shallowreef","shelfmarginreef",
+"carbonateslopereef","reef","terrestrial")
+
+UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
 
 ####################################### MORE CATEGORIZED ENVIRONMENTS OPTION ########################################
 
@@ -255,37 +262,40 @@ carbonate<-c("reef","slope/ramp reef","buildup or bioherm","perireef","intrashel
 "platform/shelf-margin reef","peritidal","slope")
 aeolian<-c("eolian indet.","dune","interdune","loess")
 terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp") # misc. terrestrial
-nonmΩarine<-"non-marine"
-	
-# FIX BELOW
+nonmarine<-"non-marine"
 
 EnvironMatrix1<-sapply(deepwater,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix1)<-deepwater
 EnvironMatrix2<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix2)<-coastal
 EnvironMatrix3<-sapply(paraliccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix3)<-paraliccoastal
 EnvironMatrix4<-sapply(deltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix4)<-deltaiccoastal
 EnvironMatrix5<-sapply(nondeltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix5)<-nondeltaiccoastal
 EnvironMatrix6<-sapply(glacial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix6)<-glacial
 EnvironMatrix7<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix7)<-fluvial
 EnvironMatrix8<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix8)<-lacustrine
 EnvironMatrix9<-sapply(carbonate,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix9)<-carbonate
 EnvironMatrix10<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix10)<-aeolian
 EnvironMatrix11<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix11)<-terrestrial
 EnvironMatrix12<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix12)<-nonmarine
+	
+deepwater<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
+coastal<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
+paraliccoastal<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
+deltaiccoastal<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
+nondeltaiccoastal<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
+glacial<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
+fluvial<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
+lacustrine<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)	
+carbonate<-apply(EnvironMatrix9, 1, function(x) any(x)==TRUE)	
+aeolian<-apply(EnvironMatrix10, 1, function(x) any(x)==TRUE)
+terrestrial<-apply(EnvironMatrix11, 1, function(x) any(x)==TRUE)
+nonmarine<-apply(EnvironMatrix12, 1, function(x) any(x)==TRUE)
+	
+EnvironMatrix<-data.matrix(cbind(deepwater,coastal,paraliccoastal,nondeltaiccoastal,glacial,fluvial,lacustrine,carbonate,
+aeolian,terrestrial,nonmarine))
+colnames(EnvironMatrix)<-c("deepwater","coastal","paraliccoastal","nondeltaiccoastal","glacial","fluvial","lacustrine",
+"carbonate","aeolian","terrestrial","nonmarine")
 
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix1,EnvironMatrix2,EnvironMatrix3,EnvironMatrix4,EnvironMatrix5
-,EnvironMatrix6,EnvironMatrix7,EnvironMatrix8,EnvironMatrix9,EnvironMatrix10,EnvironMatrix11,EnvironMatrix12))
+UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
 
 ################################ EVEN MORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
 marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
@@ -306,20 +316,21 @@ terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fiss
 nonmarine<-"non-marine"
 	
 EnvironMatrix1<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-marine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
 EnvironMatrix2<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-coastal<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
 EnvironMatrix3<-sapply(glacial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-glacial<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
 EnvironMatrix4<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-fluvial<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
 EnvironMatrix5<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-lacustrine<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
 EnvironMatrix6<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-aeolian<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
 EnvironMatrix7<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-terrestrial<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
 EnvironMatrix8<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+	
+marine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
+coastal<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
+glacial<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
+fluvial<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
+lacustrine<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
+aeolian<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
+terrestrial<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
 nonemarine<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)
 	
 EnvironMatrix<-data.matrix(cbind(marine,coastal,glacial,fluvial,lacustrine,aeolian,terrestrial,nonemarine))
