@@ -346,14 +346,20 @@ EnvironVector<-sapply(" ", paste, EnvironString)
 Marine<-sapply(" marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
 # Search for "non-marine" in EnvironString
 NonMarine<-sapply("non-marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
+# Search for "inferred marine" in EnvironString
+InferredMarine<-sapply("inferred marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
 # Bind vectors
-MarineMatrix<-cbind(Marine, NonMarine)
+MarineMatrix<-cbind(Marine, NonMarine, InferredMarine)
 # Assign column names
-colnames(MarineMatrix)<-c("marine","non-marine")
+colnames(MarineMatrix)<-c("marine","non-marine","inferred marine")
 # Extract rows form EnvironString which are non-marine but NOT marine
 NonMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"non-marine"]==TRUE)
 # Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
 UnitDataTable[NonMarineRows,"marine"]<-0
+# Extract rows form EnvironString which are inferred marine but NOT marine
+InferredMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"inferred marine"]==TRUE)
+# Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
+UnitDataTable[InferredMarineRows,"marine"]<-0
 	
 ##################################### rownames as strat_name_long option ################################################
 
@@ -365,7 +371,7 @@ SortSubsetUnitsFrame<-SubsetUnitsFrame[order(as.numeric(as.character(SubsetUnits
 strat_name_long<-as.character(SortSubsetUnitsFrame[,"strat_name_long"])	
 
 # bind strat_name_long column to UnitDataMatrix
-UnitDataTable<-data.matrix(cbind(SortSubsetUnitsFrame,strat_name_long))
+# UnitDataTable<-data.matrix(cbind(SortSubsetUnitsFrame,strat_name_long))
 	
 UnitMatrix<-by(SortUnitMatrix,strat_name_long,function(x) apply(x,2,max))
 UnitMatrix<-do.call(rbind,UnitMatrix)
