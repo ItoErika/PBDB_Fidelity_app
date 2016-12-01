@@ -393,7 +393,7 @@ CleanedOutput<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/Cle
 OutputUnitMatrix<-UnitMatrix[which(rownames(UnitMatrix)%in%CleanedOutput[,"strat_name_long"]),]
 
 
-##################################### EPOCHS BAR PLOT #####################################
+################################################### EPOCHS BAR PLOT ##################################################
 
 # download epoch names
 source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
@@ -406,7 +406,6 @@ EpochOutputMatrix<-OutputUnitMatrix[,rownames(Epochs)]
 EpochColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Epochs))
 # extract only name and color columns from EpochColors
 EpochColors<-EpochColors[,c("name","color")]
-
 # create a color palette of colors for each epoch
 colors<-as.character(EpochColors[,"color"])
 names(colors)<-EpochColors[,"name"]
@@ -414,9 +413,42 @@ names(colors)<-EpochColors[,"name"]
 # Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
 # take the sum of all of the columns of EpochOutputMatrix
 EpochSums<-apply(EpochOutputMatrix,2,sum)
-# make bar plot
-EpochsPlotRaw<-barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="# Fidelity Output Units",col=colors)
+# make raw data bar plot
+barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="# of Fidelity Output Units",col=colors)
 
 # make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
-
+# find the total number of units in OutputUnitMatrix
+TotalUnits<-nrow(OutputUnitMatrix)
+# divide EpochSums by TotalUnits
+EpochPercentages<-EpochSums/TotalUnits
+# make percentages barplot
+barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="% of Fidelity Output Units", col=colors)
 	
+################################################### PERIODS BAR PLOT ##################################################
+
+Periods<-downloadTime("international%20periods")
+
+# subset OutputUnitMatrix to only epoch columns (NOTE: rownames of Periods are period names)
+PeriodOutputMatrix<-OutputUnitMatrix[,rownames(Periods)]
+	
+# subset TimeScaleColors to only include periods
+PeriodColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Periods))
+# extract only name and color columns from EpochColors
+PeriodColors<-PeriodColors[,c("name","color")]	
+# create a color palette of colors for each period
+colors<-as.character(PeriodColors[,"color"])
+names(colors)<-PeriodColors[,"name"]	
+	
+# Make a bar plot showing the RAW NUMBER of units in the PeriodOutputMatrix that fall into each period category
+# take the sum of all of the columns of PeriodOutputMatrix
+PeriodSums<-apply(PeriodOutputMatrix,2,sum)
+# make raw data bar plot
+barplot(PeriodSums, names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="# of Fidelity Output Units",col=colors)	
+	
+# make a bar plot showing the PERCENTAGE of units in PeriodOutputMatrix which fall into each period category
+# find the total number of units in PeriodOutputMatrix
+TotalUnits<-nrow(OutputUnitMatrix)
+# divide EpochSums by TotalUnits
+PeriodPercentages<-PeriodSums/TotalUnits
+# make percentages barplot
+barplot(PeriodPercentages,names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="% of Fidelity Output Units", col=colors)
