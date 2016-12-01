@@ -365,7 +365,7 @@ SortSubsetUnitsFrame<-SubsetUnitsFrame[order(as.numeric(as.character(SubsetUnits
 strat_name_long<-as.character(SortSubsetUnitsFrame[,"strat_name_long"])	
 
 # bind strat_name_long column to UnitDataMatrix
-UnitDataTable<-data.matrix(cbind(UnitDataTable,strat_name_long))
+UnitDataTable<-data.matrix(cbind(SortSubsetUnitsFrame,strat_name_long))
 	
 ###################### Find which rows in the UnitDataTable were found in the cleaned app output ########################
 
