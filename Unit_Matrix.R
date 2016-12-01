@@ -376,14 +376,47 @@ strat_name_long<-as.character(SortSubsetUnitsFrame[,"strat_name_long"])
 UnitMatrix<-by(SortUnitMatrix,strat_name_long,function(x) apply(x,2,max))
 UnitMatrix<-do.call(rbind,UnitMatrix)
 	
-###################### Find which rows in the UnitDataTable were found in the cleaned app output ########################
+############################################## UNIT MATRIX ANALYSIS ####################################################
+library("RCurl")
 
-# Load CleanedOutput
-CleadedOutput<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_2_2016/OutputRefined/CleanedOutput.rds")
-# Extract the unit names from CleanedOutput (units which have fossils according to app)
-CleanedOutputUnits<-unique(CleanedOutput[,"strat_name_long"])
-# Find the unit_id for each unit in cleaned output using SubsetUnitsFrame
-OutputUnitID<-SubsetUnitsFrame[which(SubsetUnitsFrame[,"strat_name_long"]%in%CleanedOutputUnits),"unit_id"]
-# Find which unit_ids associated with units in CleanedOutput are in UnitDataTable
-FossilUnitIDs<-rownames(UnitDataTable[which(rownames(UnitDataTable)%in%OutputUnitID),])
+# Download official geologic time scale colors from macrostrat
+ColorsURL<-"https://macrostrat.org/api/defs/intervals?true_clors&format=csv"
+GotURL<-getURL(ColorsURL)
+TimeScaleColors<-read.csv(text=GotURL,header=TRUE)
+
+# load unit matrix with strat_name_long row names and no lumping of columns
+UnitMatrix<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/UnitMatrix.rds")
+# load most recent CleanedOutput
+CleanedOutput<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/CleanedOutput.rds")
+
+# create a version of unit matrix which only has strat names that are in the cleaned output
+OutputUnitMatrix<-UnitMatrix[which(rownames(UnitMatrix)%in%CleanedOutput[,"strat_name_long"]),]
+
+
+##################################### EPOCHS BAR PLOT #####################################
+
+# download epoch names
+source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
+Epochs<-downloadTime("international%20epochs")
+
+# subset OutputUnitMatrix to only epoch columns (NOTE: rownames of Epochs are epoch names)
+EpochOutputMatrix<-OutputUnitMatrix[,rownames(Epochs)]
+
+# subset TimeScaleColors to only include epochs
+EpochColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Epochs))
+# extract only name and color columns from EpochColors
+EpochColors<-EpochColors[,c("name","color")]
+
+# create a color palette of colors for each epoch
+colors<-as.character(EpochColors[,"color"])
+names(colors)<-EpochColors[,"name"]
+
+# Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
+# take the sum of all of the columns of EpochOutputMatrix
+EpochSums<-apply(EpochOutputMatrix,2,sum)
+# make bar plot
+EpochsPlotRaw<-barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="# Fidelity Output Units",col=colors)
+
+# make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
+
 	
