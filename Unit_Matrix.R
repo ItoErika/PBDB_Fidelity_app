@@ -504,8 +504,12 @@ names(colors)<-EpochColors[,"name"]
 # take the sum of all of the columns of EpochOutputMatrix
 EpochSums<-apply(EpochOutputMatrix,2,sum)
 # make raw data bar plot
-barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="# of Fidelity Output Units",col=colors)
-
+quartz(height=10,width=12)
+layout(matrix(c(1,1,2,2),2,2,byrow=TRUE))
+par(oma=c(4,1,0.5,0),mar=c(3,3,2,0.5),mgp=c(1.5,0.5,0))
+barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),ylab="# of Fidelity Output Units",col=colors,las=2)
+abline(h=mean(EpochSums),lwd=5,col="dark grey",lty=3)
+	
 # make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
 # subset UnitMatrix to only include epoch columns
 EpochMatrix<-UnitMatrix[,rownames(Epochs)]
@@ -514,16 +518,8 @@ EpochTotalSums<-apply(EpochMatrix,2,sum)
 # divide EpochSums by EpochTotalSums
 EpochPercentages<-EpochSums/EpochTotalSums
 # make percentages barplot
-barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),xlab="Epoch",ylab="% of Fidelity Output Units", col=colors)
-	
-#abline(h=0.2311304)
-#abline(h=0.2311304,lwd=5)
-#abline(h=0.2311304,lwd=5,col="pink")
-#abline(h=0.2311304,lwd=5,col="pink",lty=4)
-#abline(h=0.2311304,lwd=5,col="pink",lty=3)
-#abline(h=0.2311304,lwd=5,col="blue",lty=3)
-#abline(h=0.2311304,lwd=5,col="grey",lty=3)
-#abline(h=0.2311304,lwd=5,col="black",lty=3)
+barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),ylab="% of Fidelity Output Units", col=colors,las=2)
+abline(h=mean(EpochPercentages),lwd=5,col="dark grey",lty=3)
 	
 ################################################### PERIODS BAR PLOT ##################################################
 
