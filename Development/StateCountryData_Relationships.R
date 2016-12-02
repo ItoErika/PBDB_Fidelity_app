@@ -31,7 +31,7 @@ StateData<-merge(StateData, StateOccurrences, by="state", all.x=TRUE)
 
 # Load Macrostrat data
 # Download all marine, sedimentary unit names from Macrostrat Database
-UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&environ_class=marine&project_id=1&response=long&format=csv")
+UnitsURL<-paste("https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv")
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
