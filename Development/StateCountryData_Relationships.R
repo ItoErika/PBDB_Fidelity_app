@@ -43,16 +43,16 @@ LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersectio
 # merge the Location to UnitsFrame by col_id
 UnitsFrame<-merge(UnitsFrame,LocationTuples,by="col_id", all.x=TRUE)
 
-# Create a matrix of the number of marine/sedimentary units in each U.S. state
-StateMarineUnits<-as.matrix(table(UnitsFrame[,"location"]))
+# Create a matrix of the number of sedimentary units in each U.S. state
+StateSedUnits<-as.matrix(table(UnitsFrame[,"location"]))
 # Create a state column for the matrix
-state<-rownames(StateMarineUnits)
+state<-rownames(StateSedUnits)
 # Bind the column to the matrix
-StateMarineUnits<-cbind(state,StateMarineUnits)
-colnames(StateMarineUnits)[2]<-"NumMarineUnits"
+StateSedUnits<-cbind(state,StateSedUnits)
+colnames(StateSedUnits)[2]<-"NumSedUnits"
 
-# Merge population, GDP, occurrences, and marine units data
-StateData<-merge(StateData, StateMarineUnits, by="state", all.x=TRUE)
+# Merge population, GDP, occurrences, and sedimentary units data
+StateData<-merge(StateData, StateSedUnits, by="state", all.x=TRUE)
 
 # Remove unwanted columns
 StateData<-na.omit(StateData)
@@ -82,19 +82,26 @@ colnames(Richness)[2]<-"NumGenera"
 # merge richness data to StateData
 StateData<-merge(StateData, Richness, by="state", all.x=TRUE)
   
+# Add Fidelity output data to StateData
+StateProportion<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/StateProportion.csv")
+StateData<-merge(StateData, StateProportion, by.x="state", by.y="X", all.x=TRUE)
+  
 # Convert columns in state data into correct format
 StateData[,"state"]<-as.character(StateData[,"state"])
 StateData[,"LandArea.sqkm"]<-as.numeric(as.character(StateData[,"LandArea.sqkm"]))
 StateData[,"Pop2015"]<-as.numeric(as.character(StateData[,"Pop2015"]))
 StateData[,"GDP2015"]<-as.numeric(as.character(StateData[,"GDP2015"]))
 StateData[,"NumOccurrences"]<-as.numeric(as.character(StateData[,"NumOccurrences"]))
-StateData[,"NumMarineUnits"]<-as.numeric(as.character(StateData[,"NumMarineUnits"]))
+StateData[,"NumSedUnits"]<-as.numeric(as.character(StateData[,"NumSedUnits"]))
 StateData[,"NumReferences"]<-as.numeric(as.character(StateData[,"NumReferences"]))
 StateData[,"NumGenera"]<-as.numeric(as.character(StateData[,"NumGenera"]))
+StateData[,"Fidelity"]<-as.numeric(as.character(StateData[,"Fidelity"]))
+StateData[,"Candidates"]<-as.numeric(as.character(StateData[,"Candidates"]))
+StateData[,"Coverage"]<-as.numeric(as.character(StateData[,"Coverage"]))
   
 # Add columns of PBDB and macrostrat data normalized according to area of states to StateData
 StateData[,"AreaNormOcc"]<-StateData[,"NumOccurrences"]/StateData[,"LandArea.sqkm"]
-StateData[,"AreaNormUnits"]<-StateData[,"NumMarineUnits"]/StateData[,"LandArea.sqkm"]
+StateData[,"AreaNormUnits"]<-StateData[,"NumSedUnits"]/StateData[,"LandArea.sqkm"]
 StateData[,"AreaNormRef"]<-StateData[,"NumReferences"]/StateData[,"LandArea.sqkm"]
 StateData[,"AreaNormGen"]<-StateData[,"NumGenera"]/StateData[,"LandArea.sqkm"]
    
@@ -120,7 +127,7 @@ CReferences<-cbind(cc, CReferences)
 # name columns
 colnames(CReferences)[2]<-"NumReferences"
   
-# merge references data to StateData
+# merge references data to CountryData
 CountryData<-merge(CountryData, CReferences, by="cc", all.x=TRUE)
 
 # Create a matrix of unique genus for each country (richness)
@@ -155,7 +162,29 @@ CountryData["AreaNormRef"]<-CountryData[,"NumReferences"]/CountryData[,"LandArea
 CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqkm"]
 
 #################################################### ANALYSIS ############################################################  
+
+# STATE POPULATION PLOT
+quartz(height=10,width=10)
+layout(matrix(c(1,2,3,4),2,2))
+plot(StateData[,"Pop2015"],StateData[,"NumOccurrences"],xlab="State Population in 2015",ylab="# of PBDB Occurrences",col="dodgerblue3",lwd=2,pch=16,main="PBDB Occurrences vs State Population")
+plot(StateData[,"Pop2015"],StateData[,"NumReferences"],xlab="State Population in 2015",ylab="# of PBDB References",col="dodgerblue3",lwd=2,pch=16,main="PBDB References vs State Population")
+plot(StateData[,"Pop2015"],StateData[,"NumGenera"],xlab="State Population in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs State Population")  
+plot(StateData[,"Pop2015"],StateData[,"Coverage"],xlab="State Population in 2015",ylab="Fidelity Coverage",col="dodgerblue3",lwd=2,pch=16,main="Coverage vs State Population")  
+ 
+# STATE GDP PLOT 
+quartz(height=10,width=10)
+layout(matrix(c(1,2,3,4),2,2))
+plot(StateData[,"GDP2015"],StateData[,"NumOccurrences"],xlab="State GDP in 2015",ylab="# of PBDB Occurrences",col="dodgerblue3",lwd=2,pch=16,main="PBDB Occurrences vs GDP")
+plot(StateData[,"GDP2015"],StateData[,"NumReferences"],xlab="State GDP in 2015",ylab="# of PBDB References",col="dodgerblue3",lwd=2,pch=16,main="PBDB References vs GDP")
+plot(StateData[,"GDP2015"],StateData[,"NumGenera"],xlab="State GDP in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs GDP")
+plot(StateData[,"GDP2015"],StateData[,"Coverage"],xlab="State GDP in 2015",ylab="Fidelity Coverage",col="dodgerblue3",lwd=2,pch=16,main="Coverage vs GDP") 
   
+# COUNTRY IHDI PLOT
+quartz(height=10,width=10)
+plot(CountryData[,"ihdi"], CountryData[,"NumOccurrences"],xlab="Country IHDI",ylab="# of PBDB Occurrences",col="forest green",lwd=2,pch=16,main="PBDB Occurrences vs IHDI")
+plot(CountryData[,"ihdi"], CountryData[,"NumReferences"],xlab="Country IHDI",ylab="# of PBDB References",col="forest green",lwd=2,pch=16,main="PBDB References vs IHDI")
+plot(CountryData[,"ihdi"], log(CountryData[,"NumGenera"]),xlab="Country IHDI",ylab="log(# of Genera)",lwd=2,pch=16,col="forest green",main="Richness vs IHDI")
+ 
 # ANALYZE UNNORMALIZED DATA
   
 cor.test(StateData[,"GDP2015"],StateData[,"NumOccurrences"], method="spearman")
@@ -163,7 +192,7 @@ cor.test(StateData[,"GDP2015"],StateData[,"NumOccurrences"], method="spearman")
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates: rho: -0.0327551 
   
-cor.test(StateData[,"GDP2015"],StateData[,"NumMarineUnits"], method="spearman")
+cor.test(StateData[,"GDP2015"],StateData[,"NumSedUnits"], method="spearman")
 # S = 22397, p-value = 0.328
 # alternative hypothesis: true rho is not equal to 0
 #sample estimates: rho -0.1427077 
@@ -183,7 +212,7 @@ cor.test(StateData[,"Pop2015"],StateData[,"NumOccurrences"], method="spearman")
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates: rho 0.2076531 
   
-cor.test(StateData[,"Pop2015"],StateData[,"NumMarineUnits"], method="spearman")
+cor.test(StateData[,"Pop2015"],StateData[,"SedUnits"], method="spearman")
 # S = 14789, p-value = 0.08913
 # alternative hypothesis: true rho is not equal to 0
 # sample estimates: rho 0.2454654 
