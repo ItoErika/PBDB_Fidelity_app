@@ -166,17 +166,17 @@ CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqk
 # STATE POPULATION PLOT
 quartz(height=10,width=10)
 layout(matrix(c(1,2,3,4),2,2))
-plot(StateData[,"Pop2015"],StateData[,"NumOccurrences"],xlab="State Population in 2015",ylab="# of PBDB Occurrences",col="dodgerblue3",lwd=2,pch=16,main="PBDB Occurrences vs State Population")
-plot(StateData[,"Pop2015"],StateData[,"NumReferences"],xlab="State Population in 2015",ylab="# of PBDB References",col="dodgerblue3",lwd=2,pch=16,main="PBDB References vs State Population")
-plot(StateData[,"Pop2015"],StateData[,"NumGenera"],xlab="State Population in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs State Population")  
-plot(StateData[,"Pop2015"],StateData[,"Coverage"],xlab="State Population in 2015",ylab="Fidelity Coverage",col="dodgerblue3",lwd=2,pch=16,main="Coverage vs State Population")  
+plot(log(StateData[,"Pop2015"]),StateData[,"NumOccurrences"],xlab="State Population in 2015",ylab="# of PBDB Occurrences",col="dodgerblue3",lwd=2,pch=16,main="PBDB Occurrences vs State Population")
+plot(log(StateData[,"Pop2015"]),StateData[,"NumReferences"],xlab="State Population in 2015",ylab="# of PBDB References",col="dodgerblue3",lwd=2,pch=16,main="PBDB References vs State Population")
+plot(log(StateData[,"Pop2015"]),StateData[,"NumGenera"],xlab="State Population in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs State Population")  
+plot(log(StateData[,"Pop2015"]),StateData[,"Coverage"],xlab="State Population in 2015",ylab="Fidelity Coverage",col="dodgerblue3",lwd=2,pch=16,main="Coverage vs State Population")  
  
 # STATE GDP PLOT 
 quartz(height=10,width=10)
 layout(matrix(c(1,2,3,4),2,2))
 plot(StateData[,"GDP2015"],StateData[,"NumOccurrences"],xlab="State GDP in 2015",ylab="# of PBDB Occurrences",col="dodgerblue3",lwd=2,pch=16,main="PBDB Occurrences vs GDP")
 plot(StateData[,"GDP2015"],StateData[,"NumReferences"],xlab="State GDP in 2015",ylab="# of PBDB References",col="dodgerblue3",lwd=2,pch=16,main="PBDB References vs GDP")
-plot(StateData[,"GDP2015"],StateData[,"NumGenera"],xlab="State GDP in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs GDP")
+plot(StateData[,"GDP2015"),StateData[,"NumGenera"],xlab="State GDP in 2015",ylab="# of Genera",col="dodgerblue3",lwd=2,pch=16,main="Richness vs GDP")
 plot(StateData[,"GDP2015"],StateData[,"Coverage"],xlab="State GDP in 2015",ylab="Fidelity Coverage",col="dodgerblue3",lwd=2,pch=16,main="Coverage vs GDP") 
   
 # COUNTRY IHDI PLOT
@@ -184,7 +184,9 @@ quartz(height=10,width=10)
 plot(CountryData[,"ihdi"], CountryData[,"NumOccurrences"],xlab="Country IHDI",ylab="# of PBDB Occurrences",col="forest green",lwd=2,pch=16,main="PBDB Occurrences vs IHDI")
 plot(CountryData[,"ihdi"], CountryData[,"NumReferences"],xlab="Country IHDI",ylab="# of PBDB References",col="forest green",lwd=2,pch=16,main="PBDB References vs IHDI")
 plot(CountryData[,"ihdi"], log(CountryData[,"NumGenera"]),xlab="Country IHDI",ylab="log(# of Genera)",lwd=2,pch=16,col="forest green",main="Richness vs IHDI")
- 
+
+  
+  
 # ANALYZE UNNORMALIZED DATA
   
 cor.test(StateData[,"GDP2015"],StateData[,"NumOccurrences"], method="spearman")
