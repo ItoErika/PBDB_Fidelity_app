@@ -161,6 +161,9 @@ CountryData["AreaNormOcc"]<-CountryData[,"NumOccurrences"]/CountryData[,"LandAre
 CountryData["AreaNormRef"]<-CountryData[,"NumReferences"]/CountryData[,"LandArea.sqkm"]
 CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqkm"]
 
+# Fix United Kingdom country code issue
+CountryData[which(CountryData[,"country"]=="United Kingdom of Great Britain and Northern Ireland"),"cc"]<-"UK"
+
 #################################################### ANALYSIS ############################################################  
 
 # STATE POPULATION PLOT
