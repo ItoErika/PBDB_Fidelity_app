@@ -107,7 +107,7 @@ StateData[,"AreaNormGen"]<-StateData[,"NumGenera"]/StateData[,"LandArea.sqkm"]
    
 # Load country IHDI data 
 CountryData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/countryihdi.csv")
-
+  
 # Create a matrix of the number of PBDB occurrences per country
 CountryOccurrences<-as.matrix(table(FossilsFrame[,"cc"]))
 # Create a country code column
@@ -160,9 +160,6 @@ CountryData[,c("NumOccurrences","NumReferences","NumGenera")][is.na(CountryData[
 CountryData["AreaNormOcc"]<-CountryData[,"NumOccurrences"]/CountryData[,"LandArea.sqkm"]
 CountryData["AreaNormRef"]<-CountryData[,"NumReferences"]/CountryData[,"LandArea.sqkm"]
 CountryData["AreaNormGen"]<-CountryData[,"NumGenera"]/CountryData[,"LandArea.sqkm"]
-
-# Fix United Kingdom country code issue
-CountryData[which(CountryData[,"country"]=="United Kingdom of Great Britain and Northern Ireland"),"cc"]<-"UK"
 
 #################################################### ANALYSIS ############################################################  
 
