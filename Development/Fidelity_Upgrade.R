@@ -28,7 +28,7 @@ Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 # Make SQL query
-DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352") 
+DeepDiveData<-dbGetQuery(Connection,"SELECT* FROM nlp_sentences_352") 
 
 # If Testing: 
 #Driver <- dbDriver("PostgreSQL") # Establish database driver
@@ -56,3 +56,8 @@ CleanedWords<-gsub(","," ",DeepDiveData[,"words"])
 print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time()))
 # Apply grep to cleaned words
 FormationHits<-parSapply(Cluster,"formation",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
+
+# STEP THREE: Extact DeepDiveData rows corresponding with formation hits
+ print(paste("Extract formation hit rows from DeepDiveData",Sys.time()))
+
+
