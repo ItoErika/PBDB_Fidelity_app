@@ -49,8 +49,13 @@ print(paste("Clean DeepDiveData",Sys.time()))
 
 # Remove bracket symbols ({ and }) from DeepDiveData sentences
 DeepDiveData[,"words"]<-gsub("\\{|\\}","",DeepDiveData[,"words"])
+# Remove bracket symbols ({ and }) from DeepDiveData poses column
+DeepDiveData[,"poses"]<-gsub("\\{|\\}","",DeepDiveData[,"poses"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",DeepDiveData[,"words"])
+# Remove commas and slashes from DeepDiveData poses column
+DeepDiveData[,"poses"]<-gsub("\",\"","COMMASUB",DeepDiveData[,"poses"])
+
 
 # STEP THREE: Search for the word "formation" in all cleaned DeepDiveData sentences (CleanedWords)
 print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time()))
