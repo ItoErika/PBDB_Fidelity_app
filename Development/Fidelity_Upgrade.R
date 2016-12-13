@@ -137,7 +137,12 @@ SplitDocSent<-strsplit(names(NNPElements),'\\.')
 docid<-sapply(SplitDocSent,function(x) x[1])
 # make a sentid column for associated NNPElements
 sentid<-as.numeric(sapply(SplitDocSent,function(x) x[2]))
-        
+    
+ 
+    
+    
+    
+    
 # Extract NNP words using NNP elements obtained above    
 NNPWords<-vector("character",length=length(NNPElements))
 for(Document in 1:length(NNPElements)){
