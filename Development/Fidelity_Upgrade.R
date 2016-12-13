@@ -18,19 +18,19 @@ if (is.na(CommandArgument)) {
     Cluster<-makeCluster(as.numeric(CommandArgument[1]))
     }
 
+# STEP ONE: Load DeepDiveData 
+print(paste("Load postgres tables",Sys.time()))
+
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
-
-print(paste("Begin loading postgres tables.",Sys.time()))
 
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
-# STEP ONE: Load DeepDiveData 
 # Make SQL query
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352") 
 
-# If testing: 
+# If Testing: 
 #Driver <- dbDriver("PostgreSQL") # Establish database driver
 #Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
 #DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data")
@@ -44,4 +44,15 @@ StepOneRows<-nrow(DeepDiveData)
 StepOneUnits<-"NA"
 StepOneTuples<-"NA"
 
-# Search for the word "formation" in all DeepDiveData sentences
+# STEP TWO: Clean DeepDiveData 
+print(paste("Clean DeepDiveData",Sys.time()))
+
+# Remove bracket symbols ({ and }) from DeepDiveData sentences
+DeepDiveData[,"words"]<-gsub("\\{|\\}","",DeepDiveData[,"words"])
+# Remove commas from DeepDiveData to prepare to run grep function
+CleanedWords<-gsub(","," ",DeepDiveData[,"words"])
+
+# STEP THREE: Search for the word "formation" in all cleaned DeepDiveData sentences (CleanedWords)
+print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time()))
+# Apply grep to cleaned words
+FormationHits<-parSapply(Cluster,"formation",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
