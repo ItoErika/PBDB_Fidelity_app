@@ -33,7 +33,7 @@ DeepDiveData<-dbGetQuery(Connection,"SELECT* FROM nlp_sentences_352")
 # If Testing: 
 #Driver <- dbDriver("PostgreSQL") # Establish database driver
 #Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
-#DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data")
+#DeepDiveData<-dbGetQuery(Connection,"SELECT* FROM pbdb_fidelity.pbdb_fidelity_data")
 
 # RECORD INITIAL STATS
 # INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA: 
