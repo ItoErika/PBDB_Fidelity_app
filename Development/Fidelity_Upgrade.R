@@ -53,9 +53,8 @@ DeepDiveData[,"words"]<-gsub("\\{|\\}","",DeepDiveData[,"words"])
 DeepDiveData[,"poses"]<-gsub("\\{|\\}","",DeepDiveData[,"poses"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",DeepDiveData[,"words"])
-# Remove commas and slashes from DeepDiveData poses column
-DeepDiveData[,"poses"]<-gsub("\",\"","COMMASUB",DeepDiveData[,"poses"])
-
+# Remove commas from DeepDiveData poses column
+DeepDiveData[,"poses"]<-gsub(",","COMMA",DeepDiveData[,"poses"])
 
 # STEP THREE: Search for the word "formation" in all cleaned DeepDiveData sentences (CleanedWords)
 print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time()))
@@ -63,6 +62,6 @@ print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time
 FormationHits<-parSapply(Cluster,"formation",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
 
 # STEP THREE: Extact DeepDiveData rows corresponding with formation hits
- print(paste("Extract formation hit rows from DeepDiveData",Sys.time()))
-
+print(paste("Extract formation hit rows from DeepDiveData",Sys.time()))
+SubsetDeepDive<-sapply(as.numeric(FormationHits), function(x) DeepDiveData[x,])
 
