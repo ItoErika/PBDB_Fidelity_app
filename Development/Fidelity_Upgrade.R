@@ -85,12 +85,6 @@ DeepDivePoses<-sapply(SubsetDeepDive[,"poses"],function(x) unlist(strsplit(as.ch
 # Assign names to each list element corresponding to the document and sentence id of each sentence
 doc.sent<-paste(SubsetDeepDive[,"docid"],SubsetDeepDive[,"sentid"],sep=".")
 names(DeepDivePoses)<-doc.sent
-
-# Create a list of vectors showing each formation hit sentence's unlisted words column 
-DeepDiveWords<-sapply(SubsetDeepDive[,"words"],function(x) unlist(strsplit(as.character(x),",")))
-# Assign names to each list element corresponding to the document and sentence id of each sentence
-doc.sent<-paste(SubsetDeepDive[,"docid"],SubsetDeepDive[,"sentid"],sep=".")
-names(DeepDiveWords)<-doc.sent
     
 #check: 
 #test1<-sapply(DeepDivePoses, length)
@@ -138,8 +132,13 @@ docid<-sapply(SplitDocSent,function(x) x[1])
 # make a sentid column for associated NNPElements
 sentid<-as.numeric(sapply(SplitDocSent,function(x) x[2]))
     
+which(which(SubsetDeepDive[,"docid"]==docid[1])%in%SubsetDeepDive[,"sentid"][[as.numeric(sentid[[1]])]]==TRUE)
  
-    
+# Create a list of vectors showing each formation hit sentence's unlisted words column 
+DeepDiveWords<-sapply(SubsetDeepDive[,"words"],function(x) unlist(strsplit(as.character(x),",")))
+# Assign names to each list element corresponding to the document and sentence id of each sentence
+doc.sent<-paste(SubsetDeepDive[,"docid"],SubsetDeepDive[,"sentid"],sep=".")
+names(DeepDiveWords)<-doc.sent    
     
     
     
