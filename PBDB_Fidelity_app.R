@@ -16,13 +16,13 @@ if (require("RPostgreSQL",warn.conflicts=FALSE)==FALSE) {
     library("RPostgreSQL");
     }
 
-# Start a cluster for multicore, 4 by default or higher if passed as command line argument
+# Start a cluster for multicore, 3 by default or higher if passed as command line argument
 CommandArgument<-commandArgs(TRUE)
-if (is.na(CommandArgument)) {
-    Cluster<-makeCluster(4)
-    } else {
-    Cluster<-makeCluster(as.numeric(CommandArgument[1]))
-    }
+if (length(CommandArgument)==0) {
+     Cluster<-makeCluster(3)
+     } else {
+     Cluster<-makeCluster(as.numeric(CommandArgument[1]))
+     }
 
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
