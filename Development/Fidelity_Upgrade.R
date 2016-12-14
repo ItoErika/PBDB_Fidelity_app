@@ -158,7 +158,22 @@ NNPWords<-sapply(ClusterWords, function(x) paste(array(x), collapse=" "))
 # Bind the clusters to the ClusterData frame
 ClusterData[,"NNPWords"]<-NNPWords    
     
+print(paste("Writing Outputs",Sys.time()))
 
-    
-    
-    
+# Return stats table 
+StepDescription<-c(StepOneDescription, StepFourDescription)
+NumberDocuments<-c(StepOneDocs, StepFourDocs)
+NumberRows<-c(StepOneRows, StepFourRows)
+# Bind Stats Columns
+Stats<-cbind(StepDescription,NumberDocuments,NumberRows)    
+
+# Set directory for output
+CurrentDirectory<-getwd()
+setwd(paste(CurrentDirectory,"/output",sep=""))
+
+# Write output files
+saveRDS(ClusterData, "ClusterData.rds")
+write.csv(ClusterData, "ClusterData.csv")
+write.csv(Stats, "Stats.csv")
+      
+print(paste("Complete",Sys.time()))   
