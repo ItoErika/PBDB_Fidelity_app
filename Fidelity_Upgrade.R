@@ -172,7 +172,8 @@ StepEightClusters<-nrow(ClusterData)
 # STEP NINE: Extract the rows with clusters with the word 'formation' from ClusterData   
 print(paste("Extrat 'formation' clusters from ClusterData",Sys.time()))
 FormationClusters<-grep("formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
-FormationData<-ClusterData[FormationClusters,]
+# Return only columns of interest for final output from ClusterData
+FormationData<-ClusterData[FormationClusters,c("ClusterPosition","docid","sentid","NNPWords")]
     
 # RECORD STATS
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
