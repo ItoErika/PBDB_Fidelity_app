@@ -196,6 +196,9 @@ Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberClusters)
 # Set directory for output
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory,"/output",sep=""))
+    
+# Clear any old output files
+unlink("*")
 
 # Write output files
 saveRDS(FormationData, "FormationData.rds")
