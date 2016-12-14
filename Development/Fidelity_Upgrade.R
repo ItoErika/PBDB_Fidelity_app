@@ -112,44 +112,53 @@ SentenceNNPs<-sapply(ConsecutiveNNPs,function(y) sapply(y,function(x) paste(x,co
     
 # STEP EIGHT: Find words associated with Conescutive NNPs
 print(paste("Find words Associated with Conescutive NNPs",Sys.time()))
-
-# Create a matrix with a row for each NNP cluster
+    
+# Create a data frame with a row for each NNP cluster
+# Make a column for cluster elements 
+ClusterPosition<-unlist(SentenceNNPs)
 # Make a column for sentence IDs
 ClusterCount<-sapply(SentenceNNPs,length)
 # Repeat the document & sentence ID info (denoted in the names of SentenceNNPs) by the number of NNP clusters in each sentence
 DocSentID<-rep(names(SentenceNNPs),times=ClusterCount)
-# Make a column for cluster elements 
-ClusterPosition<-unlist(SentenceNNPs)
-# Remove NA's from ClusterPosition
-ClusterPosition<-ClusterPosition[which(ClusterPosition!="NA")]
-# Make a column for the words associated with each NNP
-# Get numeric elements for each NNP
-NNPElements<-lapply(ClusterPosition,function(x) as.numeric(unlist(strsplit(x,","))))
-# split document and sentence id data denoted in NNPElements names
-SplitDocSent<-strsplit(names(NNPElements),'\\.')
-# make a docid column for associated NNPElements
+SplitDocSent<-strsplit(DocSentID,'\\.') 
+# Create docid column for each cluster
 docid<-sapply(SplitDocSent,function(x) x[1])
-# make a sentid column for associated NNPElements
-sentid<-as.numeric(sapply(SplitDocSent,function(x) x[2]))
+# make a sentid column for each cluster
+sentid<-as.numeric(sapply(SplitDocSent,function(x) x[2]))    
+# Bind cluster position data with document/sentence id data
+ClusterData<-as.data.frame(cbind(ClusterPosition,docid,sentid))
+# Remove NA's from ClusterMatrix
+ClusterData<-ClusterMatrix[which(ClusterMatrix[,"ClusterPosition"]!="NA"),]
+ClusterData[,"ClusterPosition"]<-as.character(ClusterData[,"ClusterPosition"])
+ClusterData[,"docid"]<-as.character(ClusterData[,"docid"])
+ClusterData[,"sentid"]<-as.numeric(as.character(ClusterData[,"sentid"]))
     
-which(which(SubsetDeepDive[,"docid"]==docid[1])%in%SubsetDeepDive[,"sentid"][[as.numeric(sentid[[1]])]]==TRUE)
+# Make a column for the words associated with each NNP
+# Create a vector of the number of rows in ClusterData.
+NumClusterVector<-1:nrow(ClusterData)   
+# Extract the proper SubsetDeepDive rows based on the data in ClusterData    
+SubsetDeepDiveRow<-sapply(NumClusterVector,function(x) which(SubsetDeepDive[,"docid"]==ClusterData[x,"docid"]&SubsetDeepDive[,"sentid"]==ClusterData[x,"sentid"]))
+# Bind row data to ClusterData and convert it into a dataframe
+ClusterData<-cbind(ClusterData,SubsetDeepDiveRow)
+ClusterData[,"SubsetDeepDiveRow"]<-as.numeric(as.character(ClusterData[,"SubsetDeepDiveRow"]))
  
-# Create a list of vectors showing each formation hit sentence's unlisted words column 
-DeepDiveWords<-sapply(SubsetDeepDive[,"words"],function(x) unlist(strsplit(as.character(x),",")))
-# Assign names to each list element corresponding to the document and sentence id of each sentence
-doc.sent<-paste(SubsetDeepDive[,"docid"],SubsetDeepDive[,"sentid"],sep=".")
-names(DeepDiveWords)<-doc.sent    
+# Extract the sentences the associated SubsetDeepDive rows  
+ClusterSentences<-sapply(ClusterData[,"SubsetDeepDiveRow"], function (x) SubsetDeepDive[x,"words"])
+# Split and unlist the words in each cluster sentence
+ClusterSentencesSplit<-sapply(ClusterSentences,function(x) unlist(strsplit(as.character(x),",")))
+# Extract the NNP Clusters from theh associate sentences 
+# Get numeric elements for each NNP Cluster word
+NNPElements<-lapply(ClusterData[,"ClusterPosition"],function(x) as.numeric(unlist(strsplit(x,","))))
+# Create a vector for the number of Clusters in ClusterData
+NumClusterVector<-1:nrow(ClusterData) 
+# Extract the words from ClusterSentencesSplit       
+ClusterWords<-sapply(NumClusterVector, function(y) sapply(NNPElements[y], function(x) ClusterSentencesSplit[[y]][x]))
+# Collapse the clusters into single character strings
+NNPWords<-sapply(ClusterWords, function(x) paste(array(x), collapse=" "))
+# Bind the clusters to the ClusterData frame
+ClusterData[,"NNPWords"]<-NNPWords    
     
-    
-    
-# Extract NNP words using NNP elements obtained above    
-NNPWords<-vector("character",length=length(NNPElements))
-for(Document in 1:length(NNPElements)){
-    ExtractElements<-NNPElements[[Document]]
-    DocumentName<-names(NNPElements)[Document]
-    SplitWords<-unlist(strsplit(DDMatches[DocumentName,"words"],","))
-    NNPWords[Document]<-paste(SplitWords[ExtractElements],collapse=" ")
-    }    
+
     
     
     
