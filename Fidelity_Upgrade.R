@@ -127,8 +127,9 @@ docid<-sapply(SplitDocSent,function(x) x[1])
 sentid<-as.numeric(sapply(SplitDocSent,function(x) x[2]))    
 # Bind cluster position data with document/sentence id data
 ClusterData<-as.data.frame(cbind(ClusterPosition,docid,sentid))
-# Remove NA's from ClusterMatrix
-ClusterData<-ClusterMatrix[which(ClusterMatrix[,"ClusterPosition"]!="NA"),]
+# Remove NA's from ClusterData
+ClusterData<-ClusterData[which(ClusterData[,"ClusterPosition"]!="NA"),]
+# Reformat ClusterData
 ClusterData[,"ClusterPosition"]<-as.character(ClusterData[,"ClusterPosition"])
 ClusterData[,"docid"]<-as.character(ClusterData[,"docid"])
 ClusterData[,"sentid"]<-as.numeric(as.character(ClusterData[,"sentid"]))
