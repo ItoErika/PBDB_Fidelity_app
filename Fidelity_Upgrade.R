@@ -41,6 +41,7 @@ StepOneDescription<-"Initial Data"
 # INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA:
 StepOneDocs<-length((unique(DeepDiveData[,"docid"])))
 StepOneRows<-nrow(DeepDiveData)
+StepOneClusters<-0
 
 # STEP TWO: Clean DeepDiveData 
 print(paste("Clean DeepDiveData",Sys.time()))
@@ -72,6 +73,7 @@ StepFourDescription<-"Subset DeepDiveData to rows which contain the word 'format
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
 StepFourDocs<-length((unique(SubsetDeepDive[,"docid"])))
 StepFourRows<-nrow(SubsetDeepDive)
+StepFourClusters<-0
 
 # STEP FIVE: Replace slashes from SubsetDeepDive words and poses columns with the word "SLASH"
 print(paste("Clean SubsetDeepDive",Sys.time()))
@@ -157,24 +159,46 @@ ClusterWords<-sapply(NumClusterVector, function(y) sapply(NNPElements[y], functi
 # Collapse the clusters into single character strings
 NNPWords<-sapply(ClusterWords, function(x) paste(array(x), collapse=" "))
 # Bind the clusters to the ClusterData frame
-ClusterData[,"NNPWords"]<-NNPWords    
+ClusterData[,"NNPWords"]<-NNPWords
+    
+# RECORD STATS
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
+StepEightDescription<-"Extract NPP clusters from SubsetDeepDive"
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
+StepEightDocs<-length(unique(ClusterData[,"docid"]))
+StepEightRows<-length(unique(ClusterData[,"SubsetDeepDiveRow"]))
+StepEightClusters<-nrow(ClusterData)
+    
+# STEP NINE: Extract the rows with clusters with the word 'formation' from ClusterData   
+print(paste("Extrat 'formation' clusters from ClusterData",Sys.time()))
+FormationClusters<-grep("formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
+FormationData<-ClusterData[FormationClusters,]
+    
+# RECORD STATS
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
+StepNineDescription<-"Extract NNP clusters containing the word 'formation'"
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
+StepNineDocs<-length(unique(FormationData[,"docid"]))
+StepNineRows<-length(unique(FormationData[,"SubsetDeepDiveRow"]))
+StepNineClusters<-nrow(FormationData)
     
 print(paste("Writing Outputs",Sys.time()))
 
 # Return stats table 
-StepDescription<-c(StepOneDescription, StepFourDescription)
-NumberDocuments<-c(StepOneDocs, StepFourDocs)
-NumberRows<-c(StepOneRows, StepFourRows)
+StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription)
+NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs)
+NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows)
+NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters) 
 # Bind Stats Columns
-Stats<-cbind(StepDescription,NumberDocuments,NumberRows)    
+Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberClusters)    
 
 # Set directory for output
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory,"/output",sep=""))
 
 # Write output files
-saveRDS(ClusterData, "ClusterData.rds")
-write.csv(ClusterData, "ClusterData.csv")
+saveRDS(FormationData, "FormationData.rds")
+write.csv(FormationData, "FormationData.csv")
 write.csv(Stats, "Stats.csv")
       
 print(paste("Complete",Sys.time()))   
