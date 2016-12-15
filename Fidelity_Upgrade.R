@@ -87,12 +87,6 @@ DeepDivePoses<-sapply(SubsetDeepDive[,"poses"],function(x) unlist(strsplit(as.ch
 # Assign names to each list element corresponding to the document and sentence id of each sentence
 doc.sent<-paste(SubsetDeepDive[,"docid"],SubsetDeepDive[,"sentid"],sep=".")
 names(DeepDivePoses)<-doc.sent
-    
-#check: 
-#test1<-sapply(DeepDivePoses, length)
-#test2<-sapply(DeepDiveWords,length)
-#identical(test1,test2)
-#[1] TRUE
 
 # Extract all the NNPs from DeepDivePoses
 DeepDiveNNPs<-sapply(DeepDivePoses,function(x) which(x=="NNP"))
@@ -172,8 +166,8 @@ StepEightClusters<-nrow(ClusterData)
 # STEP NINE: Extract the rows with clusters with the word 'formation' from ClusterData   
 print(paste("Extrat 'formation' clusters from ClusterData",Sys.time()))
 FormationClusters<-grep("formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
-# Return only columns of interest for final output from ClusterData
-FormationData<-ClusterData[FormationClusters,c("ClusterPosition","docid","sentid","NNPWords")]
+# Extract those rows from ClusterData
+FormationData<-ClusterData[FormationClusters,]
     
 # RECORD STATS
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
@@ -182,6 +176,8 @@ StepNineDescription<-"Extract NNP clusters containing the word 'formation'"
 StepNineDocs<-length(unique(FormationData[,"docid"]))
 StepNineRows<-length(unique(FormationData[,"SubsetDeepDiveRow"]))
 StepNineClusters<-nrow(FormationData)
+    
+FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
     
 print(paste("Writing Outputs",Sys.time()))
 
