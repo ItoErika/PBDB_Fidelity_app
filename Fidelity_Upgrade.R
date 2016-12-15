@@ -165,7 +165,7 @@ StepEightClusters<-nrow(ClusterData)
     
 # STEP NINE: Extract the rows with clusters with the word 'formation' from ClusterData   
 print(paste("Extrat 'formation' clusters from ClusterData",Sys.time()))
-FormationClusters<-grep("formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
+FormationClusters<-grep(" formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
 # Extract those rows from ClusterData
 FormationData<-ClusterData[FormationClusters,]
     
