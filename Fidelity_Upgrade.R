@@ -1,31 +1,3 @@
-# See https://github.com/ItoErika/PBDB_Fidelity_app/blob/master/Development/StateCountryData_Relationships.R
-# Based on PBDB API, the countries with less than or eqal to 50 occurrences are as follows: 
-# Bangladesh, Burkina Faso, Burundi, Benin, Bhutan, Botswana, Central African Republic, Congo, Finland, Gabon, Guinea,                                     
-# Guinea-Bissau, Guyana, Honduras, Kiribati, Comoros, Kazakhstan, Saint Lucia, Liberia, Montenegro, Macedonia, 
-# the former Yugoslav Republic of Maldives, Nicaragua, Palestine State of, Rwanda, Solomon Islands, Sierra Leone                               
-# Suriname, Sao Tome and Principe, El Salvador, Namibia  
-
-# Based on the list of countries above, create a vector of countries of interest for searching for fossils in literature
-DarkCountries<-c("Bangladesh","Finland","Honduras","Kazakhstan","Nicaragua","Rwanda","Namibia","El Salvador")
-# Make a list of the country codes associated with each country
-DarkCodes<-c("BD", "FI", "HN", "KZ", "NI", "RW", "NA", "SV")
-# Bind country data to codes
-DarkCountryData<-cbind(DarkCountries,DarkCodes)
-
-# Download world cities list
-WorldCities<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/worldcities.csv")
-# Create a list of cities for each country of interest
-
-# NOTE: Namibia is listed as "NA" because of R reading error, so account for that in extraction method
-BDCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="BD"),"name"]
-FICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="FI"),"name"]
-HNCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="HN"),"name"]
-KZCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="KZ"),"name"]
-NICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="NI"),"name"]
-RWCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="RW"),"name"]
-NACities<-WorldCities[which(is.na(WorldCities[,"ISO.3166.1.country.code"])),"name"]
-SVCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="SV"),"name"]
-
 Start<-print(Sys.time())
 
 if (require("doParallel",warn.conflicts=FALSE)==FALSE) {
@@ -83,10 +55,10 @@ CleanedWords<-gsub(","," ",DeepDiveData[,"words"])
 # Remove commas from DeepDiveData poses column
 DeepDiveData[,"poses"]<-gsub(","," ",DeepDiveData[,"poses"])
 
-# STEP THREE: Search for the word "formation" in all cleaned DeepDiveData sentences (CleanedWords)
-print(paste("Search for the word 'formation' in DeepDiveData sentences",Sys.time()))
+# STEP THREE: Search for the word " formation" in all cleaned DeepDiveData sentences (CleanedWords)
+print(paste("Search for the word ' formation' in DeepDiveData sentences",Sys.time()))
 # Apply grep to cleaned words
-FormationHits<-parSapply(Cluster,"formation",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
+FormationHits<-parSapply(Cluster," formation",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
 
 # STEP FOUR: Extact DeepDiveData rows corresponding with formation hits
 print(paste("Extract formation hit rows from DeepDiveData",Sys.time()))
@@ -192,7 +164,7 @@ StepEightRows<-length(unique(ClusterData[,"SubsetDeepDiveRow"]))
 StepEightClusters<-nrow(ClusterData)
     
 # STEP NINE: Extract the rows with clusters with the word 'formation' from ClusterData   
-print(paste("Extrat 'formation' clusters from ClusterData",Sys.time()))
+print(paste("Extract 'formation' clusters from ClusterData",Sys.time()))
 FormationClusters<-grep(" formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
 # Extract those rows from ClusterData
 FormationData<-ClusterData[FormationClusters,]
@@ -204,16 +176,58 @@ StepNineDescription<-"Extract NNP clusters containing the word 'formation'"
 StepNineDocs<-length(unique(FormationData[,"docid"]))
 StepNineRows<-length(unique(FormationData[,"SubsetDeepDiveRow"]))
 StepNineClusters<-nrow(FormationData)
+
+# STEP TEN: Subset SubsetDeepDive to only include rows with formation clusters   
+print(paste("Subset SubsetDeepDive to only include rows with formation clusters",Sys.time()))
+FormationDeepDive<-sapply(FormationData[,"SubsetDeepDiveRow"], function(x) SubsetDeepDive[x,])
+# Reformat FormationtDeepDive
+FormationDeepDive<-t(FormationDeepDive) 
+    
+# STEP ELEVEN: Search for the word " fossil" in FormationDeepDive sentences
+print(paste("Search for the word ' fossil' in FormationDeepDive sentences",Sys.time()))
+# Remove commas from FormationDeepDive "words" column to prepare for grep
+CleanedWords<-gsub(","," ",FormationDeepDive[,"words"])
+FossilHits<-sapply(" fossil",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
+# Convert FossilHits into array
+FossilHits<-as.array(FossilHits)
+# Extract FossilHit rows from FormationDeepDive
+FossilDeepDive<-FormationDeepDive[FossilHits,]
+# Extract useful data from FossilDeepDive
+FossilWords<-unlist(FossilDeepDive[,"words"])
+FossilDocs<-unlist(FossilDeepDive[,"docid"])
+FossilSentences<-unlist(FossilDeepDive[,"sentid"])
+# Bind useful data and overwrite FossilDeepDive
+FossilDeepDive<-as.data.frame(cbind(FossilWords,FossilDocs,FossilSentences))
+# Assign column names
+colnames(FossilDeepDive)<-c("words","docid","sentid")
+FossilDeepDive[,"words"]<-as.character(FossilDeepDive[,"words"])
+FossilDeepDive[,"docid"]<-as.character(FossilDeepDive[,"docid"])
+FossilDeepDive[,"sentid"]<-as.numeric(as.character(FossilDeepDive[,"sentid"]))
+    
+# RECORD STATS
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
+StepElevenDescription<-"Search for the word ' fossil' in FormationDeepDive sentences"
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
+StepElevenDocs<-length(unique(FossilDeepDive[,"docid"]))
+StepElevenRows<-nrow(FossilDeepDive)
+StepElevenClusters<-"NA"
+
+# STEP ELEVEN: Extract rows from FormationData which are found in FossilDeepDive
+print(paste("Extract DeepDive rows from FormationData which are found in FossilDeepDive",Sys.time()))
+
+    
+    
+    
     
 FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
     
 print(paste("Writing Outputs",Sys.time()))
 
 # Return stats table 
-StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription)
-NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs)
-NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows)
-NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters) 
+StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription, StepElevenDescription)
+NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs, StepElevenDocs)
+NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows, StepElevenRows)
+NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters, StepElevenClusters) 
 # Bind Stats Columns
 Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberClusters)    
 
@@ -230,3 +244,31 @@ write.csv(FormationData, "FormationData.csv")
 write.csv(Stats, "Stats.csv")
       
 print(paste("Complete",Sys.time()))   
+    
+# See https://github.com/ItoErika/PBDB_Fidelity_app/blob/master/Development/StateCountryData_Relationships.R
+# Based on PBDB API, the countries with less than or eqal to 50 occurrences are as follows: 
+# Bangladesh, Burkina Faso, Burundi, Benin, Bhutan, Botswana, Central African Republic, Congo, Finland, Gabon, Guinea,                                     
+# Guinea-Bissau, Guyana, Honduras, Kiribati, Comoros, Kazakhstan, Saint Lucia, Liberia, Montenegro, Macedonia, 
+# the former Yugoslav Republic of Maldives, Nicaragua, Palestine State of, Rwanda, Solomon Islands, Sierra Leone                               
+# Suriname, Sao Tome and Principe, El Salvador, Namibia  
+
+# Based on the list of countries above, create a vector of countries of interest for searching for fossils in literature
+# DarkCountries<-c("Bangladesh","Finland","Honduras","Kazakhstan","Nicaragua","Rwanda","Namibia","El Salvador")
+# Make a list of the country codes associated with each country
+# DarkCodes<-c("BD", "FI", "HN", "KZ", "NI", "RW", "NA", "SV")
+# Bind country data to codes
+# DarkCountryData<-cbind(DarkCountries,DarkCodes)
+
+# Download world cities list
+# WorldCities<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/worldcities.csv")
+# Create a list of cities for each country of interest
+
+# NOTE: Namibia is listed as "NA" because of R reading error, so account for that in extraction method
+# BDCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="BD"),"name"]
+# FICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="FI"),"name"]
+# HNCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="HN"),"name"]
+# KZCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="KZ"),"name"]
+# NICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="NI"),"name"]
+# RWCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="RW"),"name"]
+# NACities<-WorldCities[which(is.na(WorldCities[,"ISO.3166.1.country.code"])),"name"]
+# SVCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="SV"),"name"]
