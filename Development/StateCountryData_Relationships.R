@@ -16,7 +16,7 @@ StateOccurrences<-cbind(state,StateOccurrences)
 colnames(StateOccurrences)[2]<-"NumOccurrences"
 
 # Load U.S. state area, GDP, and population data
-StateData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/state2015_pop_gdp.csv")
+StateData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/state2015_pop_gdp.csv")
 
 # Convert state land area column from square miles into square kilometers
 StateData[,2]<-StateData[,2]/0.38610
@@ -83,7 +83,7 @@ colnames(Richness)[2]<-"NumGenera"
 StateData<-merge(StateData, Richness, by="state", all.x=TRUE)
   
 # Add Fidelity output data to StateData
-StateProportion<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/StateProportion.csv")
+StateProportion<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/StateProportion.csv")
 StateData<-merge(StateData, StateProportion, by.x="state", by.y="X", all.x=TRUE)
   
 # Convert columns in state data into correct format
@@ -106,7 +106,7 @@ StateData[,"AreaNormRef"]<-StateData[,"NumReferences"]/StateData[,"LandArea.sqkm
 StateData[,"AreaNormGen"]<-StateData[,"NumGenera"]/StateData[,"LandArea.sqkm"]
    
 # Load country IHDI data 
-CountryData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/countryihdi.csv")
+CountryData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/countryihdi.csv")
   
 # Create a matrix of the number of PBDB occurrences per country
 CountryOccurrences<-as.matrix(table(FossilsFrame[,"cc"]))
