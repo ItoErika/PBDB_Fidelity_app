@@ -1,3 +1,31 @@
+# See https://github.com/ItoErika/PBDB_Fidelity_app/blob/master/Development/StateCountryData_Relationships.R
+# Based on PBDB API, the countries with less than or eqal to 50 occurrences are as follows: 
+# Bangladesh, Burkina Faso, Burundi, Benin, Bhutan, Botswana, Central African Republic, Congo, Finland, Gabon, Guinea,                                     
+# Guinea-Bissau, Guyana, Honduras, Kiribati, Comoros, Kazakhstan, Saint Lucia, Liberia, Montenegro, Macedonia, 
+# the former Yugoslav Republic of Maldives, Nicaragua, Palestine State of, Rwanda, Solomon Islands, Sierra Leone                               
+# Suriname, Sao Tome and Principe, El Salvador, Namibia  
+
+# Based on the list of countries above, create a vector of countries of interest for searching for fossils in literature
+DarkCountries<-c("Bangladesh","Finland","Honduras","Kazakhstan","Nicaragua","Rwanda","Namibia","El Salvador")
+# Make a list of the country codes associated with each country
+DarkCodes<-c("BD", "FI", "HN", "KZ", "NI", "RW", "NA", "SV")
+# Bind country data to codes
+DarkCountryData<-cbind(DarkCountries,DarkCodes)
+
+# Download world cities list
+WorldCities<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/LocationData/worldcities.csv")
+# Create a list of cities for each country of interest
+
+# NOTE: Namibia is listed as "NA" because of R reading error, so account for that in extraction method
+BDCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="BD"),"name"]
+FICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="FI"),"name"]
+HNCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="HN"),"name"]
+KZCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="KZ"),"name"]
+NICities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="NI"),"name"]
+RWCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="RW"),"name"]
+NACities<-WorldCities[which(is.na(WorldCities[,"ISO.3166.1.country.code"])),"name"]
+SVCities<-WorldCities[which(WorldCities[,"ISO.3166.1.country.code"]=="SV"),"name"]
+
 Start<-print(Sys.time())
 
 if (require("doParallel",warn.conflicts=FALSE)==FALSE) {
