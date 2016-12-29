@@ -181,15 +181,15 @@ StepNineClusters<-nrow(FormationData)
 print(paste("Subset SubsetDeepDive to only include rows with formation clusters",Sys.time()))
 FormationDeepDive<-sapply(FormationData[,"SubsetDeepDiveRow"], function(x) SubsetDeepDive[x,])
 # Reformat FormationtDeepDive
-FormationDeepDive<-t(FormationDeepDive) 
+FormationDeepDive<-t(FormationDeepDive)
+FormationData[,"docid"]<-as.character(FormationData[,"docid"])
     
 # STEP ELEVEN: Search for the word " fossil" in FormationDeepDive sentences
 print(paste("Search for the word ' fossil' in FormationDeepDive sentences",Sys.time()))
 # Remove commas from FormationDeepDive "words" column to prepare for grep
 CleanedWords<-gsub(","," ",FormationDeepDive[,"words"])
-FossilHits<-sapply(" fossil",function(x,y) grep(x,y,ignore.case=TRUE, perl = TRUE),CleanedWords)
-# Convert FossilHits into array
-FossilHits<-as.array(FossilHits)
+FossilHits<-grep(" fossil",CleanedWords,ignore.case=TRUE, perl = TRUE)
+    
 # Extract FossilHit rows from FormationDeepDive
 FossilDeepDive<-FormationDeepDive[FossilHits,]
 # Extract useful data from FossilDeepDive
@@ -214,12 +214,27 @@ StepElevenClusters<-"NA"
 
 # STEP ELEVEN: Extract rows from FormationData which are found in FossilDeepDive
 print(paste("Extract DeepDive rows from FormationData which are found in FossilDeepDive",Sys.time()))
+FormationDataRows<-sapply(1:dim(FossilDeepDive)[1], function(x) which(FormationData[,"docid"]==FossilDeepDive[x,"docid"]&FormationData[,"sentid"]==FossilDeepDive[x,"sentid"]))
+# NOTE: there are some duplicate docid, sentid pairs in FOrmationData  
+# Collapse FormationData rows of interest with duplicate docid,sentid pairs into single rows
+# Locate duplicates
+Duplicates<-FormationDataRows[which(sapply(FormationDataRows, function(x) length(x)>1)=="TRUE")]
 
+
+    
+    
+# Make a temporary matrix of just the document and sentence ids
+FormationTemp<-FormationDatac[,c("docid","sentid")]
+# Find which rows are duplicated in the matrix
+FormationData[which(duplicated(FormationTemp)==TRUE),]
+    
     
     
     
     
 FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
+  
+    
     
 print(paste("Writing Outputs",Sys.time()))
 
