@@ -81,7 +81,7 @@ SubsetDeepDive[,"words"]<-gsub("\"","SLASH",SubsetDeepDive[,"words"])
 SubsetDeepDive[,"poses"]<-gsub("\"","SLASH",SubsetDeepDive[,"poses"])
 
 # STEP SIX: Extract NNPs from SubsetDeepDive
-print(paste("Extract NNPs from SubsetDeepDive",Sys.time()))
+print(paste("Extract NNPs from SubsetDeepDive rows",Sys.time()))
 # Create a list of vectors showing each formation hit sentence's unlisted poses column 
 DeepDivePoses<-sapply(SubsetDeepDive[,"poses"],function(x) unlist(strsplit(as.character(x)," ")))
 # Assign names to each list element corresponding to the document and sentence id of each sentence
@@ -157,7 +157,7 @@ ClusterData[,"NNPWords"]<-NNPWords
     
 # RECORD STATS
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
-StepEightDescription<-"Extract NPP clusters from SubsetDeepDive"
+StepEightDescription<-"Extract NPP clusters from SubsetDeepDive rows"
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
 StepEightDocs<-length(unique(ClusterData[,"docid"]))
 StepEightRows<-length(unique(ClusterData[,"SubsetDeepDiveRow"]))
