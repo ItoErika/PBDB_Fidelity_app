@@ -219,6 +219,9 @@ unlink("*")
 saveRDS(FormationData, "FormationData.rds")
 write.csv(FormationData, "FormationData.csv")
 write.csv(Stats, "Stats.csv")
+    
+# Stop the cluster
+stopCluster(Cluster)
       
 print(paste("Complete",Sys.time()))   
     
