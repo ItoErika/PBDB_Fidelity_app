@@ -168,6 +168,7 @@ print(paste("Extract 'formation' clusters from ClusterData",Sys.time()))
 FormationClusters<-grep(" formation",ClusterData[,"NNPWords"],ignore.case=TRUE,perl=TRUE)
 # Extract those rows from ClusterData
 FormationData<-ClusterData[FormationClusters,]
+FormationData[,"docid"]<-as.character(FormationData[,"docid"])
     
 # RECORD STATS
 # NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
@@ -181,18 +182,35 @@ StepNineClusters<-nrow(FormationData)
 print(paste("Subset SubsetDeepDive to only include rows with formation clusters",Sys.time()))
 FormationDeepDive<-sapply(FormationData[,"SubsetDeepDiveRow"], function(x) SubsetDeepDive[x,])
 # Reformat FormationtDeepDive
-FormationDeepDive<-t(FormationDeepDive)
-FormationData[,"docid"]<-as.character(FormationData[,"docid"])
-       
-FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
+FormationDeepDive<-t(FormationDeepDive)      
     
+# STEP ELEVEN: Remove Formations that are more than 5 words in length.
+print(paste("Remove Formations > 5 words in length",Sys.time()))
+# Determine the number of words in each NNPWords row
+WordLength<-sapply(sapply(FormationData[,"ClusterPosition"], function(x) strsplit(x, ",")), function(x) length(x))
+# Determine which rows have more than 5 NNPWords
+BadFormations<-which(WordLength>5)
+# Remove those rows from FormationData
+FormationData<-FormationData[-BadFormations,]
+
+# RECORD STATS
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE: 
+StepElevenDescription<-"Remove Formations > 5 words in length"
+# NUMBER OF DOCUMENTS AND ROWS IN SUBSETDEEPDIVE:
+StepElevenDocs<-length(unique(FormationData[,"docid"]))
+StepElevenRows<-length(unique(FormationData[,"SubsetDeepDiveRow"]))
+StepElevenClusters<-nrow(FormationData)
+
+# Extract columns of interest for the output
+FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
+   
 print(paste("Writing Outputs",Sys.time()))
 
 # Return stats table 
-StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription)
-NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs)
-NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows)
-NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters) 
+StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription, StepElevenDescription)
+NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs, StepElevenDocs)
+NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows, StepElevenRows)
+NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters, StepElevenClusters) 
 # Bind Stats Columns
 Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberClusters)    
 
