@@ -201,10 +201,10 @@ FormationData<-FormationData[,c("ClusterPosition","docid","sentid","NNPWords")]
 print(paste("Writing Outputs",Sys.time()))
 
 # Return stats table 
-StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription)
-NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs)
-NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows)
-NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters) 
+StepDescription<-c(StepOneDescription, StepFourDescription, StepEightDescription, StepNineDescription, StepTenDescription)
+NumberDocuments<-c(StepOneDocs, StepFourDocs, StepEightDocs, StepNineDocs, StepTenDocs)
+NumberRows<-c(StepOneRows, StepFourRows, StepEightRows, StepNineRows, StepTenRows)
+NumberClusters<-c(StepOneClusters, StepFourClusters, StepEightClusters, StepNineClusters, StepTenClusters) 
 # Bind Stats Columns
 Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberClusters)    
 
