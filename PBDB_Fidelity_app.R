@@ -1,17 +1,17 @@
 Start<-print(Sys.time())
 
 # Install libraries if necessary and load them into the environment
-if (require("RCurl",warn.conflicts=FALSE)==FALSE) {
+if (suppressWarnings(require("RCurl"))==FALSE) {
     install.packages("RCurl",repos="http://cran.cnr.berkeley.edu/");
     library("RCurl");
     }
     
-if (require("doParallel",warn.conflicts=FALSE)==FALSE) {
+if (suppressWarnings(require("doParallel"))==FALSE) {
     install.packages("doParallel",repos="http://cran.cnr.berkeley.edu/");
     library("doParallel");
     }
 
-if (require("RPostgreSQL",warn.conflicts=FALSE)==FALSE) {
+if (suppressWarnings(require("RPostgreSQL"))==FALSE) {
     install.packages("RPostgreSQL",repos="http://cran.cnr.berkeley.edu/");
     library("RPostgreSQL");
     }
