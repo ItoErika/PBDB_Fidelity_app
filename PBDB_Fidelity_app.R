@@ -36,15 +36,15 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 # Make SQL query
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352")
 
-# Update the stats table
+# Record stats
 Description1<-"Initial Data"
 # Initial number of documents and rows in DeepDiveData:
 Docs1<-length((unique(DeepDiveData[,"docid"])))
-Row1s<-nrow(DeepDiveData)
+Rows1<-nrow(DeepDiveData)
 Units1<-"NA"
 Tuples1<-"NA"
 
-# Step 2: Load strat-name dictionary and docid tuples from GeoDeepDive
+# Step 2: Load strat-name dictionary and docid tuples
 print(paste("Load strat name-docid tuples",Sys.time()))
 DocUnitTuples<-dbGetQuery(Connection,"SELECT * FROM doc_terms")
 DocUnitTuples<-as.matrix(DocUnitTuples)
@@ -72,8 +72,6 @@ StratURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
 StratURL<-getURL(StratURL)
 StratFrame<-read.csv(text=StratURL,header=TRUE)
 
-print(paste("Finish loading postgres tables.",Sys.time()))
-
 # Group by long strat name and take sum of pbdb_collections values
 Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long"],sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
@@ -82,16 +80,16 @@ CandidateUnits<-names(which(Collections==0))
 CandidateUnits<-subset(CandidateUnits,CandidateUnits%in%StratFrame[,"strat_name_long"])
 
 # Update the stats table
-Description3<-"Make unit dictionary of marine, sedimentary, and unfossiliferous(according to PBDB) units"
+Description3<-"Make unit dictionary of sedimentary, unfossiliferous (according to PBDB) units"
 Docs3<-Docs2
 Rows3<-Rows2
 # Number of units of interest:
 Units3<-length(CandidateUnits)
-Tuples3<-StepTwoTuples
+Tuples3<-Tuples2
 
 # Step 4: Subset the tuples to only those which contain candidate unit names.
 print(paste("Subset tuples to candidate units",Sys.time()))
-SubsetTuples<-subset(DocUnitTuples,DocUnitTuples[,"unit"]%in%CandidateUnits==TRUE) 
+SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%CandidateUnits==TRUE) 
 
 # Update the stats table
 Description4<-"Subset tuples to only candidate units"
@@ -99,35 +97,34 @@ Docs4<-Docs3
 Rows4<-Rows3
 # Number of units of interest found in initial document set
 Units4<-length(unique(SubsetTuples[,"unit"]))
-# Numer of tuples after subsetting to candidate tuples only
+# Numer of tuples after subsetting to candidate unit tuples only
 Tuples4<-dim(SubsetTuples)[1]
 
 # Step 5: Subset DeepDive data to include only documents that are found in the tuples.
 print(paste("Subset DeepDiveData to docids in tuples",Sys.time()))
-SubsetDeepDive<-subset(DeepDiveData,DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])==TRUE) 
+SubsetDeepDive<-subset(DeepDiveData, DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])==TRUE) 
 
 # Update the stats table
 Description5<-"Subset DeepDiveData to include only docs in tuples"
-# Number of documents of interest after subsetting DeepDiveData to tuples of candidate units
+# Number of documents of interest after subsetting DeepDiveData to docids from tuples
 Docs5<-length(unique(SubsetDeepDive[,"docid"]))
-# Number OF ROWS AFTER SUBSETTING DEEPDIVEDATA TO TUPLES OF CANDIDATE UNITS
+# Number of rows after subsetting DeepDiveData
 Rows5<-nrow(SubsetDeepDive)
 Units5<-Units4
 Tuples5<-"NA"
 
 # Clean up typographical issues in the words column of DeepDiveData
-SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
+SubsetDeepDive[,"words"]<-gsub("\\{|\\}","", SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
-CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
+CleanedWords<-gsub(","," ", SubsetDeepDive[,"words"])
 
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
-
 # Record Start Time
-print(paste("Begin search for candidate units.",Sys.time()))
+print(paste("Begin search for candidate units.", Sys.time()))
 # Apply grep to cleaned words
-UnitHits<-parSapply(Cluster,CandidateUnits,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),CleanedWords)
+UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE), CleanedWords)
 # Record end time
-print(paste("Finish search for candidate units.",Sys.time()))
+print(paste("Finish search for candidate units.", Sys.time()))
 
 # Create a vector of the number of unit hits for each respective unit name in DeepDiveData
 UnitHitsLength<-sapply(UnitHits,length)
