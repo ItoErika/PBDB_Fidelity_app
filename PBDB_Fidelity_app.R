@@ -25,16 +25,16 @@ if (length(CommandArgument)==0) {
      }
 
 # Download the config file
-Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
+Credentials<-as.matrix(read.table("Credentials.yml", row.names=1))
 
-print(paste("Load postgres tables.",Sys.time()))
+print(paste("Load postgres tables.", Sys.time()))
 
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 # Step 1: Load DeepDiveData 
 # Make SQL query
-DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352")
+DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352")
 
 # Record stats
 Description1<-"Initial Data"
@@ -46,7 +46,7 @@ Tuples1<-"NA"
 
 # Step 2: Load strat-name dictionary and docid tuples
 print(paste("Load strat name-docid tuples",Sys.time()))
-DocUnitTuples<-dbGetQuery(Connection,"SELECT * FROM doc_terms")
+DocUnitTuples<-dbGetQuery(Connection, "SELECT * FROM doc_terms")
 DocUnitTuples<-as.matrix(DocUnitTuples)
 # Assign column names to DocUnitTuples matrix
 colnames(DocUnitTuples)[1]<-"docid"
@@ -65,19 +65,19 @@ print(paste("Download Macrostrat unit data",Sys.time()))
 # Download all marine, sedimentary unit names from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-getURL(UnitsURL)
-UnitsFrame<-read.csv(text=UnitURL,header=TRUE)
+UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
 # Download all units from Macrostrat database at the formation level
 StratURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
 StratURL<-getURL(StratURL)
-StratFrame<-read.csv(text=StratURL,header=TRUE)
+StratFrame<-read.csv(text=StratURL, header=TRUE)
 
 # Group by long strat name and take sum of pbdb_collections values
-Collections<-tapply(UnitsFrame[,"pbdb_collections"],UnitsFrame[,"strat_name_long"],sum)
+Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
 CandidateUnits<-names(which(Collections==0))
 # Subset candidate units to only include formations
-CandidateUnits<-subset(CandidateUnits,CandidateUnits%in%StratFrame[,"strat_name_long"])
+CandidateUnits<-subset(CandidateUnits, CandidateUnits%in%StratFrame[,"strat_name_long"])
 
 # Update the stats table
 Description3<-"Make unit dictionary of sedimentary, unfossiliferous (according to PBDB) units"
@@ -101,7 +101,7 @@ Units4<-length(unique(SubsetTuples[,"unit"]))
 Tuples4<-dim(SubsetTuples)[1]
 
 # Step 5: Subset DeepDive data to include only documents that are found in the tuples.
-print(paste("Subset DeepDiveData to docids in tuples",Sys.time()))
+print(paste("Subset DeepDiveData to docids in tuples", Sys.time()))
 SubsetDeepDive<-subset(DeepDiveData, DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])==TRUE) 
 
 # Update the stats table
@@ -114,15 +114,15 @@ Units5<-Units4
 Tuples5<-"NA"
 
 # Clean up typographical issues in the words column of DeepDiveData
-SubsetDeepDive[,"words"]<-gsub("\\{|\\}","", SubsetDeepDive[,"words"])
+SubsetDeepDive[,"words"]<-gsub("\\{|\\}", "", SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
-CleanedWords<-gsub(","," ", SubsetDeepDive[,"words"])
+CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
 
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for candidate units.", Sys.time()))
 # Apply grep to cleaned words
-UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE), CleanedWords)
+UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y, ignore.case=FALSE, perl = TRUE), CleanedWords)
 # Record end time
 print(paste("Finish search for candidate units.", Sys.time()))
 
@@ -131,7 +131,7 @@ UnitHitsLength<-sapply(UnitHits,length)
 # Create a vector of candidate unit names, such that each name is repeated by its number of hits in DeepDiveData
 UnitName<-rep(names(UnitHits),times=UnitHitsLength)
 # Bind the unit name column to the corresponding row location for the match
-UnitHitData<-cbind(UnitName,unlist(UnitHits))
+UnitHitData<-cbind(UnitName, unlist(UnitHits))
 # convert matrix to data frame
 UnitHitData<-as.data.frame(UnitHitData)
 # Name column denoting row locations within Cleaned Words
@@ -150,7 +150,7 @@ Units6<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))
 Tuples6<-"NA"
     
 # Step 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
-print(paste("Remove sentences with more than one candidate unit name",Sys.time()))
+print(paste("Remove sentences with more than one candidate unit name", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
 RowHitsTable<-table(UnitHitData[,"MatchLocation"])
 # Locate and extract rows which contain only one long unit
@@ -158,11 +158,11 @@ RowHitsTable<-table(UnitHitData[,"MatchLocation"])
 SingleHits<-as.numeric(names(RowHitsTable)[which((RowHitsTable)==1)])    
     
 # Subset UnitHitData to get dataframe of Cleaned Words rows and associated single hit long unit names
-SingleHitData<-subset(UnitHitData,UnitHitData[,"MatchLocation"]%in%SingleHits==TRUE)
+SingleHitData<-subset(UnitHitData, UnitHitData[,"MatchLocation"]%in%SingleHits==TRUE)
 
 # Create a column of sentences from CleanedWords and bind it to SingleHitData
 Sentence<-CleanedWords[SingleHitData[,"MatchLocation"]]
-SingleHitData<-cbind(SingleHitData,Sentence)
+SingleHitData<-cbind(SingleHitData, Sentence)
 
 # Update the stats table
 Description7<-"Eliminate sentences with more than one candidate unit name" 
@@ -187,7 +187,7 @@ MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary%in%CandidateU
 # Record start time
 print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()))
 # Apply grep SingleHitData[,"Sentences"]
-MacroUnitHits<-parSapply(Cluster,MacroUnitDictionary,function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE),SingleHitData[,"Sentence"])
+MacroUnitHits<-parSapply(Cluster, MacroUnitDictionary, function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE), SingleHitData[,"Sentence"])
 # Record end time
 print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()))
     
@@ -207,7 +207,7 @@ Tuples8<-"NA"
 # Step 9: Eliminate rows/sentences that are more than 350 characters in length.
 print(paste("Remove sentences > 350 characters in length",Sys.time()))
 # Find the character length for each character string in UnitData sentences
-Chars<-sapply(UnitData[,"Sentence"], function (x) nchar(as.character(x)))
+Chars<-sapply(UnitData[,"Sentence"], function(x) nchar(as.character(x)))
 # bind the number of characters for each sentence to UnitData
 UnitData<-cbind(UnitData,Chars)
 # Locate the rows which have UnitData sentences with less than or equal to 350 characters
@@ -227,7 +227,7 @@ Tuples9<-"NA"
 # Step 10: Search for words indicating fossil occurrences in units.
 # Search for the word "fossil" in UnitDataCut sentences 
 # Record start time
-print(paste("Begin search for unit and fossil matches.",Sys.time()))
+print(paste("Begin search for unit and fossil matches.", Sys.time()))
 # NOTE: searching for "fossil" will also return hits for "fossils" and "fossiliferous"
 # NOTE: add space in front of "fossil" in grep search so "unfossiliferous" is not returned as a match
 FossilHits<-grep(" fossil",UnitDataCut[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -249,23 +249,23 @@ Tuples10<-"NA"
     
 # Step11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
 # Record start time
-print(paste("Begin search for unwanted matches.",Sys.time()))
+print(paste("Begin search for unwanted matches.", Sys.time()))
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
-Overlain<-grep("overlain",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlie<-grep("overlie",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlying<-grep("overlying",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlain<-grep("underlain",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlie<-grep("underlie",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlying<-grep("underlying",FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlain<-grep("overlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlie<-grep("overlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlying<-grep("overlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlain<-grep("underlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlie<-grep("underlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlying<-grep("underlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
   
 # Combine all of the noisy rows (sentences) into one vector 
-NoisySentences<-c(Overlain,Overlie,Underlain,Underlie,Underlying,Overlying)
+NoisySentences<-c(Overlain, Overlie,Underlain, Underlie, Underlying, Overlying)
 
 # Remove noisy sentences from FossilData
 FidelityData<-FossilData[-NoisySentences,]
 
 # Record end time
-print(paste("Finish removing unwanted matches.",Sys.time()))
+print(paste("Finish removing unwanted matches.", Sys.time()))
   
 # Update the stats table
 Description11<-"Remove sentences with noisy words"
@@ -286,10 +286,10 @@ SentID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"sen
 # Remove unnecessary data from the final output data frame
 OutputData<-FidelityData[,c("UnitName","Sentence")]
 # bind the unit name match, sentence, document id, and sentence id data into a data frame
-OutputData<-cbind(OutputData,DocID,SentID)
+OutputData<-cbind(OutputData, DocID, SentID)
     
 # Step 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
-print(paste("Begin location check.",Sys.time()))
+print(paste("Begin location check.", Sys.time()))
 # Remove all rows from UnitsFrame with blank "strat_name_long" columns
 UnitsFrame<-UnitsFrame[which(nchar(as.character(UnitsFrame[,"strat_name_long"]))>0),]
 # Subset UnitsFrame so it only includes Candidate Units
@@ -297,7 +297,7 @@ CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%i
 # Load col_id, location tuple data
 LocationTuples<-read.csv("LocationTuples.csv")
 # Join the territory names to CandidatesFrame
-CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id",all.x="TRUE")
+CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id", all.x="TRUE")
 CandidatesFrame<-unique(CandidatesFrame)   
 # Extracts columns of interest
 CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")] 
@@ -306,7 +306,7 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")]
 colnames(OutputData)[1]<-"strat_name_long"
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 # NOTE: this merge will create a row for each location/col_id tuple associated with each match.
-UnitOutputData<-merge(OutputData,CandidatesFrame, by="strat_name_long", all.x=TRUE)    
+UnitOutputData<-merge(OutputData, CandidatesFrame, by="strat_name_long", all.x=TRUE)    
 
 # Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
 
@@ -334,8 +334,8 @@ LocationHits<-unique(LocationHits)
 # Create a version of UnitOutputData with just docid and location names
 UnitDocLocation<-as.matrix(UnitOutputData[,c("DocID","location")])  
 # Make a column of docid and location data combined for LocationHits and UnitDocLocation
-Doc.Location1<-paste(LocationHits[,"LocationDocs"],LocationHits[,"Location"],sep=".")
-Doc.Location2<-paste(UnitDocLocation[,"DocID"],UnitDocLocation[,"location"],sep=".")
+Doc.Location1<-paste(LocationHits[,"LocationDocs"], LocationHits[,"Location"], sep=".")
+Doc.Location2<-paste(UnitDocLocation[,"DocID"], UnitDocLocation[,"location"], sep=".")
 # Bind these columns to each respective matrix
 LocationHits<-cbind(LocationHits, Doc.Location1)
 UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
@@ -344,7 +344,7 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
 # NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
 CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
 # remove duplicate rows of strat name, sentence, docid, and sentid data that were created from the location data merge
-FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long","Sentence","DocID","SentID")])
+FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long", "Sentence", "DocID", "SentID")])
                          
 print(paste("Finish location check.",Sys.time()))
                          
@@ -370,17 +370,17 @@ Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberUnits,NumberTuples
 # Stop the cluster
 stopCluster(Cluster)
 
-print(paste("Writing Outputs",Sys.time()))
+print(paste("Writing Outputs", Sys.time()))
     
 CurrentDirectory<-getwd()
-setwd(paste(CurrentDirectory,"/output",sep=""))
+setwd(paste(CurrentDirectory, "/output", sep=""))
 
 saveRDS(UnitHitData, "UnitHitData.rds")
 write.csv(UnitHitData, "UnitHitData.csv")
-write.csv(Stats,"Stats.csv",row.names=FALSE)
+write.csv(Stats, "Stats.csv", row.names=FALSE)
                          
 saveRDS(FinalOutputData,"Fidelity_OutputData.rds")
 write.csv(FinalOutputData,"Fidelity_OutputData.csv")
 
     
-print(paste("Complete",Sys.time()))
+print(paste("Complete", Sys.time()))
