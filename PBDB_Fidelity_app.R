@@ -36,14 +36,13 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 # Make SQL query
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352")
 
-# RECORD INITIAL STATS
-# INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA: 
-StepOneDescription<-"Initial Data"
-# INITIAL NUMBER OF DOCUMENTS AND ROWS IN DEEPDIVEDATA:
-StepOneDocs<-length((unique(DeepDiveData[,"docid"])))
-StepOneRows<-nrow(DeepDiveData)
-StepOneUnits<-"NA"
-StepOneTuples<-"NA"
+# Update the stats table
+Description1<-"Initial Data"
+# Initial number of documents and rows in DeepDiveData:
+Docs1<-length((unique(DeepDiveData[,"docid"])))
+Row1s<-nrow(DeepDiveData)
+Units1<-"NA"
+Tuples1<-"NA"
 
 # STEP TWO: Load strat-name dictionary and docid tuples from GeoDeepDive
 DocUnitTuples<-dbGetQuery(Connection,"SELECT * FROM doc_terms")
@@ -52,13 +51,13 @@ DocUnitTuples<-as.matrix(DocUnitTuples)
 colnames(DocUnitTuples)[1]<-"docid"
 colnames(DocUnitTuples)[2]<-"unit"
 
-# RECORD STATS
-StepTwoDescription<-"Load Tuples"
-StepTwoDocs<-StepOneDocs
-StepTwoRows<-StepOneRows
-StepTwoUnits<-"NA"
-# INITIAL NUMBER OF TUPLES: 
-StepTwoTuples<-dim(DocUnitTuples)[1]
+# Update the stats table
+Description2<-"Load Tuples"
+Docs2<-Docs1
+Rows2<-Rows1
+Units2<-"NA"
+# Initial number of tuples: 
+Tuples2<-dim(DocUnitTuples)[1]
 
 # STEP THREE: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
 # Download all marine, sedimentary unit names from Macrostrat Database
@@ -80,37 +79,37 @@ CandidateUnits<-names(which(Collections==0))
 # Subset candidate units to only include formations
 CandidateUnits<-subset(CandidateUnits,CandidateUnits%in%StratFrame[,"strat_name_long"])
 
-# RECORD STATS
-# NUMBER OF UNITS OF INTEREST:
-StepThreeDescription<-"Make unit dictionary of marine, sedimentary, and unfossiliferous(according to PBDB) units"
-StepThreeDocs<-StepTwoDocs
-StepThreeRows<-StepTwoRows
-StepThreeUnits<-length(CandidateUnits)
-StepThreeTuples<-StepTwoTuples
+# Update the stats table
+Description3<-"Make unit dictionary of marine, sedimentary, and unfossiliferous(according to PBDB) units"
+Docs3<-Docs2
+Rows3<-Rows2
+# Number of units of interest:
+Units3<-length(CandidateUnits)
+Tuples3<-StepTwoTuples
 
 # STEP FOUR: Subset the tuples to only those which contain candidate unit names.
 SubsetTuples<-subset(DocUnitTuples,DocUnitTuples[,"unit"]%in%CandidateUnits==TRUE) 
 
-# RECORD STATS
-StepFourDescription<-"Subset tuples to only candidate units"
-StepFourDocs<-StepThreeDocs
-StepFourRows<-StepThreeRows
-# NUMBER OF UNITS OF INTEREST FOUND IN INITIAL DOCUMENTS:
-StepFourUnits<-length(unique(SubsetTuples[,"unit"]))
-# NUMBER OF TUPLES AFTER SUBSETTING TO CANDIDATE UNITS ONLY: 
-StepFourTuples<-dim(SubsetTuples)[1]
+# Update the stats table
+Description4<-"Subset tuples to only candidate units"
+Docs4<-Docs3
+Rows4<-Rows3
+# Number of units of interest found in initial document set
+Units4<-length(unique(SubsetTuples[,"unit"]))
+# Numer of tuples after subsetting to candidate tuples only
+Tuples4<-dim(SubsetTuples)[1]
 
 # STEP FIVE: Subset DeepDive data to include only documents that are found in the tuples.
 SubsetDeepDive<-subset(DeepDiveData,DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])==TRUE) 
 
-# RECORD STATS
-StepFiveDescription<-"Subset DeepDiveData to include only docs in tuples"
-# NUMBER OF DOCUMENTS OF INTEREST AFTER SUBSETTING DEEPDIVEDATA TO TUPLES OF CANDIDATE UNITS
-StepFiveDocs<-length(unique(SubsetDeepDive[,"docid"]))
+# Update the stats table
+Description5<-"Subset DeepDiveData to include only docs in tuples"
+# Number of documents of interest after subsetting DeepDiveData to tuples of candidate units
+Docs5<-length(unique(SubsetDeepDive[,"docid"]))
 # Number OF ROWS AFTER SUBSETTING DEEPDIVEDATA TO TUPLES OF CANDIDATE UNITS
-StepFiveRows<-nrow(SubsetDeepDive)
-StepFiveUnits<-StepFourUnits
-StepFiveTuples<-"NA"
+Rows5<-nrow(SubsetDeepDive)
+Units5<-Units4
+Tuples5<-"NA"
 
 # Clean up typographical issues in the words column of DeepDiveData
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
@@ -139,15 +138,15 @@ colnames(UnitHitData)[2]<-"MatchLocation"
 # Make sure the column data is numerical
 UnitHitData[,"MatchLocation"]<-as.numeric(as.character(UnitHitData[,"MatchLocation"]))   
     
-# RECORD STATS
-StepSixDescription<-"Search for candidate units from tuples in SubsetDeepDive"
-# NUMBER OR DOCUMENTS IN SUBSETDEEPDIVE WITH UNIT NAME HITS OF CANDIDATE UNITS FOUND IN TUPLES
-StepSixDocs<-length(unique(SubsetDeepDive[UnitHitData[,"MatchLocation"],"docid"]))
-# NUMBER OF ROWS IN SUBSETDEEPDIVEWITH UNIT NAME HITS OF CANDIDATE UNITS FOUND IN TUPLES
-StepSixRows<-length(unique(UnitHitData[,"MatchLocation"]))
-# NUMBER OF CANDIDATE UNITS FOUND IN TUPLES MATCHED IN SUBSETDEEPDIVE
-StepSixUnits<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))   
-StepSixTuples<-"NA"
+# Update the stats table
+Description6<-"Search for candidate units from tuples in SubsetDeepDive"
+# Number of documents in SubsetDeepDive with unit name hits of candidate units found in tuples
+Docs6<-length(unique(SubsetDeepDive[UnitHitData[,"MatchLocation"],"docid"]))
+# Number of rows in SubsetDeepDive with unit name hits of candidate units found in tuples
+Rows6<-length(unique(UnitHitData[,"MatchLocation"]))
+# Number of candidate units found in tuples matched in SubsetDeepDive
+Units6<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))   
+Tuples6<-"NA"
     
 # STEP 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
@@ -163,15 +162,15 @@ SingleHitData<-subset(UnitHitData,UnitHitData[,"MatchLocation"]%in%SingleHits==T
 Sentence<-CleanedWords[SingleHitData[,"MatchLocation"]]
 SingleHitData<-cbind(SingleHitData,Sentence)
 
-# RECORD STATS
-StepSevenDescription<-"Eliminate sentences with more than one candidate unit name" 
-# NUMBER OF DOCUMENTS OF INTEREST AFTER NARROWING DOWN TO ROWS WITH ONLY ONE CANDIDATE UNIT
-StepSevenDocs<-length(unique(SubsetDeepDive[SingleHitData[,"MatchLocation"],"docid"]))
-# NUMBER OF ROWS (SENTENCES) IN SUBSETDEEPDIVE WITH UNIT NAME HITS OF CANDIDATE UNITS AFTER REMOVING SENTENCES WHICH CONTAIN MORE THAN ONE CANDIDATE UNIT NAME
-StepSevenRows<-length(unique(SingleHitData[,"MatchLocation"]))
-# NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ROWS WITH ONLY ONE CANDIDATE UNIT
-StepSevenUnits<-length(unique(SingleHitData[,"UnitName"]))
-StepSevenTuples<-"NA"
+# Update the stats table
+Description7<-"Eliminate sentences with more than one candidate unit name" 
+# Number of documents of interest after narrowing down to rows with only one candidate unit
+Docs7<-length(unique(SubsetDeepDive[SingleHitData[,"MatchLocation"],"docid"]))
+# Number of sentences in SubsetDeepDive with unit name hits of candidate units after removing sentences which contain more than one candidate unit name
+Rows7<-length(unique(SingleHitData[,"MatchLocation"]))
+# Number of unit matches after narrowing down to rows with only one candidate unit
+Units7<-length(unique(SingleHitData[,"UnitName"]))
+Tuples7<-"NA"
 
 # STEP 8: Remove sentences from SingleHitData that contain macrostrat unit names which are NOT in CandidateUnits.
 # Run another search for ALL macrostrat database long unit names (except candidate units) in SingleHitData sentences
@@ -192,15 +191,15 @@ print(paste("Finish search for sentences with non candidate unit macrostrat name
 # Remove the rows in which macrostrat unit names appear
 UnitData<-SingleHitData[-unique(unlist(MacroUnitHits)),]
     
-# RECORD STATS
-StepEightDescription<-"Eliminate sentences with macrostrat unit names that are not candidate units"
-# NUMBER OF DOCUMENTS OF INTEREST AFTER NARROWING DOWN ROWS TO THOSE WHICH HAVE ONLY A SINGLE CANDIDATE UNIT AND NO OTHER MACROSTRAT UNIT NAME
-StepEightDocs<-length(unique(SubsetDeepDive[UnitData[,"MatchLocation"],"docid"]))
-# NUMBER OF ROWS (SENTENCES) IN SUBSETDEEPDIVE WITH SINGLE CANDIDATE UNIT HITS AND NO MACROUNITDICTIONARY NAMES
-StepEightRows<-length(unique(UnitData[,"MatchLocation"]))
-# NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ROWS WITH ONLY ONE CANDIDATE UNIT AND NO OTHER MACROSTRAT NAME
-StepEightUnits<-length(unique(UnitData[,"UnitName"]))
-StepEightTuples<-"NA"
+# Update the stats table
+Description8<-"Eliminate sentences with macrostrat unit names that are not candidate units"
+# Numer of documents of interset after narrowing down to rows which have only a single candidate unit and no other Macrostrat unit name
+Docs8<-length(unique(SubsetDeepDive[UnitData[,"MatchLocation"],"docid"]))
+# Number of sentences in SubsetDeepDive with single candidate unit hits and no MacroUnitDictionary names
+Rows8<-length(unique(UnitData[,"MatchLocation"]))
+# Number of unit matches after narrowing down to rows with only one candidate unit and no other macrostrat name
+Units8<-length(unique(UnitData[,"UnitName"]))
+Tuples8<-"NA"
 
 # STEP 9: Eliminate rows/sentences that are more than 350 characters in length.
 
@@ -212,15 +211,15 @@ UnitData<-cbind(UnitData,Chars)
 ShortSents<-which(UnitData[,"Chars"]<=350)
 UnitDataCut<-UnitData[ShortSents,]
     
-# RECORD STATS
-StepNineDescription<-"Eliminate sentences >350 characters in length"
-# NUMBER OF DOCUMENTS OF INTEREST AFTER CUTTING OUT LONG ROWS
-StepNineDocs<-length(unique(SubsetDeepDive[UnitDataCut[,"MatchLocation"],"docid"]))
-# NUMBER OF SHORT SENTENCES IN SUBSETDEEPDIVE WITH SINGLE CANDIDATE UNIT HITS AND NO MACROUNITDICTIONARY NAMES
-StepNineRows<-length(unique(UnitDataCut[,"MatchLocation"]))
-# NUMBER OF UNIT MATCHES AFTER NARROWING DOWN TO ONLY SHORT ROWS 
-StepNineUnits<-length(unique(UnitDataCut[,"UnitName"]))
-StepNineTuples<-"NA"
+# Update the stats table
+Description9<-"Eliminate sentences >350 characters in length"
+# Number of documents of interest after cutting out long rows
+Docs9<-length(unique(SubsetDeepDive[UnitDataCut[,"MatchLocation"],"docid"]))
+# Number of short sentences in SubsetDeepDive with single candidate unit hits and no MacroDictionaryUnits names
+Rows9<-length(unique(UnitDataCut[,"MatchLocation"]))
+# Number of unit matches after narrowing to only short sentences
+Units9<-length(unique(UnitDataCut[,"UnitName"]))
+Tuples9<-"NA"
     
 # STEP 10: Search for words indicating fossil occurrences in units.
 
@@ -236,15 +235,15 @@ print(paste("Finish search for unit and fossil matches.",Sys.time()))
 # Subset SingleHitsCut to only rows with fossil sentences
 FossilData<-unique(UnitDataCut[FossilHits,])    
     
-# RECORD STATS
-StepTenDescription<-"Search for words indicating fossil occurrences"
-# NUMBER OF DOCUMENTS OF INTEREST 
-StepTenDocs<-length(unique(SubsetDeepDive[FossilData[,"MatchLocation"],"docid"]))
-# NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
-StepTenRows<-length(unique(FossilData[,"MatchLocation"]))
-# NUMBER OF UNIT MATCHES 
-StepTenUnits<-length(unique(FossilData[,"UnitName"]))
-StepTenTuples<-"NA"
+# Update the stats table
+Description10<-"Search for words indicating fossil occurrences"
+# Number of documents of interest
+Docs10<-length(unique(SubsetDeepDive[FossilData[,"MatchLocation"],"docid"]))
+# Number of unique rows from SubsetDeepDive
+Rows10<-length(unique(FossilData[,"MatchLocation"]))
+# Number of unit matches
+Units10<-length(unique(FossilData[,"UnitName"]))
+Tuples10<-"NA"
     
 # STEP 11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
 # Record start time
@@ -266,15 +265,15 @@ FidelityData<-FossilData[-NoisySentences,]
 # Record end time
 print(paste("Finish removing unwanted matches.",Sys.time()))
   
-# RECORD STATS
-StepElevenDescription<-"Remove sentences with noisy words"
-# NUMBER OF DOCUMENTS OF INTEREST 
-StepElevenDocs<-length(unique(SubsetDeepDive[FidelityData[,"MatchLocation"],"docid"]))
-# NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
-StepElevenRows<-length(unique(FidelityData[,"MatchLocation"]))
-# NUMBER OF UNIT MATCHES 
-StepElevenUnits<-length(unique(FidelityData[,"UnitName"]))
-StepElevenTuples<-"NA"
+# Update the stats table
+Description11<-"Remove sentences with noisy words"
+# Number of documents of interest
+Docs11<-length(unique(SubsetDeepDive[FidelityData[,"MatchLocation"],"docid"]))
+# Number of unique rows from SubsetDeepDive
+Rows11<-length(unique(FidelityData[,"MatchLocation"]))
+# Number of unit matches
+Units11<-length(unique(FidelityData[,"UnitName"]))
+Tuples11<-"NA"
     
 # Extract the document id data for each match
 DocID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"docid"])
@@ -347,22 +346,22 @@ FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long","Sentence","DocID
                          
 print(paste("Finish location check.",Sys.time()))
                          
-# RECORD STATS
-StepTwelveDescription<-"Validate unit locations"
-# NUMBER OF DOCUMENTS OF INTEREST 
-StepTwelveDocs<-length(unique(FinalOutputData[,"DocID"]))
-# NUMBER OF UNIQUE ROWS FROM SUBSETDEEPDIVE
-StepTwelveRows<-length(unique(FinalOutputData[,"Sentence"]))
-# NUMBER OF UNIT MATCHES 
-StepTwelveUnits<-length(unique(FinalOutputData[,"strat_name_long"]))
-StepTwelveTuples<-"NA"                                                
+# Update the stats table
+Description12<-"Validate unit locations"
+# Number of documents of interest
+Docs12<-length(unique(FinalOutputData[,"DocID"]))
+# Number of unique rows from SubsetDeepDive
+Rows12<-length(unique(FinalOutputData[,"Sentence"]))
+# Number of unit matches
+Units12<-length(unique(FinalOutputData[,"strat_name_long"]))
+Tuples12<-"NA"                                                
                          
 # Return stats table 
-StepDescription<-c(StepOneDescription, StepTwoDescription, StepThreeDescription, StepFourDescription, StepFiveDescription, StepSixDescription, StepSevenDescription, StepEightDescription, StepNineDescription, StepTenDescription, StepElevenDescription, StepTwelveDescription)
-NumberDocuments<-c(StepOneDocs, StepTwoDocs, StepThreeDocs, StepFourDocs, StepFiveDocs, StepSixDocs, StepSevenDocs, StepEightDocs, StepNineDocs, StepTenDocs, StepElevenDocs, StepTwelveDocs)
-NumberRows<-c(StepOneRows, StepTwoRows, StepThreeRows, StepFourRows, StepFiveRows, StepSixRows, StepSevenRows, StepEightRows, StepNineRows, StepTenRows, StepElevenRows, StepTwelveRows)
-NumberUnits<-c(StepOneUnits, StepTwoUnits, StepThreeUnits, StepFourUnits, StepFiveUnits, StepSixUnits, StepSevenUnits, StepEightUnits, StepNineUnits, StepTenUnits, StepElevenUnits, StepTwelveUnits)
-NumberTuples<-c(StepOneTuples, StepTwoTuples, StepThreeTuples, StepFourTuples, StepFiveTuples, StepSixTuples, StepSevenTuples, StepEightTuples, StepNineTuples, StepTenTuples, StepElevenTuples, StepTwelveTuples) 
+StepDescription<-c(Description1, Description2, Description3, Description4, Description5, Description6, Description7, Description8, Description9, Description10, Description11, Description12)
+NumberDocuments<-c(Docs1, Docs2, Docs3, Docs4, Docs5, Docs6, Docs7, Docs8, Docs9, Docs10, Docs11, Docs12)
+NumberRows<-c(Rows1, Rows2, Rows3, Rows4, Rows5, Rows6, Rows7, Rows8, Rows9, Rows10, Rows11, Rows12)
+NumberUnits<-c(Units1, Units2, Units3, Units4, Units5, Units6, Units7, Units8, Units9, Units10, Units11, Units12)
+NumberTuples<-c(Tuples1, Tuples2, Tuples3, Tuples4, Tuples5, Tuples6, Tuples7, Tuples8, Tuples9, Tuples10, Tuples11, Tuples12) 
 
 Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberUnits,NumberTuples)
 
