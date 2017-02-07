@@ -27,12 +27,12 @@ if (length(CommandArgument)==0) {
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml",row.names=1))
 
-print(paste("Begin loading postgres tables.",Sys.time()))
+print(paste("Load postgres tables.",Sys.time()))
 
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
-# STEP ONE: Load DeepDiveData 
+# Step 1: Load DeepDiveData 
 # Make SQL query
 DeepDiveData<-dbGetQuery(Connection,"SELECT docid, sentid, words FROM nlp_sentences_352")
 
@@ -44,7 +44,8 @@ Row1s<-nrow(DeepDiveData)
 Units1<-"NA"
 Tuples1<-"NA"
 
-# STEP TWO: Load strat-name dictionary and docid tuples from GeoDeepDive
+# Step 2: Load strat-name dictionary and docid tuples from GeoDeepDive
+print(paste("Load strat name-docid tuples",Sys.time()))
 DocUnitTuples<-dbGetQuery(Connection,"SELECT * FROM doc_terms")
 DocUnitTuples<-as.matrix(DocUnitTuples)
 # Assign column names to DocUnitTuples matrix
@@ -59,7 +60,8 @@ Units2<-"NA"
 # Initial number of tuples: 
 Tuples2<-dim(DocUnitTuples)[1]
 
-# STEP THREE: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
+# Step 3: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
+print(paste("Download Macrostrat unit data",Sys.time()))
 # Download all marine, sedimentary unit names from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-getURL(UnitsURL)
@@ -87,7 +89,8 @@ Rows3<-Rows2
 Units3<-length(CandidateUnits)
 Tuples3<-StepTwoTuples
 
-# STEP FOUR: Subset the tuples to only those which contain candidate unit names.
+# Step 4: Subset the tuples to only those which contain candidate unit names.
+print(paste("Subset tuples to candidate units",Sys.time()))
 SubsetTuples<-subset(DocUnitTuples,DocUnitTuples[,"unit"]%in%CandidateUnits==TRUE) 
 
 # Update the stats table
@@ -99,7 +102,8 @@ Units4<-length(unique(SubsetTuples[,"unit"]))
 # Numer of tuples after subsetting to candidate tuples only
 Tuples4<-dim(SubsetTuples)[1]
 
-# STEP FIVE: Subset DeepDive data to include only documents that are found in the tuples.
+# Step 5: Subset DeepDive data to include only documents that are found in the tuples.
+print(paste("Subset DeepDiveData to docids in tuples",Sys.time()))
 SubsetDeepDive<-subset(DeepDiveData,DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])==TRUE) 
 
 # Update the stats table
@@ -116,7 +120,7 @@ SubsetDeepDive[,"words"]<-gsub("\\{|\\}","",SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(","," ",SubsetDeepDive[,"words"])
 
-# STEP 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
+# Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 
 # Record Start Time
 print(paste("Begin search for candidate units.",Sys.time()))
@@ -148,7 +152,8 @@ Rows6<-length(unique(UnitHitData[,"MatchLocation"]))
 Units6<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))   
 Tuples6<-"NA"
     
-# STEP 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
+# Step 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
+print(paste("Remove sentences with more than one candidate unit name",Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
 RowHitsTable<-table(UnitHitData[,"MatchLocation"])
 # Locate and extract rows which contain only one long unit
@@ -172,7 +177,8 @@ Rows7<-length(unique(SingleHitData[,"MatchLocation"]))
 Units7<-length(unique(SingleHitData[,"UnitName"]))
 Tuples7<-"NA"
 
-# STEP 8: Remove sentences from SingleHitData that contain macrostrat unit names which are NOT in CandidateUnits.
+# Step 8: Remove sentences from SingleHitData that contain macrostrat unit names which are NOT in CandidateUnits.
+print(paste("Remove sentences with non-candidate unit Macrostrat names",Sys.time()))
 # Run another search for ALL macrostrat database long unit names (except candidate units) in SingleHitData sentences
 MacroUnitDictionary<-unique(as.character(UnitsFrame[,"strat_name_long"]))
 # Remove any empty columns from MacroUnitDictionary
@@ -201,8 +207,8 @@ Rows8<-length(unique(UnitData[,"MatchLocation"]))
 Units8<-length(unique(UnitData[,"UnitName"]))
 Tuples8<-"NA"
 
-# STEP 9: Eliminate rows/sentences that are more than 350 characters in length.
-
+# Step 9: Eliminate rows/sentences that are more than 350 characters in length.
+print(paste("Remove sentences > 350 characters in length",Sys.time()))
 # Find the character length for each character string in UnitData sentences
 Chars<-sapply(UnitData[,"Sentence"], function (x) nchar(as.character(x)))
 # bind the number of characters for each sentence to UnitData
@@ -221,8 +227,7 @@ Rows9<-length(unique(UnitDataCut[,"MatchLocation"]))
 Units9<-length(unique(UnitDataCut[,"UnitName"]))
 Tuples9<-"NA"
     
-# STEP 10: Search for words indicating fossil occurrences in units.
-
+# Step 10: Search for words indicating fossil occurrences in units.
 # Search for the word "fossil" in UnitDataCut sentences 
 # Record start time
 print(paste("Begin search for unit and fossil matches.",Sys.time()))
@@ -245,7 +250,7 @@ Rows10<-length(unique(FossilData[,"MatchLocation"]))
 Units10<-length(unique(FossilData[,"UnitName"]))
 Tuples10<-"NA"
     
-# STEP 11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
+# Step11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
 # Record start time
 print(paste("Begin search for unwanted matches.",Sys.time()))
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
@@ -286,7 +291,7 @@ OutputData<-FidelityData[,c("UnitName","Sentence")]
 # bind the unit name match, sentence, document id, and sentence id data into a data frame
 OutputData<-cbind(OutputData,DocID,SentID)
     
-# STEP 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
+# Step 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
 print(paste("Begin location check.",Sys.time()))
 # Remove all rows from UnitsFrame with blank "strat_name_long" columns
 UnitsFrame<-UnitsFrame[which(nchar(as.character(UnitsFrame[,"strat_name_long"]))>0),]
