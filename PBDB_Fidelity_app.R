@@ -365,7 +365,7 @@ UnitsFrame<-UnitsFrame[which(nchar(as.character(UnitsFrame[,"strat_name_long"]))
 # Subset UnitsFrame so it only includes Candidate Units
 CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%in%CandidateUnits),]
 # Load col_id, location tuple data
-LocationTuples<-read.csv("LocationTuples.csv")
+LocationTuples<-read.csv("input/LocationTuples.csv")
 # Join the territory names to CandidatesFrame
 CandidatesFrame<-merge(CandidatesFrame, LocationTuples, by="col_id", all.x="TRUE")
 CandidatesFrame<-unique(CandidatesFrame)   
