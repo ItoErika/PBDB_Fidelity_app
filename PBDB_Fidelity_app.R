@@ -424,6 +424,9 @@ print(paste("Writing Outputs", Sys.time()))
     
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory, "/output", sep=""))
+                         
+# Clear any old output files
+unlink("*")
 
 saveRDS(UnitHitData, "UnitMatcgData.rds")
 write.csv(UnitHitData, "UnitMatchData.csv")
