@@ -1,5 +1,10 @@
-Start<-print(Sys.time())
+Start<-print(Sys.time()) # Flag the app start time
 
+# Custom functions are camelCase. Arrays, parameters, and arguments are PascalCase
+# Dependency functions are not embedded in master functions, and are marked with the flag dependency in the documentation
+# []-notation is used wherever possible, and $-notation is avoided.
+
+########################################### Application Setup ###############################################
 # Install libraries if necessary and load them into the environment
 if (suppressWarnings(require("RCurl"))==FALSE) {
     install.packages("RCurl",repos="http://cran.cnr.berkeley.edu/");
@@ -24,17 +29,22 @@ if (length(CommandArgument)==0) {
      Cluster<-makeCluster(as.numeric(CommandArgument[1]))
      }
 
+print(paste("Load postgres tables.", Sys.time())) # Establish postgres connection and load the data
+
 # Download the config file
 Credentials<-as.matrix(read.table("Credentials.yml", row.names=1))
-
-print(paste("Load postgres tables.", Sys.time()))
-
 # Connet to PostgreSQL
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
+
+#############################################################################################################
+##################################### DATA DOWNLOAD FUNCTIONS, FIDELITY #####################################
+#############################################################################################################
+# No functions at this time
+
+########################################### Data Download Script ############################################
 # Step 1: Load DeepDiveData 
-# Make SQL query
-DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352")
+DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
 
 # Record stats
 Description1<-"Initial Data"
@@ -60,18 +70,25 @@ Units2<-"NA"
 # Initial number of tuples: 
 Tuples2<-dim(DocUnitTuples)[1]
 
-# Step 3: Download a dictionary of unit names from the Macrostrat database. Extract units that are sedimentary and marine according to Macrostrat, and unfossiliferous according to the Paleobiology Database.
+# Step 3: Download a dictionary of unit names from the Macrostrat database. 
+# Extract Sedimentary units in Macrostrat without fossils reported in the Paleobiology Database.
 print(paste("Download Macrostrat unit data",Sys.time()))
 # Download all marine, sedimentary unit names from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
-UnitURL<-getURL(UnitsURL)
+UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
 # Download all units from Macrostrat database at the formation level
 StratURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
-StratURL<-getURL(StratURL)
+StratURL<-RCurl::getURL(StratURL)
 StratFrame<-read.csv(text=StratURL, header=TRUE)
 
+#############################################################################################################
+###################################### DATA CLEANING FUNCTIONS, FIDELITY ####################################
+#############################################################################################################
+# No functions at this time
+
+############################################ Data Cleaning Script ###########################################
 # Group by long strat name and take sum of pbdb_collections values
 Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
@@ -126,6 +143,12 @@ FmHits<-grep(" Fm ", ignore.case=FALSE, perl=TRUE, CleanedWords)
 # Replace "Fm" with "Formation" in CleanedWords
 CleanedWords<-gsub("Fm", "Formation", CleanedWords)
 
+#############################################################################################################
+###################################### FORMATION SEARCH FUNCTIONS, FIDELITY #################################
+#############################################################################################################
+# No functions at this time.
+
+########################################### Formation Search Script #########################################
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for candidate units.", Sys.time()))
@@ -170,6 +193,12 @@ Rows6<-length(unique(MatchData[,"SubsetDDRow"]))
 Units6<-length(unique(MatchData[,"Formation"]))   
 Tuples6<-"NA"
     
+#############################################################################################################
+####################################### MATCH CLEANING FUNCTIONS, FIDELITY ##################################
+############################################################################################################# 
+# No functions at this time.    
+
+#############################################################################################################     
 # Step 7: Eliminate sentences from MatchData which contain more than one candidate unit name.
 print(paste("Remove sentences with more than one candidate unit name", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
@@ -199,7 +228,7 @@ Tuples7<-"NA"
 print(paste("Remove sentences with non-candidate Macrostrat unit names", Sys.time()))
 # Run another search for ALL macrostrat database long unit names (except candidate units) in SingleMatchData sentences
 MacroUnits<-unique(as.character(UnitsFrame[,"strat_name_long"]))
-# Remove any empty columns from MacroUnits
+# Remove any unnamed Macrostrat columns from MacroUnits
 MacroUnits<-MacroUnits[which(MacroUnits!="")]
 # Remove CandidateUnits names from MacroUnits
 MacroUnits<-MacroUnits[which(MacroUnits%in%CandidateUnits==FALSE)]
@@ -242,6 +271,13 @@ Rows9<-length(unique(UnitDataCut[,"SubsetDDRow"]))
 # Number of unit matches after narrowing to only short sentences
 Units9<-length(unique(UnitDataCut[,"Formation"]))
 Tuples9<-"NA"
+
+#############################################################################################################
+####################################### FOSSIL MATCH FUNCTIONS, FIDELITY ####################################
+#############################################################################################################      
+# No functions at this time.    
+
+########################################## Fossil Match Script ##############################################  
     
 # Step 10: Search for words indicating fossil occurrences in units.
 # Search for the word "fossil" in UnitDataCut sentences 
@@ -295,10 +331,32 @@ Rows11<-length(unique(FidelityData[,"SubsetDDRow"]))
 # Number of unit matches
 Units11<-length(unique(FidelityData[,"Formation"]))
 Tuples11<-"NA"
-    
+
+#############################################################################################################
+###################################### LOCATION SEARCH FUNCTIONS, FIDELITY ##################################
+#############################################################################################################      
+# Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
+locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"docid"], location=unique(UnitOutputData[,"location"])) {
+    # Subset SubsetDeepDive to only documents referenced in OutputData
+    DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
+    # Clean sentences so grep can run
+    CleanedWords<-gsub(","," ",DeepDive[,"words"])
+    # search for locations in SubsetDeepDive
+    LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
+    # make a column of location names for each associated hit
+    LocationHitsLength<-sapply(LocationHits,length)
+    names(LocationHits)<-unique(UnitOutputData[,"location"])
+    Location<-rep(names(LocationHits),times=LocationHitsLength)
+    # make a column for each document the location name is found in
+    LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
+    # create an output matrix which contains each location and the document in which it appears
+    return(cbind(LocationDocs,Location))
+    } 
+
+########################################### Location Search Script ##########################################    
 # Create a data frame for the output  
 # Remove unnecessary data from the final output data frame
-OutputData<-FidelityData[,c("Formation", "Sentence", "docid","sentid","Fm")]
+LocationData<-FidelityData[,c("Formation", "Sentence", "docid","sentid","Fm")]
     
 # Step 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
 print(paste("Begin location check.", Sys.time()))
@@ -316,26 +374,7 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")]
 
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 # NOTE: this merge will create a row for each location/col_id tuple associated with each match.
-UnitOutputData<-merge(OutputData, CandidatesFrame, by.x="Formation", by.y="strat_name_long", all.x=TRUE)    
-
-# Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
-
-locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"docid"], location=unique(UnitOutputData[,"location"])){
-    # Subset SubsetDeepDive to only documents referenced in OutputData
-    DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
-    # Clean sentences so grep can run
-    CleanedWords<-gsub(","," ",DeepDive[,"words"])
-    # search for locations in SubsetDeepDive
-    LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
-    # make a column of location names for each associated hit
-    LocationHitsLength<-sapply(LocationHits,length)
-    names(LocationHits)<-unique(UnitOutputData[,"location"])
-    Location<-rep(names(LocationHits),times=LocationHitsLength)
-    # make a column for each document the location name is found in
-    LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
-    # create an output matrix which contains each location and the document in which it appears
-    return(cbind(LocationDocs,Location))
-    }
+UnitOutputData<-merge(LocationData, CandidatesFrame, by.x="Formation", by.y="strat_name_long", all.x=TRUE)    
 
 # Run the locationSearch function
 LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"docid"], location=unique(UnitOutputData[,"location"]))
@@ -349,7 +388,7 @@ Doc.Location2<-paste(UnitDocLocation[,"docid"], UnitDocLocation[,"location"], se
 # Bind these columns to each respective matrix
 LocationHits<-cbind(LocationHits, Doc.Location1)
 UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
-                         
+                                                 
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
 # NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
 CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
@@ -379,7 +418,8 @@ Stats<-cbind(StepDescription,NumberDocuments,NumberRows,NumberUnits,NumberTuples
 
 # Stop the cluster
 stopCluster(Cluster)
-
+       
+############################################## Output Data Script ###########################################    
 print(paste("Writing Outputs", Sys.time()))
     
 CurrentDirectory<-getwd()
