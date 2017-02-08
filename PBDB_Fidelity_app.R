@@ -428,7 +428,7 @@ setwd(paste(CurrentDirectory, "/output", sep=""))
 # Clear any old output files
 unlink("*")
 
-write.csv(UnitMatchData, "UnitMatchData.csv")
+write.csv(MatchData, "MatchData.csv")
 write.csv(Stats, "Stats.csv", row.names=FALSE)                         
 write.csv(FinalOutputData,"Fidelity_OutputData.csv")
     
