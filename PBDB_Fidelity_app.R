@@ -428,10 +428,8 @@ setwd(paste(CurrentDirectory, "/output", sep=""))
 # Clear any old output files
 unlink("*")
 
-saveRDS(UnitHitData, "UnitMatcgData.rds")
-write.csv(UnitHitData, "UnitMatchData.csv")
+write.csv(UnitMatchData, "UnitMatchData.csv")
 write.csv(Stats, "Stats.csv", row.names=FALSE)                         
-saveRDS(FinalOutputData,"Fidelity_OutputData.rds")
 write.csv(FinalOutputData,"Fidelity_OutputData.csv")
     
 print(paste("Complete", Sys.time()))
