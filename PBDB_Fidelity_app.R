@@ -120,6 +120,12 @@ CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
 # Add a space at the beginning of each sentence to improve grep
 CleanedWords<-paste(" ", CleanedWords, sep="")
 
+# REMOVE AFTER ACCURACY TESTS: Search for " Fm " in CleanedWords
+FmHits<-grep(" Fm ", ignore.case=FALSE, perl=TRUE, CleanedWords)
+
+# Replace "Fm" with "Formation" in CleanedWords
+CleanedWords<-gsub("Fm", "Formation", CleanedWords)
+
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for candidate units.", Sys.time()))
@@ -149,6 +155,10 @@ MatchData[,"docid"]<-as.character(MatchData[,"docid"])
 MatchData[,"sentid"]<-as.numeric(as.character(MatchData[,"sentid"]))   
 MatchData[,"Formation"]<-as.character(MatchData[,"Formation"])
     
+# REMOVE AFTER ACCURACY TESTS: Figure out which sentences had "Fm" in them
+FmRows<-which(MatchData[,"SubsetDDRow"]%in%FmHits)
+# Assign TRUE to all rows which contained "Fm"
+MatchData[FmRows,"Fm"]<-"TRUE"    
     
 # Update the stats table
 Description6<-"Search for candidate units in SubsetDeepDive"
@@ -288,7 +298,7 @@ Tuples11<-"NA"
     
 # Create a data frame for the output  
 # Remove unnecessary data from the final output data frame
-OutputData<-FidelityData[,c("Formation", "Sentence", "docid","sentid")]
+OutputData<-FidelityData[,c("Formation", "Sentence", "docid","sentid","Fm")]
     
 # Step 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
 print(paste("Begin location check.", Sys.time()))
