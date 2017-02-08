@@ -122,106 +122,107 @@ CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
 # Record Start Time
 print(paste("Begin search for candidate units.", Sys.time()))
 # Apply grep to cleaned words
-UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y, ignore.case=FALSE, perl = TRUE), CleanedWords)
+UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), CleanedWords)
 # Record end time
 print(paste("Finish search for candidate units.", Sys.time()))
 
-# Create a vector of the number of unit hits for each respective unit name in DeepDiveData
+# Create a vector of the number of unit hits for each unit name in DeepDiveData
 UnitHitsLength<-sapply(UnitHits,length)
 # Create a vector of candidate unit names, such that each name is repeated by its number of hits in DeepDiveData
-UnitName<-rep(names(UnitHits),times=UnitHitsLength)
-# Bind the unit name column to the corresponding row location for the match
-UnitHitData<-cbind(UnitName, unlist(UnitHits))
-# convert matrix to data frame
-UnitHitData<-as.data.frame(UnitHitData)
-# Name column denoting row locations within Cleaned Words
-colnames(UnitHitData)[2]<-"MatchLocation"
-# Make sure the column data is numerical
-UnitHitData[,"MatchLocation"]<-as.numeric(as.character(UnitHitData[,"MatchLocation"]))   
+Formation<-rep(names(UnitHits),times=UnitHitsLength)
+# Create a column representing the row number of the unit match
+SubsetDDRow<-unlist(UnitHits)
+# Extract the docid for each match
+docid<-SubsetDeepDive[SubsetDDRow,"docid"]
+# Extract the sentid for each match
+sentid<-SubsetDeepDive[SubsetDDRow,"sentid"]
+# Bind the match data as a data frame
+MatchData<-as.data.frame(cbind(Formation, docid, sentid, SubsetDDRow))
+# Make sure row and sentence data is numerical
+MatchData[,"SubsetDDRow"]<-as.numeric(as.character(MatchData[,"SubsetDDRow"]))
+MatchData[,"sentid"]<-as.numeric(as.character(MatchData[,"sentid"]))   
     
 # Update the stats table
-Description6<-"Search for candidate units from tuples in SubsetDeepDive"
+Description6<-"Search for candidate units in SubsetDeepDive"
 # Number of documents in SubsetDeepDive with unit name hits of candidate units found in tuples
-Docs6<-length(unique(SubsetDeepDive[UnitHitData[,"MatchLocation"],"docid"]))
+Docs6<-length(unique(MatchData[,"docid"]))
 # Number of rows in SubsetDeepDive with unit name hits of candidate units found in tuples
-Rows6<-length(unique(UnitHitData[,"MatchLocation"]))
-# Number of candidate units found in tuples matched in SubsetDeepDive
-Units6<-length(unique(names(UnitHits[which(sapply(UnitHits,length)>0)])))   
+Rows6<-length(unique(MatchData[,"SubsetDDRow"]))
+# Number of candidate units found in SubsetDeepDive
+Units6<-length(unique(MatchData[,"Formation"]))   
 Tuples6<-"NA"
     
-# Step 7: Eliminate row/sentences from SubsetDeepDive which contain more than one candidate unit name.
+# Step 7: Eliminate sentences from MatchData which contain more than one candidate unit name.
 print(paste("Remove sentences with more than one candidate unit name", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
-RowHitsTable<-table(UnitHitData[,"MatchLocation"])
+RowHitsTable<-table(MatchData[,"SubsetDDRow"])
 # Locate and extract rows which contain only one long unit
 # Remember that the names of RowHitsTable correspond to rows within CleanedWords
 SingleHits<-as.numeric(names(RowHitsTable)[which((RowHitsTable)==1)])    
     
-# Subset UnitHitData to get dataframe of Cleaned Words rows and associated single hit long unit names
-SingleHitData<-subset(UnitHitData, UnitHitData[,"MatchLocation"]%in%SingleHits==TRUE)
+# Subset MatchData to only include sentences with one candidate unit match
+SingleMatchData<-subset(MatchData, MatchData[,"SubsetDDRow"]%in%SingleHits==TRUE)
 
-# Create a column of sentences from CleanedWords and bind it to SingleHitData
-Sentence<-CleanedWords[SingleHitData[,"MatchLocation"]]
-SingleHitData<-cbind(SingleHitData, Sentence)
+# Create a column of the single match sentences and bind it to SingleMatchData
+Sentence<-CleanedWords[SingleMatchData[,"SubsetDDRow"]]
+SingleMatchData<-cbind(SingleMatchData, Sentence)
 
 # Update the stats table
 Description7<-"Eliminate sentences with more than one candidate unit name" 
-# Number of documents of interest after narrowing down to rows with only one candidate unit
-Docs7<-length(unique(SubsetDeepDive[SingleHitData[,"MatchLocation"],"docid"]))
-# Number of sentences in SubsetDeepDive with unit name hits of candidate units after removing sentences which contain more than one candidate unit name
-Rows7<-length(unique(SingleHitData[,"MatchLocation"]))
+# Number of documents after narrowing down to rows with only one candidate unit
+Docs7<-length(unique(SingleMatchData[,"docid"]))
+# Number of sentences in SubsetDeepDive after removing sentences which contain more than one candidate unit name
+Rows7<-length(unique(SingleMatchData[,"SubsetDDRow"]))
 # Number of unit matches after narrowing down to rows with only one candidate unit
-Units7<-length(unique(SingleHitData[,"UnitName"]))
+Units7<-length(unique(SingleMatchData[,"Formation"]))
 Tuples7<-"NA"
 
-# Step 8: Remove sentences from SingleHitData that contain macrostrat unit names which are NOT in CandidateUnits.
-print(paste("Remove sentences with non-candidate unit Macrostrat names",Sys.time()))
-# Run another search for ALL macrostrat database long unit names (except candidate units) in SingleHitData sentences
-MacroUnitDictionary<-unique(as.character(UnitsFrame[,"strat_name_long"]))
-# Remove any empty columns from MacroUnitDictionary
-MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary!="")]
-# Remove CandidateUnits names from MacroUnitDictionary
-MacroUnitDictionary<-MacroUnitDictionary[which(MacroUnitDictionary%in%CandidateUnits==FALSE)]
+# Step 8: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in CandidateUnits.
+print(paste("Remove sentences with non-candidate Macrostrat unit names", Sys.time()))
+# Run another search for ALL macrostrat database long unit names (except candidate units) in SingleMatchData sentences
+MacroUnits<-unique(as.character(UnitsFrame[,"strat_name_long"]))
+# Remove any empty columns from MacroUnits
+MacroUnits<-MacroUnits[which(MacroUnits!="")]
+# Remove CandidateUnits names from MacroUnits
+MacroUnits<-MacroUnits[which(MacroUnits%in%CandidateUnits==FALSE)]
 
-# Run a search for macrostrat units on SingleHitData sentences
+# Run a search for MacroUnits on SingleMatchData sentences
 # Record start time
-print(paste("Search for sentences with non candidate unit macrostrat names.",Sys.time()))
-# Apply grep SingleHitData[,"Sentences"]
-MacroUnitHits<-parSapply(Cluster, MacroUnitDictionary, function(x,y) grep(x,y,ignore.case=FALSE, perl = TRUE), SingleHitData[,"Sentence"])
+print(paste("Search sentences for non-candidate unit macrostrat names", Sys.time()))
+# Apply grep SingleMatchData[,"Sentence"]
+MacroUnitHits<-parSapply(Cluster, MacroUnits, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), SingleMatchData[,"Sentence"])
 # Record end time
 print(paste("Finish search for sentences with non candidate unit macrostrat names.",Sys.time()))
     
 # Remove the rows in which macrostrat unit names appear
-UnitData<-SingleHitData[-unique(unlist(MacroUnitHits)),]
+UnitData<-SingleMatchData[-unique(unlist(MacroUnitHits)),]
     
 # Update the stats table
 Description8<-"Eliminate sentences with macrostrat unit names that are not candidate units"
-# Numer of documents of interset after narrowing down to rows which have only a single candidate unit and no other Macrostrat unit name
-Docs8<-length(unique(SubsetDeepDive[UnitData[,"MatchLocation"],"docid"]))
-# Number of sentences in SubsetDeepDive with single candidate unit hits and no MacroUnitDictionary names
-Rows8<-length(unique(UnitData[,"MatchLocation"]))
+# Number of documents of interest after removing non-candidate Macrostrat unit hits
+Docs8<-length(unique(UnitData[,"docid"]))
+# Number of sentences in SubsetDeepDive with single candidate unit hits and no MacroUnit names
+Rows8<-length(unique(UnitData[,"SubsetDDRow"]))
 # Number of unit matches after narrowing down to rows with only one candidate unit and no other macrostrat name
-Units8<-length(unique(UnitData[,"UnitName"]))
+Units8<-length(unique(UnitData[,"Formation"]))
 Tuples8<-"NA"
 
 # Step 9: Eliminate rows/sentences that are more than 350 characters in length.
 print(paste("Remove sentences > 350 characters in length",Sys.time()))
 # Find the character length for each character string in UnitData sentences
-Chars<-sapply(UnitData[,"Sentence"], function(x) nchar(as.character(x)))
-# bind the number of characters for each sentence to UnitData
-UnitData<-cbind(UnitData,Chars)
+Chars<-sapply(as.character(UnitData[,"Sentence"]),nchar)
 # Locate the rows which have UnitData sentences with less than or equal to 350 characters
-ShortSents<-which(UnitData[,"Chars"]<=350)
+ShortSents<-which(as.numeric(Chars)<=350)
 UnitDataCut<-UnitData[ShortSents,]
     
 # Update the stats table
-Description9<-"Eliminate sentences >350 characters in length"
+Description9<-"Eliminate sentences > 350 characters in length"
 # Number of documents of interest after cutting out long rows
-Docs9<-length(unique(SubsetDeepDive[UnitDataCut[,"MatchLocation"],"docid"]))
+Docs9<-length(unique(UnitDataCut["docid"]))
 # Number of short sentences in SubsetDeepDive with single candidate unit hits and no MacroDictionaryUnits names
-Rows9<-length(unique(UnitDataCut[,"MatchLocation"]))
+Rows9<-length(unique(UnitDataCut[,"SubsetDDRow"]))
 # Number of unit matches after narrowing to only short sentences
-Units9<-length(unique(UnitDataCut[,"UnitName"]))
+Units9<-length(unique(UnitDataCut[,"Formation"]))
 Tuples9<-"NA"
     
 # Step 10: Search for words indicating fossil occurrences in units.
@@ -232,19 +233,19 @@ print(paste("Begin search for unit and fossil matches.", Sys.time()))
 # NOTE: add space in front of "fossil" in grep search so "unfossiliferous" is not returned as a match
 FossilHits<-grep(" fossil",UnitDataCut[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # Record end time
-print(paste("Finish search for unit and fossil matches.",Sys.time()))
+print(paste("Finish search for unit and fossil matches.", Sys.time()))
     
-# Subset SingleHitsCut to only rows with fossil sentences
+# Subset UnitDataCut to only rows with fossil sentences
 FossilData<-unique(UnitDataCut[FossilHits,])    
     
 # Update the stats table
 Description10<-"Search for words indicating fossil occurrences"
 # Number of documents of interest
-Docs10<-length(unique(SubsetDeepDive[FossilData[,"MatchLocation"],"docid"]))
+Docs10<-length(unique(FossilData[,"docid"]))
 # Number of unique rows from SubsetDeepDive
-Rows10<-length(unique(FossilData[,"MatchLocation"]))
+Rows10<-length(unique(FossilData[,"SubsetDDRow"]))
 # Number of unit matches
-Units10<-length(unique(FossilData[,"UnitName"]))
+Units10<-length(unique(FossilData[,"Formation"]))
 Tuples10<-"NA"
     
 # Step11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
@@ -259,7 +260,7 @@ Underlie<-grep("underlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlying<-grep("underlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
   
 # Combine all of the noisy rows (sentences) into one vector 
-NoisySentences<-c(Overlain, Overlie,Underlain, Underlie, Underlying, Overlying)
+NoisySentences<-unique(c(Overlain, Overlie,Underlain, Underlie, Underlying, Overlying))
 
 # Remove noisy sentences from FossilData
 FidelityData<-FossilData[-NoisySentences,]
@@ -270,23 +271,16 @@ print(paste("Finish removing unwanted matches.", Sys.time()))
 # Update the stats table
 Description11<-"Remove sentences with noisy words"
 # Number of documents of interest
-Docs11<-length(unique(SubsetDeepDive[FidelityData[,"MatchLocation"],"docid"]))
+Docs11<-length(unique(FidelityData[,"docid"]))
 # Number of unique rows from SubsetDeepDive
-Rows11<-length(unique(FidelityData[,"MatchLocation"]))
+Rows11<-length(unique(FidelityData[,"SubsetDDRow"]))
 # Number of unit matches
-Units11<-length(unique(FidelityData[,"UnitName"]))
+Units11<-length(unique(FidelityData[,"Formation"]))
 Tuples11<-"NA"
-    
-# Extract the document id data for each match
-DocID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"docid"])
-# Extract the sentence id data for each match
-SentID<-sapply(FidelityData[,"MatchLocation"], function(x) SubsetDeepDive[x,"sentid"])
     
 # Create a data frame for the output  
 # Remove unnecessary data from the final output data frame
-OutputData<-FidelityData[,c("UnitName","Sentence")]
-# bind the unit name match, sentence, document id, and sentence id data into a data frame
-OutputData<-cbind(OutputData, DocID, SentID)
+OutputData<-FidelityData[,c("Formation", "Sentence", "docid","sentid")]
     
 # Step 12: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
 print(paste("Begin location check.", Sys.time()))
@@ -297,23 +291,21 @@ CandidatesFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%i
 # Load col_id, location tuple data
 LocationTuples<-read.csv("LocationTuples.csv")
 # Join the territory names to CandidatesFrame
-CandidatesFrame<-merge(CandidatesFrame,LocationTuples, by="col_id", all.x="TRUE")
+CandidatesFrame<-merge(CandidatesFrame, LocationTuples, by="col_id", all.x="TRUE")
 CandidatesFrame<-unique(CandidatesFrame)   
 # Extracts columns of interest
 CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")] 
 
-# rename the output data column of unit names so OutputData can be merged with location data for the units
-colnames(OutputData)[1]<-"strat_name_long"
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 # NOTE: this merge will create a row for each location/col_id tuple associated with each match.
-UnitOutputData<-merge(OutputData, CandidatesFrame, by="strat_name_long", all.x=TRUE)    
+UnitOutputData<-merge(OutputData, CandidatesFrame, by.x="Formation", by.y="strat_name_long", all.x=TRUE)    
 
 # Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
 
-locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=unique(UnitOutputData[,"location"])){
-    # subset SubsetDeepDive to only documents referenced in OutputData
+locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"docid"], location=unique(UnitOutputData[,"location"])){
+    # Subset SubsetDeepDive to only documents referenced in OutputData
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
-    # clean sentences so grep can run
+    # Clean sentences so grep can run
     CleanedWords<-gsub(","," ",DeepDive[,"words"])
     # search for locations in SubsetDeepDive
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
@@ -327,15 +319,15 @@ locationSearch<-function(SubsetDeepDive,Document=UnitOutputData[,"DocID"], locat
     return(cbind(LocationDocs,Location))
     }
 
-# run the locationSearch function
-LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"DocID"], location=unique(UnitOutputData[,"location"]))
+# Run the locationSearch function
+LocationHits<-locationSearch(SubsetDeepDive,Document=UnitOutputData[,"docid"], location=unique(UnitOutputData[,"location"]))
 LocationHits<-unique(LocationHits)    
 
 # Create a version of UnitOutputData with just docid and location names
-UnitDocLocation<-as.matrix(UnitOutputData[,c("DocID","location")])  
+UnitDocLocation<-as.matrix(UnitOutputData[,c("docid","location")])  
 # Make a column of docid and location data combined for LocationHits and UnitDocLocation
 Doc.Location1<-paste(LocationHits[,"LocationDocs"], LocationHits[,"Location"], sep=".")
-Doc.Location2<-paste(UnitDocLocation[,"DocID"], UnitDocLocation[,"location"], sep=".")
+Doc.Location2<-paste(UnitDocLocation[,"docid"], UnitDocLocation[,"location"], sep=".")
 # Bind these columns to each respective matrix
 LocationHits<-cbind(LocationHits, Doc.Location1)
 UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
@@ -344,18 +336,18 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
 # NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
 CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
 # remove duplicate rows of strat name, sentence, docid, and sentid data that were created from the location data merge
-FinalOutputData<-unique(CheckedOutputData[,c("strat_name_long", "Sentence", "DocID", "SentID")])
+FinalOutputData<-unique(CheckedOutputData[,c("Formation", "Sentence", "docid", "sentid")])
                          
 print(paste("Finish location check.",Sys.time()))
                          
 # Update the stats table
 Description12<-"Validate unit locations"
 # Number of documents of interest
-Docs12<-length(unique(FinalOutputData[,"DocID"]))
+Docs12<-length(unique(FinalOutputData[,"docid"]))
 # Number of unique rows from SubsetDeepDive
 Rows12<-length(unique(FinalOutputData[,"Sentence"]))
 # Number of unit matches
-Units12<-length(unique(FinalOutputData[,"strat_name_long"]))
+Units12<-length(unique(FinalOutputData[,"Formation"]))
 Tuples12<-"NA"                                                
                          
 # Return stats table 
@@ -375,12 +367,10 @@ print(paste("Writing Outputs", Sys.time()))
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory, "/output", sep=""))
 
-saveRDS(UnitHitData, "UnitHitData.rds")
-write.csv(UnitHitData, "UnitHitData.csv")
-write.csv(Stats, "Stats.csv", row.names=FALSE)
-                         
+saveRDS(UnitHitData, "UnitMatcgData.rds")
+write.csv(UnitHitData, "UnitMatchData.csv")
+write.csv(Stats, "Stats.csv", row.names=FALSE)                         
 saveRDS(FinalOutputData,"Fidelity_OutputData.rds")
 write.csv(FinalOutputData,"Fidelity_OutputData.csv")
-
     
 print(paste("Complete", Sys.time()))
