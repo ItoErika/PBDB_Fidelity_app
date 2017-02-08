@@ -44,7 +44,10 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 
 ########################################### Data Download Script ############################################
 # Step 1: Load DeepDiveData 
-DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
+# For test:
+DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data") # make an SQL query
+# For Ian:DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
+
 
 # Record stats
 Description1<-"Initial Data"
