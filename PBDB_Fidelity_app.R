@@ -117,12 +117,17 @@ Tuples5<-"NA"
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}", "", SubsetDeepDive[,"words"])
 # Remove commas from DeepDiveData to prepare to run grep function
 CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
+# Add a space at the beginning of each sentence to improve grep
+CleanedWords<-paste(" ", CleanedWords, sep="")
 
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for candidate units.", Sys.time()))
+# Add a space before and after each unit name to improve grep accuracy
+CandidatesSearch<-sapply(CandidateUnits, function(x) paste(x, " ", sep=""))
+CandidatesSearch<-sapply(CandidatesSearch, function(x) paste(" ", x, sep=""))
 # Apply grep to cleaned words
-UnitHits<-parSapply(Cluster, CandidateUnits, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), CleanedWords)
+UnitHits<-parSapply(Cluster, CandidatesSearch, function(x,y) grep(x,y, ignore.case=TRUE, perl=TRUE), CleanedWords)
 # Record end time
 print(paste("Finish search for candidate units.", Sys.time()))
 
@@ -138,9 +143,12 @@ docid<-SubsetDeepDive[SubsetDDRow,"docid"]
 sentid<-SubsetDeepDive[SubsetDDRow,"sentid"]
 # Bind the match data as a data frame
 MatchData<-as.data.frame(cbind(Formation, docid, sentid, SubsetDDRow))
-# Make sure row and sentence data is numerical
+# Make sure row and sentence data is numerical and docid and formation names is character data
 MatchData[,"SubsetDDRow"]<-as.numeric(as.character(MatchData[,"SubsetDDRow"]))
+MatchData[,"docid"]<-as.character(MatchData[,"docid"])
 MatchData[,"sentid"]<-as.numeric(as.character(MatchData[,"sentid"]))   
+MatchData[,"Formation"]<-as.character(MatchData[,"Formation"])
+    
     
 # Update the stats table
 Description6<-"Search for candidate units in SubsetDeepDive"
