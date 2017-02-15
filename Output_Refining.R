@@ -39,3 +39,4 @@ test4<-sapply(test3, function(x) grep(" formation ", ignore.case=TRUE, perl=TRUE
 test5<-sapply(test4, length)
 test6<-which(test5>1)
 CleanedOutput[test6,"Multi_Fm"]<-"TRUE"
+CleanedOutput[which(is.na(CleanedOutput[,"Multi_Fm"])),"Multi_Fm"]<-"FALSE"
