@@ -19,7 +19,6 @@ UnwantedRows<-unique(c(Micro,Trace,NoFossils,LackFossils,LackOfFossils,AbsentFos
 CleanedOutput<-OutputData[-UnwantedRows,]
 
 
-
 # Make a sample table of unique unit name matches and sentences
 Sample<-unique(CleanedOutput[,c("strat_name_long","Sentence")])
                          
@@ -32,4 +31,11 @@ Sample<-unique(CleanedOutput[,c("strat_name_long","Sentence")])
 # Open the csv in excel or libre office and perform a manual accuracy test
 # Renamed "CleanedSampleOutput2_Completed.csv"                   
 
-    
+# See how many times "formation" occurs in 
+test1<-sapply(as.character(CleanedOutput[,"Sentence"]), function(x) strsplit(x, " "))
+test2<-sapply(test1, function(x) paste(" ", x))
+test3<-sapply(test2, function(x) paste(x, " "))
+test4<-sapply(test3, function(x) grep(" formation ", ignore.case=TRUE, perl=TRUE, x))
+test5<-sapply(test4, length)
+test6<-which(test5>1)
+CleanedOutput[test6,"Multi_Fm"]<-"TRUE"
