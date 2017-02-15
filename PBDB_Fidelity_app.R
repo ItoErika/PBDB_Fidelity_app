@@ -250,8 +250,8 @@ Tuples7<-"NA"
 
 # Step 8: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in candidate formations.
 print(paste("Remove sentences with non-candidate Macrostrat unit names", Sys.time()))
-# Run another search for ALL macrostrat database long unit names (except candidate units) in SingleMatchData sentences
-MacroUnits<-unique(as.character(UnitsFrame[,"strat_name_long"]))
+# Run another search for ALL macrostrat database formation names (except candidate units) in SingleMatchData sentences
+MacroUnits<-unique(as.character(StratFrame[,"strat_name_long"]))
 # Remove any unnamed Macrostrat columns from MacroUnits
 MacroUnits<-MacroUnits[which(MacroUnits!="")]
 # Remove candidate formation names from MacroUnits
