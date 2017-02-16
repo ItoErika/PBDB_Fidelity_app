@@ -67,7 +67,7 @@ colnames(DocUnitTuples)[1]<-"docid"
 colnames(DocUnitTuples)[2]<-"unit"
 
 # Update the stats table
-Description2<-"Load Tuples"
+Description2<-"Load doc_term Tuples"
 Docs2<-Docs1
 Rows2<-Rows1
 Barren2<-"NA"
@@ -76,9 +76,9 @@ Fossils2<-"NA"
 Tuples2<-nrow(DocUnitTuples)
 
 # Step 3: Download a dictionary of unit names from the Macrostrat database. 
-# Extract Sedimentary units in Macrostrat without fossils reported in the Paleobiology Database.
+# Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
 print(paste("Download Macrostrat unit data",Sys.time()))
-# Download all marine, sedimentary unit names from Macrostrat Database
+# Download all sedimentary unit data from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
@@ -94,7 +94,9 @@ StratFrame<-read.csv(text=StratURL, header=TRUE)
 # No functions at this time
 
 ############################################ Data Cleaning Script ###########################################
-# Group by long strat name and take sum of pbdb_collections values
+# Create three dictionaries:
+# (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
+# Take sum of pbdb_collections values associated with each strat name 
 Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
 BarrenUnits<-names(which(Collections==0))
@@ -108,7 +110,7 @@ FossilUnits<-subset(FossilUnits, FossilUnits%in%StratFrame[,"strat_name_long"])
 Formations<-c(BarrenUnits, FossilUnits)
 
 # Update the stats table
-Description3<-"Make unit dictionary of sedimentary, unfossiliferous (according to PBDB) units"
+Description3<-"Make dictionaries of formation names"
 Docs3<-Docs2
 Rows3<-Rows2
 # Number of units of interest:
@@ -116,7 +118,7 @@ Barren3<-length(BarrenUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
-# Step 4: Subset tuples to those which have units that are in candidate formations, and candidate formations to those found in tuples.
+# Step 4: Subset tuples to those which have units that are in candidate formations, and subset candidate formations to units found in tuples.
 print(paste("Subset tuples to candidate formations, and subset formations to tuple units",Sys.time()))
 # Subset tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
@@ -151,9 +153,9 @@ Tuples5<-"NA"
 
 # Remove bracket symbols ({ and }) from SubsetDeepDive sentences
 SubsetDeepDive[,"words"]<-gsub("\\{|\\}", "", SubsetDeepDive[,"words"])
-# Remove commas from SubsetDeepdive sentences to prepare to run grep function
+# Replace commas in SubsetDeepdive sentences with spaces to prepare to run grep function
 CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
-# Add a space at the beginning of each sentence to improve grep
+# Add a space at the beginning of each sentence to improve grep search results
 CleanedWords<-paste(" ", CleanedWords, sep="")
 
 # REMOVE AFTER ACCURACY TESTS: Search for " Fm " in CleanedWords
