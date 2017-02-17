@@ -6,15 +6,16 @@ Micro<-grep("microfossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Trace<-grep("trace fossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # Remove words or phrases that are likely to cause reading errors creating false hits
 NoFossils<-grep(" no fossils", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-LackFossils<-grep("lacks fossils", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-LackOfFossils<-grep("lack of fossils", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Lack<-grep(" lack ", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Lacks<-grep(" lacks ", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 AbsentFossils<-grep("absence of fossils", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 VoidFossils<-grep("void of fossils", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Correlative<-grep("correlative", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Equivalent<-grep("equivalent", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Above<-grep("above", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Below<-grep("below", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE) 
-UnwantedRows<-unique(c(Micro,Trace,NoFossils,LackFossils,LackOfFossils,AbsentFossils,VoidFossils,Correlative,Equivalent,Above,Below))
+
+UnwantedRows<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, Below))
                          
 CleanedOutput<-OutputData[-UnwantedRows,]
 
