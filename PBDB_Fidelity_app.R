@@ -84,14 +84,14 @@ UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
 # Download data for geologic formations from the Macrostrat database API
-StratURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
-StratURL<-RCurl::getURL(StratURL)
-StratFrame<-read.csv(text=StratURL, header=TRUE)
+FormationsURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
+FormationsURL<-RCurl::getURL(FormationsURL)
+FormationsFrame<-read.csv(text=FormationsURL, header=TRUE)
 
 # Download geologic time scale data from the Macrostrat API
-AgesURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
-AgesURL<-RCurl::getURL(AgesURL)
-AgesFrame<-read.csv(text= AgesURL, header=TRUE)
+IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
+IntervalsURL<-RCurl::getURL(IntervalsURL)
+IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
 
 #############################################################################################################
 ###################################### DATA CLEANING FUNCTIONS, FIDELITY ####################################
@@ -105,22 +105,20 @@ AgesFrame<-read.csv(text= AgesURL, header=TRUE)
 UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"),]
 # Second, remove Precambrian units from UnitsFrame
 # Extract the maximum age for units of interest
-Max_age<-AgesFrame[which(AgesFrame[,"name"]=="Precambrian"),"t_age"]
+Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 # Make sure the top age of the units are less than the max age (less than the Cambrian-Proterozoic boundary age)
 UnitsFrame<-UnitsFrame[which(UnitsFrame[,"t_int_age"]<Max_age),]
-# Make sure that the bottom age of the units is less than or equal to the max age
-UnitsFrame<-UnitsFrame[which(UnitsFrame[,"b_int_age"]<=Max_age),]
 
 # Take sum of pbdb_collections values associated with each strat name 
 Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
-# Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
+# Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
 BarrenUnits<-names(which(Collections==0))
 # Subset barren units to only include formations
-BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%StratFrame[,"strat_name_long"])
+BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%FormationsFrame[,"strat_name_long"])
 # Extract the strat names with a at least one pbdb collection record
 FossilUnits<-names(which(Collections>0))
 # Subset fossil units to only include formations
-FossilUnits<-subset(FossilUnits, FossilUnits%in%StratFrame[,"strat_name_long"])
+FossilUnits<-subset(FossilUnits, FossilUnits%in%FormationsFrame[,"strat_name_long"])
 # Bind all candidate formations together
 Formations<-c(BarrenUnits, FossilUnits)
 
