@@ -77,7 +77,7 @@ Tuples2<-nrow(DocUnitTuples)
 
 # Step 3: Download a dictionary of unit names from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
-print(paste("Download Macrostrat unit data",Sys.time()))
+print(paste("Download Macrostrat unit and age data",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-RCurl::getURL(UnitsURL)
@@ -99,8 +99,6 @@ IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
 # No functions at this time
 
 ############################################ Data Cleaning Script ###########################################
-# Create three dictionaries:
-# (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
 # First, remove ambiguoulsy named formations from UnitsFrame
 UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"),]
 # Second, remove Precambrian units from UnitsFrame
@@ -109,6 +107,8 @@ Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 # Make sure the top age of the units are less than the max age (less than the Cambrian-Proterozoic boundary age)
 UnitsFrame<-UnitsFrame[which(UnitsFrame[,"t_int_age"]<Max_age),]
 
+# Create three dictionaries:
+# (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
 # Take sum of pbdb_collections values associated with each strat name 
 Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
@@ -126,7 +126,7 @@ Formations<-c(BarrenUnits, FossilUnits)
 Description3<-"Make dictionaries of formation names"
 Docs3<-Docs2
 Rows3<-Rows2
-# Number of units of interest:
+# Number of units of interest
 Barren3<-length(BarrenUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
@@ -144,10 +144,10 @@ FossilUnits<-subset(FossilUnits, FossilUnits%in%SubsetTuples[,"unit"])
 Description4<-"Subset tuples to only candidate formations, and subset formations to tuple units"
 Docs4<-Docs3
 Rows4<-Rows3
-# Number of units of interest found in initial document set
+# Number of units of interest after subsetting to tuple units
 Barren4<-length(BarrenUnits)
 Fossils4<-length(FossilUnits)
-# Numer of tuples after subsetting to candidate formation tuples only
+# Number of tuples after subsetting to candidate formation tuples only
 Tuples4<-nrow(SubsetTuples)
 
 # Step 5: Subset DeepDive data to include only documents that are found in the updated tuples.
@@ -170,10 +170,6 @@ SubsetDeepDive[,"words"]<-gsub("\\{|\\}", "", SubsetDeepDive[,"words"])
 CleanedWords<-gsub(",", " ", SubsetDeepDive[,"words"])
 # Add a space at the beginning of each sentence to improve grep search results
 CleanedWords<-paste(" ", CleanedWords, sep="")
-
-# REMOVE AFTER ACCURACY TESTS: Search for " Fm " in CleanedWords
-FmHits<-grep(" Fm", ignore.case=FALSE, perl=TRUE, CleanedWords)
-
 # Replace "Fm" with "Formation" in CleanedWords
 CleanedWords<-gsub(" Fm", " Formation", CleanedWords)
 
@@ -185,7 +181,7 @@ CleanedWords<-gsub(" Fm", " Formation", CleanedWords)
 ########################################### Formation Search Script #########################################
 # Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
-print(paste("Begin search for candidate formations.", Sys.time()))
+print(paste("Begin search for candidate formations", Sys.time()))
 # Add a space before and after each unit name to improve grep accuracy
 FormationsWS<-sapply(Formations, function(x) paste(x, " ", sep=""))
 FormationsWS<-sapply(FormationsWS, function(x) paste(" ", x, sep=""))
