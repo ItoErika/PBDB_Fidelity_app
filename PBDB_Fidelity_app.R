@@ -96,6 +96,8 @@ StratFrame<-read.csv(text=StratURL, header=TRUE)
 ############################################ Data Cleaning Script ###########################################
 # Create three dictionaries:
 # (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
+# First, remove ambiguoulsy named formations from UnitsFrame
+UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Mutual Formation"),]
 # Take sum of pbdb_collections values associated with each strat name 
 Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections, indicating the unit name has no fossil occurrences according to PBDB
