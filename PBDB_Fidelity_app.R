@@ -338,8 +338,8 @@ Tuples10<-"NA"
 #############################################################################################################
 ###################################### LOCATION SEARCH FUNCTIONS, FIDELITY ##################################
 #############################################################################################################      
-# Search for the locations from UnitOutputData[,"location"] column in SubsetDeepDive documents are referenced by docid in UnitOutputData
-locationSearch<-function(SubsetDeepDive,Document=FossilData[,"docid"], location=unique(FossilData[,"location"])) {
+# Search for the locations from FossilData[,"location"] column in SubsetDeepDive documents are referenced by docid in FossilData
+locationSearch<-function(SubsetDeepDive,Document=FidelityData[,"docid"], location=unique(FidelityData[,"location"])) {
     # Subset SubsetDeepDive to only documents referenced in OutputData
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
     # Clean sentences so grep can run
@@ -348,7 +348,7 @@ locationSearch<-function(SubsetDeepDive,Document=FossilData[,"docid"], location=
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
     # make a column of location names for each associated hit
     LocationHitsLength<-sapply(LocationHits,length)
-    names(LocationHits)<-unique(UnitOutputData[,"location"])
+    names(LocationHits)<-unique(FidelityData[,"location"])
     Location<-rep(names(LocationHits),times=LocationHitsLength)
     # make a column for each document the location name is found in
     LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
@@ -373,7 +373,7 @@ CandidatesFrame<-CandidatesFrame[,c("strat_name_long","col_id","location")]
 
 # Create a table of unit data that has the unit name, docid of the match, and the location(s) the unit is known to be in.
 # NOTE: this merge will create a row for each location/col_id tuple associated with each match.
-FidelityData<-merge(LocationData, CandidatesFrame, by.x="Formation", by.y="strat_name_long", all.x=TRUE)    
+FidelityData<-merge(FossilData, CandidatesFrame, by.x="Formation", by.y="strat_name_long", all.x=TRUE)    
 
 # Run the locationSearch function
 LocationHits<-locationSearch(SubsetDeepDive,Document=FidelityData[,"docid"], location=unique(FidelityData[,"location"]))
@@ -390,9 +390,9 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
                                                  
 # Find the rows from UnitOutputData that are also in LocationHits to varify that the correct location appears in the document with the unit assocoiated with the location.
 # NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
-CheckedOutputData<-UnitOutputData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
+CheckedData<-FidelityData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
 # remove duplicate rows of strat name, sentence, docid, and sentid data that were created from the location data merge
-OutputData<-unique(CheckedOutputData[,c("Formation", "Sentence", "docid", "sentid", "PBDB_occ")])
+OutputData<-unique(CheckedData[,c("Formation", "Sentence", "docid", "sentid", "PBDB_occ")])
                          
 print(paste("Finish location check.",Sys.time()))
                          
