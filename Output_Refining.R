@@ -1,6 +1,23 @@
 # Load output data from application
 OutputData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/Fidelity_OutputData.rds")
 
+# Step11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
+# Record start time
+print(paste("Begin search for unwanted matches.", Sys.time()))
+# NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
+Overlain<-grep("overlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlie<-grep("overlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlying<-grep("overlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlain<-grep("underlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlie<-grep("underlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlying<-grep("underlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+  
+# Combine all of the noisy rows (sentences) into one vector 
+NoisySentences<-unique(c(Overlain, Overlie,Underlain, Underlie, Underlying, Overlying))
+
+# Remove noisy sentences from FossilData
+FidelityData<-FossilData[-NoisySentences,]
+
 # Remove hits for microfossils and trace fossils within the output sentences
 Micro<-grep("microfossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Trace<-grep("trace fossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
