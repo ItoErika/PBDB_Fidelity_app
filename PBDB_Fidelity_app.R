@@ -379,7 +379,7 @@ FidelityData<-merge(FossilData, CandidatesFrame, by.x="Formation", by.y="strat_n
 LocationHits<-locationSearch(SubsetDeepDive,Document=FidelityData[,"docid"], location=unique(FidelityData[,"location"]))
 LocationHits<-unique(LocationHits)    
 
-# Create a version of UnitOutputData with just docid and location names
+# Create a version of FidelityData with just docid and location names
 UnitDocLocation<-as.matrix(FidelityData[,c("docid","location")])  
 # Make a column of docid and location data combined for LocationHits and UnitDocLocation
 Doc.Location1<-paste(LocationHits[,"LocationDocs"], LocationHits[,"Location"], sep=".")
