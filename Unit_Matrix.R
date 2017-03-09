@@ -2,32 +2,41 @@
 # Load libraries
 library("RCurl")
 library("RPostgreSQL")
+library("velociraptr")
 
-# Download all marine, sedimentary unit names from Macrostrat Database
+# Download all sedimentary unit names from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 #Load all of the candidate units (marine, sedimentary, unfossiliferous) that were matched in the documents
-UnitHitData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/UnitHitData.rds")
+MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/chunk_output_03_08_2017/MatchData.csv")
 # Extract all unit name matches
-MatrixUnits<-unique(UnitHitData[,"UnitName"])
+MatrixUnits<-unique(MatchData[,"Formation"])
 # Subset UnitsFrame to only include units from UnitHitData
 SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits),]
-	
+
+########################################### CLEAN SUBSETUNITSFRAME COLUMNS ##############################################
+
+# Make sure there is a space before and after every word in the lithology column of SubsetUnitsFrame
+SubsetUnitsFrame[,"lith"]<-gsub("\\|", " | ", SubsetUnitsFrame[,"lith"])
+# Add as space to the end of every lithology column row
+SubsetUnitsFrame[,"lith"]<-paste(SubsetUnitsFrame[,"lith"]," ", sep="")
+# Make sure there is a space before and after every word in the environment column of SubsetUnitsFrame
+SubsetUnitsFrame[,"environ"]<-gsub("\\|", " | ", SubsetUnitsFrame[,"environ"])
+# Add as space before of every environment column row
+SubsetUnitsFrame[,"environ"]<-paste(" ", SubsetUnitsFrame[,"environ"], sep="")
+
 ############################################# CREATE LOCATION COLUMNS ####################################################	
 	
 # Create a vector of all the state/location names
-# Connet to PostgreSQL
-Driver <- dbDriver("PostgreSQL") # Establish database driver
-Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
 # Load intersected location tuples table 
-LocationTuples<-dbGetQuery(Connection,"SELECT* FROM column_locations.intersections") 
+LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app-master/input/LocationTuples.csv")
 
 # Group LocationTuple data by "col_id" column
-GroupedLocationsList<-tapply(LocationTuples[,"location"],LocationTuples[,"col_id"],as.character)
+GroupedLocations<-tapply(LocationTuples[,"location"],LocationTuples[,"col_id"],as.character)
 # Collapse the elements for each "col_id" in the list so that a vector is returned
-GroupedLocations<-setNames(as.data.frame(sapply(GroupedLocationsList, function(x) paste(x, collapse=' '))),"States")
+GroupedLocations<-setNames(as.data.frame(sapply(GroupedLocations, function(x) paste(x, collapse=' '))),"States")
 # Convert the GroupedLocations column to character data
 GroupedLocations[,"States"]<-as.character(GroupedLocations[,"States"])
   
@@ -37,102 +46,108 @@ SubsetUnitsFrame<-merge(SubsetUnitsFrame,GroupedLocations,by.x="col_id",by.y="ro
 # Create a vector of locations
 Locations<-unique(LocationTuples[,"location"])
 # Remove blanks
-Locations<-na.omit(Locations)
-# Create a matrix showing whether or not each location corresponds with each row or SubsetUnitsFrame[,"GroupedLocations"]
+Locations<-Locations[which(Locations!="")]
+# Create a matrix showing whether or not each location corresponds with each row in SubsetUnitsFrame
 LocationMatrix<-sapply(Locations,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),as.character(SubsetUnitsFrame[,"States"]))
 # Convert the logical data into numerical data
 LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(LocationMatrix)])
-  
+colnames(LocationMatrix)<-paste("location_", Locations, sep="")
+	
 # Name final matrix
-UnitDataTable<-data.matrix(LocationMatrix)
-rownames(UnitDataTable)<-as.character(SubsetUnitsFrame[,"unit_id"])
+FormationMatrix<-data.matrix(LocationMatrix)
+rownames(FormationMatrix)<-as.character(SubsetUnitsFrame[,"unit_id"])
 	
 ############################################# CREATE LITHOLOGY COLUMNS ###################################################
-############################################### UNCATEGORIZED OPTION #####################################################
+#################################################### LITHOLOGY NAME ######################################################
 
 # download a list of lithologies from Macrostrat database
 LithologyURL<-"https://macrostrat.org/api/defs/lithologies?all&format=csv"
 GotURL<-getURL(LithologyURL)
 LithologyFrame<-read.csv(text=GotURL,header=TRUE)
 Lithologies<-unique(LithologyFrame[,"name"])
+	
+# Add a space at the beginning and end of each lithology name to prepare for grep
+LithologiesWS<-paste(" ", Lithologies, sep="")
+LithologiesWS<-paste(LithologiesWS, " ", sep="")
 
 # Create a matrix showing whether or not each lithology category corresponds with each row of SubsetUnitsFrame[,"lith"]
-LithMatrix<-sapply(Lithologies,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+LithNameMatrix<-sapply(LithologiesWS,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
 # Assign column names
-colnames(LithMatrix)<-Lithologies
+colnames(LithNameMatrix)<-paste("lithname_", Lithologies, sep="")
 # Convert the logical data into numerical data
-LithMatrix[,1:ncol(LithMatrix)]<-as.numeric(LithMatrix[,1:ncol(LithMatrix)])
+LithNameMatrix[,1:ncol(LithNameMatrix)]<-as.numeric(LithNameMatrix[,1:ncol(LithNameMatrix)])
 
-# Bind the LithMatrix to UnitDataTable
-UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
+# Bind the LithNameMatrix to FormationMatrix
+FormationMatrix<-data.matrix(cbind(FormationMatrix,LithNameMatrix))
 	
-######################################### CATEGORIZED LITHOLOGY OPTION ###############################################
+############################################### LITHOLOGY TYPE ###############################################
 
-# group lithology names into their associated types based on the Macrostrat API (NOTE: this function creates a list)
-LithologyTypes<-split(LithologyFrame[,"name"],LithologyFrame[,"type"])	
+# Group lithology names into their associated types based on the Macrostrat API (NOTE: this function creates a list)
+LithTypes<-split(LithologyFrame[,"name"],LithologyFrame[,"type"])
+# Add spaces before and after each lithology name
+LithTypes<-sapply(LithTypes, function(x) paste(x, " ", sep=""))
+LithTypes<-sapply(LithTypes, function(x) paste(" ", x, sep=""))	
 
-# make a vector of lithology names associated with each type
-carbonate<-as.character(unlist(LithologyTypes["carbonate"]))
-cataclastic<-as.character(unlist(LithologyTypes["cataclastic"]))
-chemical<-as.character(unlist(LithologyTypes["chemical"]))
-evaporite<-as.character(unlist(LithologyTypes["evaporite"]))
-igneous<-as.character(unlist(LithologyTypes["igneous"]))
-metaigneous<-as.character(unlist(LithologyTypes["metaigneous"]))
-metamorphic<-as.character(unlist(LithologyTypes["metamorphic"]))
-metasedimentary<-as.character(unlist(LithologyTypes["metasedimentary"]))
-organic<-as.character(unlist(LithologyTypes["organic"]))
-plutonic<-as.character(unlist(LithologyTypes["plutonic"]))
-regolith<-as.character(unlist(LithologyTypes["regolith"]))
-sedimentary<-as.character(unlist(LithologyTypes["sedimentary"]))
-siliciclastic<-as.character(unlist(LithologyTypes["siliciclastic"]))
-volcanic<-as.character(unlist(LithologyTypes["volcanic"]))
+# Make vectors of lithology names associated with each type
+Carbonate<-as.character(LithTypes[["carbonate"]])
+Cataclastic<-c(" cataclastic ", as.character(LithTypes[["cataclastic"]]))
+Chemical<-c(" chemical ", as.character(LithTypes[["chemical"]]))
+Evaporite<-as.character(LithTypes[["evaporite"]])
+Igneous<-as.character(LithTypes[["igneous"]])
+Metaigneous<-c(" metaigneous ", as.character(LithTypes[["metaigneous"]]))
+Metamorphic<-as.character(LithTypes[["metamorphic"]])
+Metasedimentary<-as.character(LithTypes[["metasedimentary"]])
+Metavolcanic<-as.character(LithTypes[["metavolcanic"]])
+Organic<-c(" organic ", as.character(LithTypes[["organic"]]))
+Plutonic<-as.character(LithTypes[["plutonic"]])
+Regolith<-as.character(LithTypes[["regolith"]])
+Sedimentary<-as.character(LithTypes[["sedimentary"]])
+Siliciclastic<-as.character(LithTypes[["siliciclastic"]])
+Volcanic<-as.character(LithTypes[["volcanic"]])
 
-# run greps for all of the words in each type
-LithMatrix1<-sapply(carbonate,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix2<-sapply(cataclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix3<-sapply(chemical,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix4<-sapply(evaporite,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix5<-sapply(igneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix6<-sapply(metaigneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix7<-sapply(metamorphic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix8<-sapply(metasedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix9<-sapply(organic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix10<-sapply(plutonic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix11<-sapply(regolith,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix12<-sapply(sedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix13<-sapply(siliciclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
-LithMatrix14<-sapply(volcanic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+# Run greps for all of the words in each type
+CarbonateMatrix<-sapply(Carbonate,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+CataclasticMatrix<-sapply(Cataclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+ChemicalMatrix<-sapply(Chemical,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+EvaporiteMatrix<-sapply(Evaporite,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+IgneousMatrix<-sapply(Igneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+MetaigneousMatrix<-sapply(Metaigneous,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+MetamorphicMatrix<-sapply(Metamorphic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+MetasedimentaryMatrix<-sapply(Metasedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+MetavolcanicMatrix<-sapply(Metavolcanic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+OrganicMatrix<-sapply(Organic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+PlutonicMatrix<-sapply(Plutonic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+RegolithMatrix<-sapply(Regolith,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+SedimentaryMatrix<-sapply(Sedimentary,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+SiliciclasticMatrix<-sapply(Siliciclastic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
+VolcanicMatrix<-sapply(Volcanic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"lith"])
 
-# find if any of the names within each type had a hit in the grepl search
-carbonate<-apply(LithMatrix1, 1, function(x) any(x)==TRUE)
-cataclastic<-apply(LithMatrix2, 1, function(x) any(x)==TRUE)
-chemical<-apply(LithMatrix3, 1, function(x) any(x)==TRUE)
-evaporite<-apply(LithMatrix4, 1, function(x) any(x)==TRUE)
-igneous<-apply(LithMatrix5, 1, function(x) any(x)==TRUE)
-metaigneous<-apply(LithMatrix6, 1, function(x) any(x)==TRUE)
-metamorphic<-apply(LithMatrix7, 1, function(x) any(x)==TRUE)
-metasedimentary<-apply(LithMatrix8, 1, function(x) any(x)==TRUE)
-organic<-apply(LithMatrix9, 1, function(x) any(x)==TRUE)
-plutonic<-apply(LithMatrix10, 1, function(x) any(x)==TRUE)
-regolith<-apply(LithMatrix11, 1, function(x) any(x)==TRUE)
-sedimentary<-apply(LithMatrix12, 1, function(x) any(x)==TRUE)
-siliciclastic<-apply(LithMatrix13, 1, function(x) any(x)==TRUE)
-volcanic<-apply(LithMatrix14, 1, function(x) any(x)==TRUE)
+# Find if any of the names within each type had a hit in the grepl search
+carbonate<-apply(CarbonateMatrix, 1, function(x) any(x)==TRUE)
+cataclastic<-apply(CataclasticMatrix, 1, function(x) any(x)==TRUE)
+chemical<-apply(ChemicalMatrix, 1, function(x) any(x)==TRUE)
+evaporite<-apply(EvaporiteMatrix, 1, function(x) any(x)==TRUE)
+igneous<-apply(IgneousMatrix, 1, function(x) any(x)==TRUE)
+metaigneous<-apply(MetaigneousMatrix, 1, function(x) any(x)==TRUE)
+metamorphic<-apply(MetamorphicMatrix, 1, function(x) any(x)==TRUE)
+metasedimentary<-apply(MetasedimentaryMatrix, 1, function(x) any(x)==TRUE)
+metavolcanic<-apply(MetavolcanicMatrix, 1, function(x) any(x)==TRUE)
+organic<-apply(OrganicMatrix, 1, function(x) any(x)==TRUE)
+plutonic<-apply(PlutonicMatrix, 1, function(x) any(x)==TRUE)
+regolith<-apply(RegolithMatrix, 1, function(x) any(x)==TRUE)
+sedimentary<-apply(SedimentaryMatrix, 1, function(x) any(x)==TRUE)
+siliciclastic<-apply(SiliciclasticMatrix, 1, function(x) any(x)==TRUE)
+volcanic<-apply(VolcanicMatrix, 1, function(x) any(x)==TRUE)
 
-LithMatrix<-data.matrix(cbind(carbonate,cataclastic,chemical,evaporite,igneous,metaigneous,metamorphic,metasedimentary,
-organic,plutonic,regolith,sedimentary,siliciclastic,volcanic))
-colnames(LithMatrix)<-c("carbonate","cataclastic","chemical","evaporite","igneous","metaigneous","metamorphic"
-,"metasedimentary","organic","plutonic","regolith","sedimentary","siliciclastic","volcanic")
+# Create a single matrix for lithology types
+LithTypeMatrix<-data.matrix(cbind(carbonate, cataclastic, chemical, evaporite, igneous, metaigneous, metamorphic,
+metasedimentary, metavolcanic, organic, plutonic, regolith, sedimentary, siliciclastic, volcanic))
 	
-
-UnitDataTable<-data.matrix(cbind(UnitDataTable,LithMatrix))
+FormationMatrix<-data.matrix(cbind(FormationMatrix, LithTypeMatrix))
 	
-############################################## CREATE TIME COLUMNS ###################################################
-################################################# PERIODS OPTION #####################################################
+############################################### CREATE TIME COLUMNS ###################################################
+##################################################### PERIODS #########################################################
 
-# Load communityMatrix.R modgule of paleobiology database r package
-source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
-	
 Periods<-downloadTime("international%20periods")
 	
 # create a matrix showing whether or not each period from Periods corresponds with each unit of SubsetUnitsFrame  
@@ -157,21 +172,22 @@ multipleAges<-function(SubsetUnitsFrame,Periods) {
 PeriodMatrix<-multipleAges(SubsetUnitsFrame,Periods)
 	
 # Account for the units which span more than two periods in age
-Distance<-apply(PeriodMatrix,1,function(x) diff(which(x==1))>1)
-Separated<-which(Distance==TRUE)
+Spanned<-apply(PeriodMatrix, 1, function(x) diff(which(x==1))>1)
+Separated<-which(Spanned==TRUE)
 
 # Assign the value 1 for the periods which fall between the earliest and latest period
 for(i in Separated){
 	PeriodMatrix[i,which(PeriodMatrix[i,]==1)[1]:which(PeriodMatrix[i,]==1)[2]]<-1
-	}	
+	}
 	
-# Bind the PeriodMatrix to UnitDataTable
-UnitDataTable<-data.matrix(cbind(UnitDataTable,PeriodMatrix))
+# Assign column names
+colnames(PeriodMatrix)<-paste("period_", colnames(PeriodMatrix), sep="")
 	
-############################################## EPOCHS OPTION ###################################################
+# Bind the PeriodMatrix to FormationMatrix
+FormationMatrix<-data.matrix(cbind(FormationMatrix,PeriodMatrix))
+	
+################################################### EPOCHS ######################################################
 
-# Load communityMatrix.R modgule of paleobiology database r package
-source("https://raw.githubusercontent.com/aazaff/paleobiologyDatabase.R/master/communityMatrix.R")
 Epochs<-downloadTime("international%20epochs")
 	
 # create a matrix showing whether or not each epoch from epochs corresponds with each unit of SubsetUnitsFrame  
@@ -196,263 +212,95 @@ multipleAges<-function(SubsetUnitsFrame,Epochs) {
 EpochMatrix<-multipleAges(SubsetUnitsFrame,Epochs)
 	
 # Account for the units which span more than two epochs in age
-Distance<-apply(EpochMatrix,1,function(x) diff(which(x==1))>1)
-Separated<-which(Distance==TRUE)
+Spanned<-apply(EpochMatrix,1,function(x) diff(which(x==1))>1)
+Separated<-which(Spanned==TRUE)
 	
 # Assign the value 1 for the epochs which fall between the earliest and latest epoch
 for(i in Separated){
 	EpochMatrix[i,which(EpochMatrix[i,]==1)[1]:which(EpochMatrix[i,]==1)[2]]<-1
 	}	
 	
-# Bind the EpochMatrix to UnitDataTable
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EpochMatrix))
+# Assign column names
+colnames(EpochMatrix)<-paste("epoch_", colnames(EpochMatrix), sep="")
+	
+# Bind the EpochMatrix to FormationMatrix
+FormationMatrix<-data.matrix(cbind(FormationMatrix, EpochMatrix))
 
-########################################## ADD ENVIRONMENTS COLUMNS ##################################################
-########################################## NO CATEGORIES OPTION ##################################################
+########################################### ADD ENVIRONMENTS COLUMNS ################################################
+############################################## ENVIRONMENT TYPE #####################################################
 
-# download a list of environmnets from Macrostrat database
+# Eownload a list of environmnets from Macrostrat database
 EnvironsURL<-"https://macrostrat.org/api/defs/environments?all&format=csv"
 GotURL<-getURL(EnvironsURL)
 EnvironsFrame<-read.csv(text=GotURL,header=TRUE)
-Environments<-unique(EnvironsFrame[,"name"])
-	
-# Create a matrix showing whether or not each environment category corresponds with each row of SubsetUnitsFrame[,"environ"]
-EnvironMatrix<-sapply(Environments,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-# assign column names
-colnames(EnvironMatrix)<-Environments
 
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             	                                                                                       
-####################################### CATEGORIZED ENVIRONMENTS OPTION ###############################################
+# Group environment names into their associated types based on the Macrostrat API (NOTE: this function creates a list)
+EnvironTypes<-split(EnvironsFrame[,"name"],EnvironsFrame[,"type"])
+# Add spaces before and after each environ name
+EnvironTypes<-sapply(EnvironTypes, function(x) paste(x, " ", sep=""))
+EnvironTypes<-sapply(EnvironTypes, function(x) paste(" ", x, sep=""))	
 	
-lacustrine<-c("lacustrine - small","lacustrine prodelta","lacustrine delta front","lacustrine deltaic indet.","crater lake",
-"lacustrine delta plain","fluvial-lacustrine indet.","lacustrine interdistributary bay","lacustrine - small",
-"lacustrine - large","lacustrine indet.","playa")
-fluvial<-c("fluvial indet.","fluvial-lacustrine indet.","fluvial meandering","fluvial braided","fluvial indet.",
-"fluvial-deltaic indet.","alluvial fan","crevasse splay","floodplain","channel lag","levee","channel","interdistributary bay",
-"pond") # Need to think about where alluvial fans go	   
-shallowsubtidal<-c("shallow subtidal","open shallow subtidal")
-deepsubtidal<-c("deep subtidal indet.","deep subtidal shelf","deep subtidal ramp")
-aeolian<-c("eolian indet.","loess","dune","interdune")
-glacial<-c("ground moraine","esker","drumlin","outwash plain","glacial indet.","end moraine")
-lagoon<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","tidal flat")
-transitionzone<-c("transition zone/lower shoreface") # consider moving tansition zone to deepsubtidal
-deepwater<-c("abyss","submarine fan","deep-water indet.","basinal","slope","basin reef")
-marine<-c("marine","inferred marine","marginal marine")
-deltaic<-c("delta front","deltaic indet.","delta plain","prodelta","lacustrine delta front","fluvial-deltaic indet.",
-"lacustrine prodelta","lacustrine deltaic indet.","lacustrine delta plain")
-nonmarine<-c("non-marine","marginal marine")
-cave<-c("fissure fill","cave","karst indet.","sinkhole","tar","mire/swamp","spring")
-deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front","shoreface")
-nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore","offshore indet.","offshore shelf",
-"shoreface","offshore ramp") # Only siliciclastic settings?
-paraliccoastal<-c("paralic indet.","lagoonal/restricted shallow subtidal sand shoal","lagoonal","tidal flat","estuary/bay")	     	     
-coastal<-c("coastal indet.","barrier bar","peritidal",paraliccoastal,nondeltaiccoastal)
-shallowreef<-c("intrashelf/intraplatform reef","perireef")
-shelfmarginreef<-c("platform/shelf-margin reef")
-carbonateslopereef<-c("slope/ramp reef")
-deepreef<-c("basin reef")
-reef<-c("buildup or bioherm","reef","peritidal",deepreef,carbonateslopereef,shelfmarginreef,shallowreef)
-terrestrial<-c("weathering surface","colluvial slope")
-	     
-EnvironMatrix1<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix2<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix3<-sapply(shallowsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix4<-sapply(deepsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix5<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix6<-sapply(lagoon,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix7<-sapply(shallowsubtidal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix8<-sapply(transitionzone,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix9<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix10<-sapply(cave,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix11<-sapply(deltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix12<-sapply(nondeltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix13<-sapply(paraliccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix14<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix15<-sapply(shallowreef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix16<-sapply(shelfmarginreef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix17<-sapply(carbonateslopereef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix18<-sapply(reef,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix19<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-colnames(EnvironMatrix19)<-terrestrial
-	
-lacustrine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
-fluvial<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
-shallowsubtidal<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
-deepsubtidal<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
-aeolian<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
-lagoon<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
-shallowsubtidal<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
-transitionzone<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)
-marine<-apply(EnvironMatrix9, 1, function(x) any(x)==TRUE)
-cave<-apply(EnvironMatrix10, 1, function(x) any(x)==TRUE)
-deltaiccoastal<-apply(EnvironMatrix11, 1, function(x) any(x)==TRUE)
-nondeltaiccoastal<-apply(EnvironMatrix12, 1, function(x) any(x)==TRUE)
-paraliccoastal<-apply(EnvironMatrix13, 1, function(x) any(x)==TRUE)
-coastal<-apply(EnvironMatrix14, 1, function(x) any(x)==TRUE)
-shallowreef<-apply(EnvironMatrix15, 1, function(x) any(x)==TRUE)
-shelfmarginreef<-apply(EnvironMatrix16, 1, function(x) any(x)==TRUE)
-carbonateslopereef<-apply(EnvironMatrix17, 1, function(x) any(x)==TRUE)
-reef<-apply(EnvironMatrix18, 1, function(x) any(x)==TRUE)
-terrestrial<-apply(EnvironMatrix19, 1, function(x) any(x)==TRUE)
+# Make a vector of environment names associated with each type
+Carbonate<-c(" carbonate ", as.character(EnvironTypes[["carbonate"]]))
+Eolian<-c(" eolian ", as.character(EnvironTypes[["eolian"]]))
+Fluvial<-c(" fluvial ", as.character(EnvironTypes[["fluvial"]]))
+Glacial<-c(" glacial ", as.character(EnvironTypes[["glacial"]]))
+Lacustrine<-c(" lacustrine ", as.character(EnvironTypes[["lacustrine"]]))
+Landscape<-c(" landscape ", as.character(EnvironTypes[["landscape"]]))
+Siliciclastic<-c(" siliciclastic ", as.character(EnvironTypes[["siliciclastic"]]))
 
-EnvironMatrix<-data.matrix(cbind(lacustrine,fluvial,shallowsubtidal,deepsubtidal,aeolian,lagoon,shallowsubtidal,
-transitionzone,marine,cave,deltaiccoastal,paraliccoastal,coastal,shallowreef,shelfmarginreef,carbonateslopereef,
-reef,terrestrial))
-colnames(EnvironMatrix)<-c("lacustrine","fluvial","shallowsubtidal","deepsubtidal","aeolian","lagoon","shallowsubtidal",
-"transitionzone","marine","cave","deltaiccoastal","paraliccoastal","coastal","shallowreef","shelfmarginreef",
-"carbonateslopereef","reef","terrestrial")
-
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
-
-####################################### MORE CATEGORIZED ENVIRONMENTS OPTION ########################################
-
-deepwater<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
-"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf","basinal","barrier bar")
-paraliccoastal<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","paralic indet.","tidal flat")
-nondeltaiccoastal<-c("foreshore","transition zone/lower shoreface","offshore ramp","offshore","offshore indet.","shoreface",
-"offshore shelf")
-deltaiccoastal<-c("interdistributary bay","deltaic indet.","prodelta","delta plain","delta front")
-coastal<-c("coastal indet.",paraliccoastal,nondeltaiccoastal)
-glacial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain")
-fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee",
-"fluvial-lacustrine indet.","crevasse splay","fluvial-deltaic indet.","alluvial fan")
-lacustrine<-c("lacustrine - small","lacustrine - large","lacustrine delta front","fluvial-lacustrine indet.","pond",
-"crater lake","lacustrine interdistributary bay","lacustrine delta plain","lacustrine indet.","lacustrine deltaic indet.",
-"lacustrine prodelta")
-carbonate<-c("reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
-"platform/shelf-margin reef","peritidal","slope")
-aeolian<-c("eolian indet.","dune","interdune","loess")
-terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp") # misc. terrestrial
-nonmarine<-"non-marine"
-
-EnvironMatrix1<-sapply(deepwater,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix2<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix3<-sapply(paraliccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix4<-sapply(deltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix5<-sapply(nondeltaiccoastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix6<-sapply(glacial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix7<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix8<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix9<-sapply(carbonate,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix10<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix11<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix12<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+# Run greps for all of the names in each type
+CarbonateMatrix<-sapply(Carbonate, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+EolianMatrix<-sapply(Eolian, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+FluvialMatrix<-sapply(Fluvial, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+GlacialMatrix<-sapply(Glacial, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+LacustrineMatrix<-sapply(Lacustrine, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+LandscapeMatrix<-sapply(Landscape, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+SiliciclasticMatrix<-sapply(Siliciclastic, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+		
+# Find if any of the names within each type had a hit in the grepl search
+carbonate<-apply(CarbonateMatrix, 1, function(x) any(x)==TRUE)
+eolian<-apply(EolianMatrix, 1, function(x) any(x)==TRUE)
+fluvial<-apply(FluvialMatrix, 1, function(x) any(x)==TRUE)
+glacial<-apply(GlacialMatrix, 1, function(x) any(x)==TRUE)
+lacustrine<-apply(LacustrineMatrix, 1, function(x) any(x)==TRUE)
+landscape<-apply(LandscapeMatrix, 1, function(x) any(x)==TRUE)
+siliciclastic<-apply(SiliciclasticMatrix, 1, function(x) any(x)==TRUE)	
 	
-deepwater<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
-coastal<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
-paraliccoastal<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
-deltaiccoastal<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
-nondeltaiccoastal<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
-glacial<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
-fluvial<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
-lacustrine<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)	
-carbonate<-apply(EnvironMatrix9, 1, function(x) any(x)==TRUE)	
-aeolian<-apply(EnvironMatrix10, 1, function(x) any(x)==TRUE)
-terrestrial<-apply(EnvironMatrix11, 1, function(x) any(x)==TRUE)
-nonmarine<-apply(EnvironMatrix12, 1, function(x) any(x)==TRUE)
+# Create a single matrix for environment types
+EnvironTypeMatrix<-data.matrix(cbind(carbonate, eolian, fluvial, glacial, lacustrine, landscape, siliciclastic))
 	
-EnvironMatrix<-data.matrix(cbind(deepwater,coastal,paraliccoastal,nondeltaiccoastal,glacial,fluvial,lacustrine,carbonate,
-aeolian,terrestrial,nonmarine))
-colnames(EnvironMatrix)<-c("deepwater","coastal","paraliccoastal","nondeltaiccoastal","glacial","fluvial","lacustrine",
-"carbonate","aeolian","terrestrial","nonmarine")
-
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
-
-################################ EVEN MORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
-marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
-"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf",
-"basinal","barrier bar","reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
-"platform/shelf-margin reef","peritidal","slope")
-coastal<-c("coastal indet.","lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","paralic indet."
-,"tidal flat","foreshore","transition zone/lower shoreface","offshore ramp","offshore","offshore indet.","shoreface",
-"offshore shelf","interdistributary bay","deltaic indet.","prodelta","delta plain","delta front")
-glacial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain")
-fluvial<-c("fluvial indet.","fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee",
-"fluvial-lacustrine indet.","crevasse splay","fluvial-deltaic indet.","alluvial fan")	     
-lacustrine<-c("lacustrine - small","lacustrine - large","lacustrine delta front","fluvial-lacustrine indet.","pond",
-"crater lake","lacustrine interdistributary bay","lacustrine delta plain","lacustrine indet.","lacustrine deltaic indet.",
-"lacustrine prodelta")
-aeolian<-c("eolian indet.","dune","interdune","loess")
-terrestrial<-c("weathering surface","colluvial slope","tar","playa","cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp") # misc. terrestrial
-nonmarine<-"non-marine"
-	
-EnvironMatrix1<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix2<-sapply(coastal,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix3<-sapply(glacial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix4<-sapply(fluvial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix5<-sapply(lacustrine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix6<-sapply(aeolian,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix7<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix8<-sapply(nonmarine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-	
-marine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
-coastal<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
-glacial<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)
-fluvial<-apply(EnvironMatrix4, 1, function(x) any(x)==TRUE)
-lacustrine<-apply(EnvironMatrix5, 1, function(x) any(x)==TRUE)
-aeolian<-apply(EnvironMatrix6, 1, function(x) any(x)==TRUE)
-terrestrial<-apply(EnvironMatrix7, 1, function(x) any(x)==TRUE)
-nonemarine<-apply(EnvironMatrix8, 1, function(x) any(x)==TRUE)
-	
-EnvironMatrix<-data.matrix(cbind(marine,coastal,glacial,fluvial,lacustrine,aeolian,terrestrial,nonemarine))
-colnames(EnvironMatrix)<-c("marine","coastal","glacial","fluvial","lacustrine","aeolian","terrestrial","nonemarine")
-	
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
-	
-################################ EVEN MOOOOOORE CATEGORIZED ENVIRONMENTS OPTION ########################################	     
-
-marine<-c("marine","marginal marine","shallow subtidal","open shallow subtidal","abyss","submarine fan",
-"deep-water indet.","inferred marine","deep subtidal indet.","offshore shelf","deep subtidal ramp","deep subtidal shelf",
-"basinal","barrier bar","reef","slope/ramp reef","buildup or bioherm","perireef","intrashelf/intraplatform reef","basin reef",
-"platform/shelf-margin reef","peritidal","slope","offshore ramp","offshore","offshore indet.","shoreface",
-"transition zone/lower shoreface","paralic indet.","foreshore","coastal indet.","tidal flat","offshore shelf")
-aquatic<-c("lagoonal/restricted shallow subtidal sand shoal","lagoonal","estuary/bay","interdistributary bay",
-"deltaic indet.","prodelta","delta plain","delta front")   
-terrestrial<-c("esker","ground moraine","drumlin","end moraine","glacial indet.","outwash plain","fluvial indet.",
-"fluvial braided","fluvial meandering","channel","channel lag","floodplain","levee","fluvial-lacustrine indet.",
-"crevasse splay","fluvial-deltaic indet.","alluvial fan","lacustrine - small","lacustrine - large","lacustrine delta front",
-"fluvial-lacustrine indet.","pond","crater lake","lacustrine interdistributary bay","lacustrine delta plain",
-"lacustrine indet.","lacustrine deltaic indet.","lacustrine prodelta","weathering surface","colluvial slope","tar","playa",
-"cave","fissure fill","karst indet.","sinkhole","spring","mire/swamp","eolian indet.","dune","interdune","loess")
-
-EnvironMatrix1<-sapply(marine,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix2<-sapply(aquatic,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-EnvironMatrix3<-sapply(terrestrial,function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
-
-marine<-apply(EnvironMatrix1, 1, function(x) any(x)==TRUE)
-aquatic<-apply(EnvironMatrix2, 1, function(x) any(x)==TRUE)
-terrestrial<-apply(EnvironMatrix3, 1, function(x) any(x)==TRUE)	
-	
-EnvironMatrix<-data.matrix(cbind(marine,aquatic,terrestrial))
-colnames(EnvironMatrix)<-c("marine","aquatic","terrestrial")
-	
-UnitDataTable<-data.matrix(cbind(UnitDataTable,EnvironMatrix))
-	
-####################################### ADDRESS MARINE / NON-MARINE ISSUE ############################################
-
-# Make a vector of environments from SubsetUnitsFrame
-EnvironString<-SubsetUnitsFrame[,"environ"]
-# Add a space in front of every EnvironString element for grepl search
-EnvironVector<-sapply(" ", paste, EnvironString)	
-# Search for " marine" in EnvironString
-Marine<-sapply(" marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
-# Search for "non-marine" in EnvironString
-NonMarine<-sapply("non-marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
-# Search for "inferred marine" in EnvironString
-InferredMarine<-sapply("inferred marine", function (x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE),EnvironVector)
-# Bind vectors
-MarineMatrix<-cbind(Marine, NonMarine, InferredMarine)
 # Assign column names
-colnames(MarineMatrix)<-c("marine","non-marine","inferred marine")
-# Extract rows form EnvironString which are non-marine but NOT marine
-NonMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"non-marine"]==TRUE)
-# Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
-UnitDataTable[NonMarineRows,"marine"]<-0
-# Extract rows form EnvironString which are inferred marine but NOT marine
-InferredMarineRows<-which(MarineMatrix[,"marine"]==FALSE&MarineMatrix[,"inferred marine"]==TRUE)
-# Locate those corresponding rows from UnitDataTable, and assign 0 to the marine column
-UnitDataTable[InferredMarineRows,"marine"]<-0
+colnames(EnvironTypeMatrix)<-paste("environtype_",colnames(EnvironTypeMatrix), sep="")
+
+FormationMatrix<-data.matrix(cbind(FormationMatrix, EnvironTypeMatrix))
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             	                                                                                       
+####################################### ENVIRONMENT CLASS ###############################################
+
+# Group environment types into their associated classes based on the Macrostrat API (NOTE: this function creates a list)
+EnvironClasses<-split(EnvironsFrame[,"type"],EnvironsFrame[,"class"])
+EnvironClasses[["non-marine"]]<-unique(EnvironClasses[["non-marine"]])
+EnvironClasses[["marine"]]<-unique(EnvironClasses[["marine"]])
+
+# Make a vector of environment names and types associated with each class
+Marine<-c(" marine ", Carbonate, Siliciclastic)
+NonMarine<-c(" non-marine ", Eolian, Fluvial, Glacial, Lacustrine, Landscape)
+	
+# Run greps for all of the names and types in each class
+MarineMatrix<-sapply(Marine, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+NonMarineMatrix<-sapply(NonMarine, function(x,y) grepl(x,y, ignore.case=TRUE, perl=TRUE), SubsetUnitsFrame[,"environ"])
+
+# Find if any of the names and types within each class had a hit in the grepl search
+marine<-apply(MarineMatrix, 1, function(x) any(x)==TRUE)
+nonmarine<-apply(NonMarineMatrix, 1, function(x) any(x)==TRUE)
+	
+# Create a single matrix for environment classes
+EnvironClassMatrix<-data.matrix(cbind(marine, nonmarine))
+	
+# Assign column names
+colnames(EnvironClassMatrix)<-paste("environclass_",colnames(EnvironClassMatrix), sep="")
+	
+FormationMatrix<-data.matrix(cbind(FormationMatrix, EnvironClassMatrix))
 	
 ##################################### rownames as strat_name_long option ################################################
 
