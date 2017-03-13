@@ -13,7 +13,7 @@ UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/chunk_output_03_08_2017/MatchData.csv")
 # Extract all unit name matches
 MatrixUnits<-unique(MatchData[,"Formation"])
-# Subset UnitsFrame to only include units from UnitHitData
+# Subset UnitsFrame to only include units from MatchData
 SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits),]
 
 ########################################### CLEAN SUBSETUNITSFRAME COLUMNS ##############################################
