@@ -21,9 +21,11 @@ Overlying<-grep("overlying", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRU
 Underlain<-grep("underlain", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlie<-grep("underlie", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlying<-grep("underlying", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Ichno<-grep("ichno", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Spore<-grep("spore", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
 NoisySentences<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
-Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying))
+Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying, Ichno, Spore))
                          
 CleanedOutput<-OutputData[-NoisySentences,]
 
