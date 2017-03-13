@@ -23,7 +23,7 @@ Underlie<-grep("underlie", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlying<-grep("underlying", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
 NoisySentences<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
-Below, Overlain, Overlie,Underlain, Underlie, Underlying, Overlying))
+Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying))
                          
 CleanedOutput<-OutputData[-NoisySentences,]
 
