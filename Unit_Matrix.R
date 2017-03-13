@@ -9,7 +9,7 @@ UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&
 GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
-#Load all of the candidate units (sedimentary) that were matched in the documents
+#Load all of the candidate units (unfossiliferous, sedimentary) that were matched in the documents
 MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/chunk_output_03_08_2017/MatchData.csv")
 # Extract all unit name matches
 MatrixUnits<-unique(MatchData[,"Formation"])
