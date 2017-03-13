@@ -1,22 +1,5 @@
 # Load output data from application
-OutputData<-readRDS("~/Documents/DeepDive/PBDB_Fidelity/output_11_18_2016/Fidelity_OutputData.rds")
-
-# Step11: Search for and remove words that create noise in the data ("underlying","overlying","overlain", "overlie", "overlies", "underlain", "underlie", and "underlies")
-# Record start time
-print(paste("Begin search for unwanted matches.", Sys.time()))
-# NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
-Overlain<-grep("overlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlie<-grep("overlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlying<-grep("overlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlain<-grep("underlain", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlie<-grep("underlie", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlying<-grep("underlying", FossilData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-  
-# Combine all of the noisy rows (sentences) into one vector 
-NoisySentences<-unique(c(Overlain, Overlie,Underlain, Underlie, Underlying, Overlying))
-
-# Remove noisy sentences from FossilData
-FidelityData<-FossilData[-NoisySentences,]
+# OutputData<-readRDS("")
 
 # Remove hits for microfossils and trace fossils within the output sentences
 Micro<-grep("microfossil", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -30,11 +13,19 @@ VoidFossils<-grep("void of fossils", OutputData[,"Sentence"], ignore.case=TRUE, 
 Correlative<-grep("correlative", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Equivalent<-grep("equivalent", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Above<-grep("above", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Below<-grep("below", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE) 
+Below<-grep("below", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlain<-grep("overlain", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+# NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
+Overlie<-grep("overlie", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Overlying<-grep("overlying", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlain<-grep("underlain", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlie<-grep("underlie", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Underlying<-grep("underlying", OutputData[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
-UnwantedRows<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, Below))
+NoisySentences<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
+Below, Overlain, Overlie,Underlain, Underlie, Underlying, Overlying))
                          
-CleanedOutput<-OutputData[-UnwantedRows,]
+CleanedOutput<-OutputData[-NoisySentences,]
 
 
 # Make a sample table of unique unit name matches and sentences
