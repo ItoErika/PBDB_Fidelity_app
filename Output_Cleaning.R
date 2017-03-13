@@ -27,25 +27,7 @@ Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying))
                          
 CleanedOutput<-OutputData[-NoisySentences,]
 
-
-# Make a sample table of unique unit name matches and sentences
-Sample<-unique(CleanedOutput[,c("strat_name_long","Sentence")])
-                         
+# Make a sample
+Sample<-unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),c("Formation","Sentence","docid","sentid")])
 # Take a random sample of 100  Sample rows to check accuracy
-# CleanedSampleOutput3<-Sample[sample(c(1:nrow(Sample)),100,replace=FALSE),]
-
-
-# Save SampleOutput1 to a folder
-# write.csv(CleanedSampleOutput3,file="~/Documents/DeepDive/PBDB_Fidelity/R/CleanedSampleOutput3.csv",row.names=FALSE)
-# Open the csv in excel or libre office and perform a manual accuracy test
-# Renamed "CleanedSampleOutput2_Completed.csv"                   
-
-# See how many times "formation" occurs in 
-test1<-sapply(as.character(CleanedOutput[,"Sentence"]), function(x) strsplit(x, " "))
-test2<-sapply(test1, function(x) paste(" ", x))
-test3<-sapply(test2, function(x) paste(x, " "))
-test4<-sapply(test3, function(x) grep(" formation ", ignore.case=TRUE, perl=TRUE, x))
-test5<-sapply(test4, length)
-test6<-which(test5>1)
-CleanedOutput[test6,"Multi_Fm"]<-"TRUE"
-CleanedOutput[which(is.na(CleanedOutput[,"Multi_Fm"])),"Multi_Fm"]<-"FALSE"
+Sample<-Sample[sample(1:nrow(Sample), size=200, replace=FALSE),]
