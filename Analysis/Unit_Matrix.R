@@ -10,7 +10,7 @@ GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 #Load all of the candidate units (unfossiliferous, sedimentary) that were matched in the documents
-MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/chunk_output_03_08_2017/MatchData.csv")
+MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/matchdata_master.csv")
 # Extract all unit name matches
 MatrixUnits<-unique(MatchData[,"Formation"])
 # Subset UnitsFrame to only include units from MatchData
