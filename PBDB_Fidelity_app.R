@@ -119,7 +119,7 @@ BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%FormationsFrame[,"strat_name_lon
 FossilUnits<-names(which(Collections>0))
 # Subset fossil units to only include formations
 FossilUnits<-subset(FossilUnits, FossilUnits%in%FormationsFrame[,"strat_name_long"])
-# Bind all candidate formations together
+# Bind all formations together
 Formations<-c(BarrenUnits, FossilUnits)
 
 # Update the stats table
@@ -131,11 +131,11 @@ Barren3<-length(BarrenUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
-# Step 4: Subset tuples to those which have units that are in candidate formations, and subset candidate formations to units found in tuples.
+# Step 4: Subset tuples to those which have units that are in Formations, and subset Formations to units found in tuples.
 print(paste("Subset tuples to candidate formations, and subset formations to tuple units",Sys.time()))
 # Subset tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
-# Subset candidate formations
+# Subset formations
 Formations<-subset(Formations, Formations%in%SubsetTuples[,"unit"])
 BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%SubsetTuples[,"unit"])
 FossilUnits<-subset(FossilUnits, FossilUnits%in%SubsetTuples[,"unit"])
@@ -179,7 +179,7 @@ CleanedWords<-gsub(" Fm", " Formation", CleanedWords)
 # No functions at this time.
 
 ########################################### Formation Search Script #########################################
-# Step 6: Search for candidate units known to be in the tuples in SubsetDeepDive data.
+# Step 6: Search for formations known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for candidate formations", Sys.time()))
 # Add a space before and after each unit name to improve grep accuracy
@@ -213,9 +213,9 @@ MatchData[,"PBDB_occ"]<-MatchData[,"Formation"]%in%FossilUnits
     
 # Update the stats table
 Description6<-"Search for candidate formations in SubsetDeepDive"
-# Number of documents in SubsetDeepDive with unit name hits of candidate units found in tuples
+# Number of documents in SubsetDeepDive with unit name hits of formations found in tuples
 Docs6<-length(unique(MatchData[,"docid"]))
-# Number of rows in SubsetDeepDive with unit name hits of candidate units found in tuples
+# Number of rows in SubsetDeepDive with unit name hits of formations found in tuples
 Rows6<-length(unique(MatchData[,"SubsetDDRow"]))
 # Number of candidate units found in SubsetDeepDive
 Barren6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE),"Formation"]))
@@ -247,15 +247,15 @@ SingleMatchData<-cbind(SingleMatchData, Sentence)
 Description7<-"Eliminate sentences with more than one candidate formation name" 
 # Number of documents after narrowing down to rows with only one candidate unit
 Docs7<-length(unique(SingleMatchData[,"docid"]))
-# Number of sentences in SubsetDeepDive after removing sentences which contain more than one candidate unit name
+# Number of sentences in SubsetDeepDive after removing sentences which contain more than one formation name
 Rows7<-length(unique(SingleMatchData[,"SubsetDDRow"]))
-# Number of unit matches after narrowing down to rows with only one candidate unit
+# Number of unit matches after narrowing down to rows with only one formation
 Barren7<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils7<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples7<-"NA"
 
-# Step 8: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in candidate formations.
-print(paste("Remove sentences with non-candidate Macrostrat unit names", Sys.time()))
+# Step 8: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in Formations.
+print(paste("Remove sentences with a formation name from Macrostrat that was not already searched for", Sys.time()))
 # Run another search for ALL macrostrat database formation names (except candidate units) in SingleMatchData sentences
 MacroUnits<-unique(as.character(FormationsFrame[,"strat_name_long"]))
 # Remove any unnamed Macrostrat columns from MacroUnits
@@ -265,17 +265,17 @@ MacroUnits<-MacroUnits[which(MacroUnits%in%Formations==FALSE)]
 
 # Run a search for MacroUnits on SingleMatchData sentences
 # Record start time
-print(paste("Search sentences for non-candidate formation macrostrat names", Sys.time()))
+print(paste("Search sentences for other formation macrostrat names", Sys.time()))
 # Apply grep SingleMatchData[,"Sentence"]
 MacroUnitHits<-parSapply(Cluster, MacroUnits, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), SingleMatchData[,"Sentence"])
 # Record end time
-print(paste("Finish search for sentences with non-candidate formation macrostrat names.",Sys.time()))
+print(paste("Finish search for sentences with other formation macrostrat names.",Sys.time()))
     
 # Remove the rows in which macrostrat unit names appear
 UnitData<-SingleMatchData[-unique(unlist(MacroUnitHits)),]
     
 # Update the stats table
-Description8<-"Eliminate sentences with macrostrat unit names that are not candidate units"
+Description8<-"Eliminate sentences with macrostrat formation names that were not already searched for"
 # Number of documents of interest after removing non-candidate Macrostrat unit hits
 Docs8<-length(unique(UnitData[,"docid"]))
 # Number of sentences in SubsetDeepDive with single candidate unit hits and no MacroUnit names
