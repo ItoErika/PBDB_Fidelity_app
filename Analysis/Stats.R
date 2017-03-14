@@ -1,3 +1,11 @@
+
+# Number of documents app was run on
+length(unique(OutputMaster[,"docid"])) # 4,468
+
+
+
+
+
 # Extract sedimentary units from the Macrostrat API
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-RCurl::getURL(UnitsURL)
