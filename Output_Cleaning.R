@@ -29,6 +29,9 @@ Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying, Ichno, Spo
                          
 CleanedOutput<-OutputData[-NoisySentences,]
 
+# Remove ambiguously named formations
+CleanedOutput<-CleanedOutput[-which(CleanedOutput[,"Formation"]=="Sandy Limestone"),]
+
 # Make a sample
 Sample<-unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),c("Formation","Sentence","docid","sentid")])
 # Take a random sample of 100  Sample rows to check accuracy
