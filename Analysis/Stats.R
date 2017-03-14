@@ -1,6 +1,11 @@
+# Download output
+stats_master<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/stats_master.csv")
+
+# Total size of the GDD corpus at time of model run
+# "In the 2.7-2.8 mil range. I'd say closer to 2.7" - Ian
 
 # Number of documents app was run on
-length(unique(OutputMaster[,"docid"])) # 4,468
+sum(stats_master[which(stats_master[,"StepDescription"]=="Initial Data"),"NumberDocuments"]) # 76,111
 
 
 
