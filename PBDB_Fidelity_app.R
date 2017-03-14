@@ -100,7 +100,7 @@ IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
 
 ############################################ Data Cleaning Script ###########################################
 # First, remove ambiguoulsy named formations from UnitsFrame
-UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"),]
+UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone"),]
 # Second, remove Precambrian units from UnitsFrame
 # Extract the maximum age for units of interest
 Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
