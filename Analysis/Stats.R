@@ -1,6 +1,7 @@
 library("RCurl")
 
 # Download output
+output_master<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/output_master.csv")
 stats_master<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/stats_master.csv")
 
 # Total size of the GDD corpus at time of model run: 
@@ -26,7 +27,7 @@ FormationsFrame<-read.csv(text=FormationsURL, header=TRUE)
 SedUnits<-subset(UnitsFrame[,"strat_name_long"], UnitsFrame[,"strat_name_long"]%in%FormationsFrame[,"strat_name_long"])
 length(unique(SedUnits)) # 5,022
 
-# Total number of candidate units: 4,682
+# Total number of cleaned sedimentary formations in Macrostrat: 4,682
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
 print(paste("Download Macrostrat unit and age data",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
@@ -74,20 +75,40 @@ length(unique(BarrenUnits))+length(unique(FossilUnits)) # 4,682
 sum(unique(stats_master[which(stats_master[,"StepDescription"]=="Make dictionaries of formation names"),c("Barren_Units","Fossil_Units")]))-1
 # 4,682
 
-# Total number of fossiliferous candidate units:
+#Total number of non-candidate units (in PBDB):
 length(FossilUnits) # 2,021
 
 # Verify with stats table: 
 unique(stats_master[which(stats_master[,"StepDescription"]=="Make dictionaries of formation names"),"Fossil_Units"])
 # 2,021
 
-# Total number of unfossiliferous candidate units:
+# Total number of candidate units (not in PBDB):
 length(BarrenUnits) # 2,661
 
 # Verify with stats table: 
 # NOTE: must subtract one because of the post-app removal of "Sandy Limestone"
 unique(stats_master[which(stats_master[,"StepDescription"]=="Make dictionaries of formation names"),"Barren_Units"])-1
 # 2,661
+
+# Total number of units matched to any document (candidate and non-candidate): 1,847
+# NOTE: Must remove hits for "Sandy Limestone"
+length(unique(output_master[which(output_master[,"Formation"]!="Sandy Limestone"),"Formation"]))
+# 1,847
+
+# Total number of non-candidate units matched to any document: 1,115
+output_master_clean<-output_master[which(output_master[,"Formation"]!="Sandy Limestone"),]
+fossil_output<-output_master_clean[which(output_master_clean[,"PBDB_occ"]==TRUE),]
+length(unique(fossil_output[,"Formation"]))
+# 1,115
+
+# Total number of candidate units matched to any document: 732
+unfossil_output<-output_master_clean[which(output_master_clean[,"PBDB_occ"]==FALSE),]
+length(unique(unfossil_output[,"Formation"]))
+# 732
+
+# Total number of candidate units not matched to any document
+2661-732
+#1,929
 
 # Extract sedimentary units from the Macrostrat API
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
