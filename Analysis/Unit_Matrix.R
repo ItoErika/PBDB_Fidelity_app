@@ -305,6 +305,36 @@ colnames(EnvironClassMatrix)<-paste("environclass_",colnames(EnvironClassMatrix)
 	
 FormationMatrix<-data.matrix(cbind(FormationMatrix, EnvironClassMatrix))
 	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 ##################################### rownames as strat_name_long option ################################################
 
 # Sort UnitDataTable by unit id
