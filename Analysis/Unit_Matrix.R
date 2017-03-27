@@ -142,6 +142,9 @@ volcanic<-apply(VolcanicMatrix, 1, function(x) any(x)==TRUE)
 # Create a single matrix for lithology types
 LithTypeMatrix<-data.matrix(cbind(carbonate, cataclastic, chemical, evaporite, igneous, metaigneous, metamorphic,
 metasedimentary, metavolcanic, organic, plutonic, regolith, sedimentary, siliciclastic, volcanic))
+
+# Assign column names
+colnames(LithTypeMatrix)<-paste("lithtype_", colnames(LithTypeMatrix), sep="")
 	
 FormationMatrix<-data.matrix(cbind(FormationMatrix, LithTypeMatrix))
 	
