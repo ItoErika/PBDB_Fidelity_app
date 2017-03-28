@@ -38,7 +38,7 @@ if (suppressWarnings(require("doParallel"))==FALSE) {
 # Load in the data processed from the initial Fidelity app and preparation
 # This should eventually be moved to postgres tables in the long-term
 FormationMatrix<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/March2017Files/FormationMatrix.csv",row.names=1)
-FormationKey<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/March2017Files/matchdata_master.csv",row.names=1)
+FormationKey<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/March2017Files/FormationKey.csv",row.names=1)
 
 # Download timescale information
 Epochs<-downloadTime("international%20epochs")
@@ -59,16 +59,8 @@ UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&
 UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
-# Bind the ConceptKey to the unit_id
-ConceptKey<-merge(ConceptKey,UnitsFrame[,c("strat_name_id","unit_id")],by="strat_name_id",all=FALSE)
-ConceptKey<-apply(ConceptKey,1,function(x) c(x["unit_id"],paste(x[c("strat_name_long","concept_id")],collapse="|")))
-ConceptKey<-transform(as.data.frame(t(ConceptKey),stringsAsFactors=FALSE),unit_id=as.numeric(unit_id))
-
-# Merge the ConceptKey and FormationMatrix
-FormationMatrix<-merge(FormationMatrix,ConceptKey,by.x="row.names",by.y="unit_id",all.x=TRUE)  
-    
 #############################################################################################################
-######################################### DATA ANALYSIS, FIDELITY ###########################################
+######################################### DATA FORMATTING, FIDELITY #########################################
 #############################################################################################################
 # Quickly create a key defining the columns of the "sub-matrices"
 keyMatrix<-function(FormationMatrix) {
@@ -96,8 +88,16 @@ splitMatrix<-function(FormationMatrix,MatrixKey) {
     print(rownames(MatrixKey))
     }
 
-################################################## Analyze Data #############################################
-# Collapse the same unit into one
+################################################## Format Data ##############################################
+# Bind the ConceptKey to the unit_id
+ConceptKey<-merge(ConceptKey,UnitsFrame[,c("strat_name_id","unit_id")],by="strat_name_id",all=FALSE)
+ConceptKey<-apply(ConceptKey,1,function(x) c(x["unit_id"],paste(x[c("strat_name_long","concept_id")],collapse="|")))
+ConceptKey<-transform(as.data.frame(t(ConceptKey),stringsAsFactors=FALSE),unit_id=as.numeric(unit_id))
+
+# Merge the ConceptKey and FormationMatrix
+FormationMatrix<-transform(merge(FormationMatrix,ConceptKey,by.x="row.names",by.y="unit_id",all.x=TRUE),Row.names=NULL,row.names=Row.names) 
+				      
+# Collapse multiple macrostrat units with the same name into one row of the attributes matrix
 FormationMatrix<-by(FormationMatrix[,1:ncol(FormationMatrix)-1],FormationMatrix[,"V2"],function(x) apply(x,2,max))
 FormationMatrix<-do.call(rbind,FormationMatrix)
     
@@ -106,20 +106,23 @@ MatrixKey<-keyMatrix(FormationMatrix)
 # Split Formation matrix into distinct units
 splitMatrix(FormationMatrix,MatrixKey)                                      
 
-# Create a histogram of the age distribution
-
-
-
-# subset OutputUnitMatrix to only epoch columns (NOTE: rownames of Epochs are epoch names)
-EpochOutputMatrix<-OutputUnitMatrix[,rownames(Epochs)]
+# For two distinct stratigraphic units (concept_id) with the same name
+# perform a location check to see which unit is being referred to in the document
+# This step is currently on hold while waiting for the docid_region_tuples to process from GDD
 
 # subset TimeScaleColors to only include epochs
 EpochColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Epochs))
 # extract only name and color columns from EpochColors
 EpochColors<-EpochColors[,c("name","color")]
 # create a color palette of colors for each epoch
-colors<-as.character(EpochColors[,"color"])
-names(colors)<-EpochColors[,"name"]
+EpochColors<-setNames(as.character(EpochColors[,"color"]),EpochColors[,"name"])
+	
+# subset TimeScaleColors to only include epochs
+PeriodColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Periods))
+# extract only name and color columns from EpochColors
+PeriodColors<-PeriodColors[,c("name","color")]
+# create a color palette of colors for each epoch
+PeriodColors<-setNames(as.character(PeriodColors[,"color"]),PeriodColors[,"name"])
 
 # Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
 # take the sum of all of the columns of EpochOutputMatrix
