@@ -23,3 +23,9 @@ Genera_Tuples[,"taxon_name"]<-paste(Genera_Tuples[,"taxon_name"],"sp.",sep=" ")
 
 # Subset PBDB_Tuples to only include taxonomic names that are at the species level
 Species_Tuples<-subset(PBDB_Tuples, PBDB_Tuples[,"taxon_name"]%in%Species)
+
+# Download final cleaned fidelity output data
+CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
+
+# Subset Genera_Tuples to only include docs from CleanedOutput
+Genera_Tuples<-subset(Genera_Tuples, Genera_Tuples[,"docid"]%in%CleanedOutput[,"docid"])
