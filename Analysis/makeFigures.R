@@ -59,6 +59,8 @@ UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&
 UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
+# Identify 
+
 #############################################################################################################
 ######################################### DATA FORMATTING, FIDELITY #########################################
 #############################################################################################################
