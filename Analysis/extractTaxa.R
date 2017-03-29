@@ -1,5 +1,10 @@
 # Load libraries
 library("RCurl")
+library("RJSONIO")
+library("doParallel")
+
+# Make cluster
+Cluster<-makeCluster(3)
 
 # Download taxanomic names (genus and below) from the Paleobiology Database
 TaxaURL<-"https://paleobiodb.org/data1.2/taxa/list.csv?rank=max_genus&all_records"
@@ -29,3 +34,27 @@ CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/Clea
 
 # Subset Genera_Tuples to only include docs from CleanedOutput
 Genera_Tuples<-subset(Genera_Tuples, Genera_Tuples[,"docid"]%in%CleanedOutput[,"docid"])
+
+# Replace the spaces in Genera_Tuples taxon names with %20 for the API term search
+Genera_Tuples[,"taxon_name"]<-gsub(" ", "%20", Genera_Tuples[,"taxon_name"])
+
+# Use for-loop to create a URL that will use the GeoDeepDive API to search for each tuple's term in its document
+URL<-vector(length=nrow(Genera_Tuples))
+for(i in 1:nrow(Genera_Tuples)){
+    URL[i]<-paste0("https://geodeepdive.org/api/articles?docid=",paste(Genera_Tuples[i,"docid"]),"&term=",paste(Genera_Tuples[i,"taxon_name"]))
+    }
+
+# Pass fromJSON function to cluster
+clusterExport(cl=Cluster,varlist="fromJSON")
+
+# Determine whether or not the terms are found in the documents
+APIresults<-parSapply(Cluster, URL, function(x) fromJSON(x)$error$message)
+  
+# Replace the %20 in Genera_Tuples with a space
+Genera_Tuples[,"taxon_name"]<-gsub("%20", " ", Genera_Tuples[,"taxon_name"])
+  
+# Add a column to Genera_Tuples telling whether or not the term was matched in the document
+ Genera_Tuples[,"match"]<-APIResults=="NULL"
+  
+# Assign row names
+rownames(Genera_Tuples)<-1:nrow(Genera_Tuples)
