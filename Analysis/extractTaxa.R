@@ -82,14 +82,14 @@ PBDB_Tuples<-subset(PBDB_Tuples, PBDB_Tuples[,"taxon_name"]%in%Genera|PBDB_Tuple
 CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
     
 # Subset CleanedOutput to only include documents from PBDB_Tuples
-Output<-subset(CleanedOutput, CleanedOutput[,"docid"]%in%PBDB_Tuples[,"docid"])    
+PBDB_Tuple_Output<-subset(CleanedOutput, CleanedOutput[,"docid"]%in%PBDB_Tuples[,"docid"])    
     
 dim(Output)
 # 1348
     
-length(unique(Output[,"docid"]))
+length(unique(PBDB_Tuple_Output[,"docid"]))
 # 724
     
-length(unique(Output[,"Formation"]))
+length(unique(PBDB_Tuple_Output[,"Formation"]))
 # 353
     
