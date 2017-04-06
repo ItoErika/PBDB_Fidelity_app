@@ -37,6 +37,10 @@ Credentials<-as.matrix(read.table("Credentials.yml", row.names=1))
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 
+# If Testing: 
+#Driver <- dbDriver("PostgreSQL") # Establish database driver
+#Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
+
 #############################################################################################################
 ##################################### DATA DOWNLOAD FUNCTIONS, FIDELITY #####################################
 #############################################################################################################
@@ -48,6 +52,9 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 #DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data") # make an SQL query
 # For Ian:
 DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
+
+#Extract all unique docids from DeepDiveData
+AllDocuments<-unique(DeepDiveData[,"docid"])
 
 # Record stats
 Description1<-"Initial Data"
@@ -429,6 +436,7 @@ setwd(paste(CurrentDirectory, "/output", sep=""))
 # Clear any old output files
 unlink("*")
 
+write.csv(AllDocuments,"AllDocuments.csv")
 write.csv(MatchData, "MatchData.csv")
 write.csv(Stats, "Stats.csv", row.names=FALSE)                         
 write.csv(OutputData,"Fidelity_OutputData.csv")
