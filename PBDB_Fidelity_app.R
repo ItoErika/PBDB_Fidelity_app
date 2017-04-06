@@ -1,5 +1,10 @@
 Start<-print(Sys.time()) # Record the app start time
 
+# Record app run date for output
+Text<-"Fidelity run date"
+Date<-Sys.time()
+PaperStats<-cbind(Text, as.character(Date))
+
 # Custom functions are camelCase. Arrays, parameters, and arguments are PascalCase
 # Dependency functions are not embedded in master functions, and are marked with the flag dependency in the documentation
 # []-notation is used wherever possible, and $-notation is avoided.
@@ -53,7 +58,7 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 # For Ian:
 DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
 
-#Extract all unique docids from DeepDiveData
+# Extract all unique docids from DeepDiveData for output
 AllDocuments<-unique(DeepDiveData[,"docid"])
 
 # Record stats
@@ -61,7 +66,7 @@ Description1<-"Initial Data"
 # Initial number of documents and rows in DeepDiveData:
 Docs1<-length((unique(DeepDiveData[,"docid"])))
 Rows1<-nrow(DeepDiveData)
-Barren1<-"NA"
+Candidates1<-"NA"
 Fossils1<-"NA"
 Tuples1<-"NA"
 
@@ -77,10 +82,19 @@ colnames(DocUnitTuples)[2]<-"unit"
 Description2<-"Load doc_term Tuples"
 Docs2<-Docs1
 Rows2<-Rows1
-Barren2<-"NA"
+Candidates2<-"NA"
 Fossils2<-"NA"
 # Initial number of tuples: 
 Tuples2<-nrow(DocUnitTuples)
+
+# Step 3: Download occurrences data from the Paleobiology Database
+print(paste("Download PBDB occurrence data",Sys.time()))
+PBDBURL<-"https://paleobiodb.org/data1.2/occs/list.csv?&cc=NOA"
+PBDBURL<-RCurl::getURL(PBDBURL)
+OccurrencesData<-read.csv(text=PBDBURL)
+
+# Record the number of North American occurrences in PBDB for the output
+PaperStats<-rbind(PaperStats, cbind("Number of North American occurrences in PBDB", length(unique(OccurrencesData[,"occurrence_no"]))))
 
 # Step 3: Download geologic unit data from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
@@ -100,41 +114,53 @@ IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
 IntervalsURL<-RCurl::getURL(IntervalsURL)
 IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
 
+# Record the number of PBDB occurrences in Macrostrat for the output
+PaperStats<-rbind(PaperStats, cbind("Number of PBDB occurrences in Macrostrat", sum(UnitsFrame[,"pbdb_occurrences"])))
+
 #############################################################################################################
 ###################################### DATA CLEANING FUNCTIONS, FIDELITY ####################################
 #############################################################################################################
 # No functions at this time
 
 ############################################ Data Cleaning Script ###########################################
+
 # First, remove ambiguoulsy named formations from UnitsFrame
 UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone"),]
-# Second, remove Precambrian units from UnitsFrame
+# Second, subset UnitsFrame to only include formations 
+FormationUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FormationsFrame[,"strat_name_long"])
+# Third, remove Precambrian units from FormationUnits
 # Extract the maximum age for units of interest
 Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
-# Make sure the top age of the units are less than the max age (less than the Cambrian-Proterozoic boundary age)
-UnitsFrame<-UnitsFrame[which(UnitsFrame[,"t_int_age"]<Max_age),]
+# Make sure the top age of the formations are less than the max age (less than the Cambrian-Proterozoic boundary age)
+FormationUnits<-FormationUnits[which(FormationUnits[,"t_int_age"]<Max_age),]
+# Record the number of sedimentary, Phanerozoic formations in Macrostrat for the output
+SedPhanMacro<-length(unique(FormationUnits[,"strat_name_long"]))
+# Bind text to stat
+PaperStats<-rbind(PaperStats, cbind("Total number of sedimentary, Phanerozoic formations in Macrostrat", SedPhanMacro))
 
 # Create three dictionaries:
 # (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
+# Convert the strat_name_long column of formation units to character
+FormationUnits[,"strat_name_long"]<-as.character(FormationUnits[,"strat_name_long"])
 # Take sum of pbdb_collections values associated with each strat name 
-Collections<-tapply(UnitsFrame[,"pbdb_collections"], UnitsFrame[,"strat_name_long"], sum)
+Collections<-tapply(FormationUnits[,"pbdb_collections"], FormationUnits[,"strat_name_long"], sum)
 # Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
-BarrenUnits<-names(which(Collections==0))
-# Subset barren units to only include formations
-BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%FormationsFrame[,"strat_name_long"])
+CandidateUnits<-names(which(Collections==0))
 # Extract the strat names with a at least one pbdb collection record
 FossilUnits<-names(which(Collections>0))
-# Subset fossil units to only include formations
-FossilUnits<-subset(FossilUnits, FossilUnits%in%FormationsFrame[,"strat_name_long"])
 # Bind all formations together
-Formations<-c(BarrenUnits, FossilUnits)
+Formations<-c(CandidateUnits, FossilUnits)
+
+# Record formation stats for the output
+PaperStats<-rbind(PaperStats, cbind("Number of Phanerozoic sedimentary formations in Macrostrat that have PBDB fossil occurrences", length(FossilUnits)))
+PaperStats<-rbind(PaperStats, cbind("Number of candidate units (Phanerozoic sedimentary formations in Macrostrat that do not have PBDB fossil occurrences)", length(CandidateUnits)))
 
 # Update the stats table
 Description3<-"Make dictionaries of formation names"
 Docs3<-Docs2
 Rows3<-Rows2
 # Number of units of interest
-Barren3<-length(BarrenUnits)
+Candidates3<-length(CandidateUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
@@ -144,7 +170,7 @@ print(paste("Subset tuples to dictionary formations, and subset dictionary forma
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
 # Subset formations
 Formations<-subset(Formations, Formations%in%SubsetTuples[,"unit"])
-BarrenUnits<-subset(BarrenUnits, BarrenUnits%in%SubsetTuples[,"unit"])
+CandidateUnits<-subset(BarrenUnits, CandidateUnits%in%SubsetTuples[,"unit"])
 FossilUnits<-subset(FossilUnits, FossilUnits%in%SubsetTuples[,"unit"])
 
 # Update the stats table
@@ -152,7 +178,7 @@ Description4<-"Subset tuples to only dictionary formations, and subset dictionar
 Docs4<-Docs3
 Rows4<-Rows3
 # Number of units of interest after subsetting to tuple units
-Barren4<-length(BarrenUnits)
+Candidates4<-length(CandidateUnits)
 Fossils4<-length(FossilUnits)
 # Number of tuples after subsetting to dictionary formation tuples only
 Tuples4<-nrow(SubsetTuples)
@@ -167,7 +193,7 @@ Description5<-"Subset DeepDiveData to include only docs in updated tuples"
 Docs5<-length(unique(SubsetDeepDive[,"docid"]))
 # Number of rows after subsetting DeepDiveData
 Rows5<-nrow(SubsetDeepDive)
-Barren5<-Barren4
+Candidates5<-Candidates4
 Fossils5<-Fossils4
 Tuples5<-"NA"
 
@@ -225,7 +251,7 @@ Docs6<-length(unique(MatchData[,"docid"]))
 # Number of rows in SubsetDeepDive with unit name hits of formations found in tuples
 Rows6<-length(unique(MatchData[,"SubsetDDRow"]))
 # Number of dictionary formations found in SubsetDeepDive
-Barren6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples6<-"NA"
     
@@ -257,7 +283,7 @@ Docs7<-length(unique(SingleMatchData[,"docid"]))
 # Number of sentences in SubsetDeepDive after removing sentences which contain more than one formation name
 Rows7<-length(unique(SingleMatchData[,"SubsetDDRow"]))
 # Number of unit matches after narrowing down to rows with only one formation
-Barren7<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates7<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils7<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples7<-"NA"
 
@@ -288,7 +314,7 @@ Docs8<-length(unique(UnitData[,"docid"]))
 # Number of sentences in SubsetDeepDive with single unit hits and no MacroUnit names
 Rows8<-length(unique(UnitData[,"SubsetDDRow"]))
 # Number of unit matches after narrowing down to rows with only one formation dictionary unit and no other macrostrat name
-Barren8<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates8<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils8<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples8<-"NA"
 
@@ -307,7 +333,7 @@ Docs9<-length(unique(UnitDataCut["docid"]))
 # Number of short sentences in SubsetDeepDive with single formation dictionary unit hits and no MacroUnits names
 Rows9<-length(unique(UnitDataCut[,"SubsetDDRow"]))
 # Number of unit matches after narrowing to only short sentences
-Barren9<-length(unique(UnitDataCut[which(UnitDataCut[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates9<-length(unique(UnitDataCut[which(UnitDataCut[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils9<-length(unique(UnitDataCut[which(UnitDataCut[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples9<-"NA"
 
@@ -338,7 +364,7 @@ Docs10<-length(unique(FossilData[,"docid"]))
 # Number of unique rows from SubsetDeepDive
 Rows10<-length(unique(FossilData[,"SubsetDDRow"]))
 # Number of unit matches
-Barren10<-length(unique(FossilData[which(FossilData[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates10<-length(unique(FossilData[which(FossilData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils10<-length(unique(FossilData[which(FossilData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples10<-"NA"
 
@@ -410,7 +436,7 @@ Docs11<-length(unique(OutputData[,"docid"]))
 # Number of unique rows from SubsetDeepDive
 Rows11<-length(unique(OutputData[,"Sentence"]))
 # Number of unit matches
-Barren11<-length(unique(OutputData[which(OutputData[,"PBDB_occ"]==FALSE),"Formation"]))
+Candidates11<-length(unique(OutputData[which(OutputData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils11<-length(unique(OutputData[which(OutputData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples11<-"NA"                                                
                          
@@ -418,7 +444,7 @@ Tuples11<-"NA"
 StepDescription<-c(Description1, Description2, Description3, Description4, Description5, Description6, Description7, Description8, Description9, Description10, Description11)
 NumberDocuments<-c(Docs1, Docs2, Docs3, Docs4, Docs5, Docs6, Docs7, Docs8, Docs9, Docs10, Docs11)
 NumberRows<-c(Rows1, Rows2, Rows3, Rows4, Rows5, Rows6, Rows7, Rows8, Rows9, Rows10, Rows11)
-Barren_Units<-c(Barren1, Barren2, Barren3, Barren4, Barren5, Barren6, Barren7, Barren8, Barren9, Barren10, Barren11)
+Candidate_Units<-c(Candidates1, Candidates2, Candidates3, Candidates4, Candidates5, Candidates6, Candidates7, Candidates8, Candidates9, Candidates10, Candidates11)
 Fossil_Units<-c(Fossils1, Fossils2, Fossils3, Fossils4, Fossils5, Fossils6, Fossils7, Fossils8, Fossils9, Fossils10, Fossils11)
 NumberTuples<-c(Tuples1, Tuples2, Tuples3, Tuples4, Tuples5, Tuples6, Tuples7, Tuples8, Tuples9, Tuples10, Tuples11) 
 
@@ -438,7 +464,8 @@ unlink("*")
 
 write.csv(AllDocuments,"AllDocuments.csv")
 write.csv(MatchData, "MatchData.csv")
-write.csv(Stats, "Stats.csv", row.names=FALSE)                         
+write.csv(Stats, "Stats.csv", row.names=FALSE)
+write.csv(PaperStats, "PaperStats.csv", row.names=FALSE)
 write.csv(OutputData,"Fidelity_OutputData.csv")
     
 print(paste("Complete", Sys.time()))
