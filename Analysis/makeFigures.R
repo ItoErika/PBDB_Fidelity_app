@@ -59,8 +59,6 @@ UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&
 UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
-# Identify 
-
 #############################################################################################################
 ######################################### DATA FORMATTING, FIDELITY #########################################
 #############################################################################################################
@@ -112,6 +110,9 @@ splitMatrix(FormationMatrix,MatrixKey)
 # perform a location check to see which unit is being referred to in the document
 # This step is currently on hold while waiting for the docid_region_tuples to process from GDD
 
+# Subset out Fossiliferous and Unfossiliferous Candidate Units
+
+	
 # subset TimeScaleColors to only include epochs
 EpochColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Epochs))
 # extract only name and color columns from EpochColors
@@ -128,12 +129,12 @@ PeriodColors<-setNames(as.character(PeriodColors[,"color"]),PeriodColors[,"name"
 
 # Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
 # take the sum of all of the columns of EpochOutputMatrix
-EpochSums<-apply(EpochOutputMatrix,2,sum)
+EpochSums<-apply(Epoch,2,sum)
 # make raw data bar plot
 quartz(height=10,width=12)
 layout(matrix(c(1,1,2,2),2,2,byrow=TRUE))
 par(oma=c(4,1,0.5,0),mar=c(3,3,2,0.5),mgp=c(1.5,0.5,0))
-barplot(EpochSums, names.arg=colnames(EpochOutputMatrix),ylab="# of Fidelity Output Units",col=colors,las=2)
+barplot(EpochSums, names.arg=colnames(Epoch),ylab="# of Fidelity Output Units",col=EpochColors,las=2)
 abline(h=mean(EpochSums),lwd=5,col="dark grey",lty=3)
 	
 # make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
