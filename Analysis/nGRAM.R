@@ -24,7 +24,23 @@ nGRAM<-function(Term, Publisher="", Journal=""){
     ParsedJSON<-parseGDD(JSON)
     NumDocs<-length(unique(ParsedJSON[,"gddid"]))
     MinYear<-min(as.numeric(as.character(ParsedJSON[,"year"])))
+    Sys.sleep(1)
     return(cbind(NumDocs, MinYear))
     }
     
-  
+# Load CleanedOutput
+CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
+
+# Create a vector of candidate formations
+Candidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))
+                
+# Create a vector of non-candidate formations
+NonCandidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
+                
+# Apply the nGRAM function to all candidate units
+CandidatesGram<-sapply(Candidates, function(x) nGRAM(Term=x))  
+    
+# Apply the nGRAM function to all non-candidate units
+NonCandidatesGram<-sapply(NonCandidates, function(x) nGRAM(Term=x))  
+
+
