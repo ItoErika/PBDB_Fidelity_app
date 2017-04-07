@@ -166,11 +166,11 @@ Tuples3<-Tuples2
 
 # Step 4: Subset tuples to those which have units that are in Formations, and subset Formations to units found in tuples.
 print(paste("Subset tuples to dictionary formations, and subset dictionary formations to tuple units",Sys.time()))
-# Subset tuples
+# Subset doc, term tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
 # Subset formations
 Formations<-subset(Formations, Formations%in%SubsetTuples[,"unit"])
-CandidateUnits<-subset(BarrenUnits, CandidateUnits%in%SubsetTuples[,"unit"])
+CandidateUnits<-subset(CandidateUnits, CandidateUnits%in%SubsetTuples[,"unit"])
 FossilUnits<-subset(FossilUnits, FossilUnits%in%SubsetTuples[,"unit"])
 
 # Update the stats table
