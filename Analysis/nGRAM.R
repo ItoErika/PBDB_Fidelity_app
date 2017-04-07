@@ -22,9 +22,9 @@ nGRAM<-function(Term, Publisher="", Journal=""){
     URL<-paste0("https://geodeepdive.org/api/articles?pubname=",Journal,"&term=",Term,"&publisher=",Publisher)
     JSON<-RJSONIO::fromJSON(URL)
     ParsedJSON<-parseGDD(JSON)
-    NumDocs<-length(unique(ParsedJSON[,"gddid"]
+    NumDocs<-length(unique(ParsedJSON[,"gddid"]))
     MinYear<-min(as.numeric(as.character(ParsedJSON[,"year"])))
-    return(cbind(NumDocs, MinYear)
+    return(cbind(NumDocs, MinYear))
     }
     
   
