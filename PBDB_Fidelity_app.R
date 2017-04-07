@@ -448,7 +448,7 @@ Candidate_Units<-c(Candidates1, Candidates2, Candidates3, Candidates4, Candidate
 Fossil_Units<-c(Fossils1, Fossils2, Fossils3, Fossils4, Fossils5, Fossils6, Fossils7, Fossils8, Fossils9, Fossils10, Fossils11)
 NumberTuples<-c(Tuples1, Tuples2, Tuples3, Tuples4, Tuples5, Tuples6, Tuples7, Tuples8, Tuples9, Tuples10, Tuples11) 
 
-Stats<-cbind(StepDescription, NumberDocuments, NumberRows, Barren_Units, Fossil_Units, NumberTuples)
+Stats<-cbind(StepDescription, NumberDocuments, NumberRows, Candidate_Units, Fossil_Units, NumberTuples)
 
 # Stop the cluster
 stopCluster(Cluster)
