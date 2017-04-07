@@ -15,7 +15,7 @@ parseGDD<-function(JSON) {
     return(Output)
     }
 
-plotNGRAM<-function(Term, Publisher="", Journal=""){
+nGRAM<-function(Term, Publisher="", Journal=""){
     Journal<-gsub(" ", "%20", Journal)
     Term<-gsub(" ", "%20", Term)
     Publisher<-gsub(" ","%20",Publisher)
