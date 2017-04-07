@@ -1,3 +1,6 @@
+library("RJSONIO")
+library("pbapply")
+
 parseGDD<-function(JSON) {
     gddid<-sapply(JSON$success$data, function(x) x$`_gddid`)
     type<-sapply(JSON$success$data, function(x) x$type)
@@ -38,9 +41,9 @@ Candidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==
 NonCandidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
                 
 # Apply the nGRAM function to all candidate units
-CandidatesGram<-sapply(Candidates, function(x) nGRAM(Term=x))  
+CandidatesGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))  
     
 # Apply the nGRAM function to all non-candidate units
-NonCandidatesGram<-sapply(NonCandidates, function(x) nGRAM(Term=x))  
+NonCandidatesGram<-pbsapply(NonCandidates, function(x) nGRAM(Term=x))  
 
 
