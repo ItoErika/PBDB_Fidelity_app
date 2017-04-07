@@ -425,7 +425,7 @@ UnitDocLocation<-cbind(UnitDocLocation, Doc.Location2)
 # NOTE: this removes all rows associated with unit matches which do not have the correct location mentioned in the document
 CheckedData<-FidelityData[which(UnitDocLocation[,"Doc.Location2"]%in%LocationHits[,"Doc.Location1"]),]
 # remove duplicate rows of strat name, sentence, docid, and sentid data that were created from the location data merge
-OutputData<-unique(CheckedData[,c("Formation", "Sentence", "docid", "sentid", "PBDB_occ")])
+OutputData<-unique(CheckedData[,c("Formation", "Sentence", "docid", "sentid", "PBDB_occ", "col_id", "location")])
                          
 print(paste("Finish location check.",Sys.time()))
                          
