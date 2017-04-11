@@ -124,8 +124,9 @@ PaperStats<-rbind(PaperStats, cbind("Number of PBDB occurrences in Macrostrat", 
 
 ############################################ Data Cleaning Script ###########################################
 
-# First, remove ambiguoulsy named formations from UnitsFrame
+# First, remove ambiguoulsy named formations from UnitsFrame and FormationsFrame
 UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone"),]
+FormationsFrame<-FormationsFrame[-which(FormationsFrame[,"strat_name_long"]=="Muddy Sandstone"|FormationsFrame[,"strat_name_long"]=="Mutual Formation"|FormationsFrame[,"strat_name_long"]=="Sandy Limestone"),]
 # Second, subset UnitsFrame to only include formations 
 FormationUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FormationsFrame[,"strat_name_long"])
 # Third, remove Precambrian units from FormationUnits
@@ -305,8 +306,11 @@ MacroUnitHits<-parSapply(Cluster, MacroUnits, function(x,y) grep(x,y, ignore.cas
 print(paste("Finish search for sentences with other formation macrostrat names.",Sys.time()))
     
 # Remove the rows in which macrostrat unit names appear
-UnitData<-SingleMatchData[-unique(unlist(MacroUnitHits)),]
-    
+# NOTE: write if statement in case MacroUnitHits is empty
+if (do.call(sum, MacroUnitHits)>0) {
+    UnitData<-SingleMatchData[-unique(unlist(MacroUnitHits)),]
+    } else {UnitData<-SingleMatchData}
+
 # Update the stats table
 Description8<-"Eliminate sentences with macrostrat formation names that were not already searched for"
 # Number of documents of interest after removing non-formation-dictionary Macrostrat unit hits
