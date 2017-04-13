@@ -4,6 +4,8 @@ library("RCurl")
 PaperStats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/PaperStats.csv")
 AllDocuments<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/AllDocuments.csv")
 Stats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/Stats.csv")
+InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/Fidelity_OutputData.csv")
+CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
 
 # Run date
 PaperStats[which(PaperStats[,"Text"]=="Fidelity run date"),"X"]
@@ -49,6 +51,27 @@ PreCheckDocs-PostCheckDocs
 
 PreCheckCandidates-PostCheckCandidates
 # 28 candidate units removed
+
+# Number of candidate units, non-candidate units (in PBDB), and documents in original output
+length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==FALSE),"Formation"])))
+# 735 candidate formations
+length(unique(InitialOutput[which(InitialOutput[,"PBDB_occ"]==FALSE),"docid"]))
+# 1,191 documents in initial output mentioning candidate units
+length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==TRUE),"Formation"])))
+# 1,120 non-candidate formations (in PBDB)
+length(unique(InitialOutput[which(InitialOutput[,"PBDB_occ"]==TRUE),"docid"]))
+# 3,869 documents in initial output mentioning non-candidate units
+
+# Number of candidate units, non-candidate units (in PBDB), and documents in cleaned output
+length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"])))
+# 618 candidate formations
+length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"docid"]))
+# 935 documents in cleaned output mentioning candidate units
+length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"])))
+# 1,032 non-candidate formations (in PBDB)
+length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"docid"]))
+# 3,368 documents in cleaned output mentioning non-candidate units
+
 
 ##########################################################################################################################
 # Download output
