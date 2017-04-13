@@ -11,9 +11,9 @@
 + How many  Phanerozoic sedimentary rock **formations** in Macrostrat have PBDB fossil occurrences 
 **BETA = 2,021**
 + How many North American fossil occurrences are NOT matched to Macrostrat (sum Macrostrat occurrences, sum all North American PBDB occurrences, take difference)
-    +North American PBDB Occurrences: **489,776**
-    +Total Macrostrat occurrences: **464,655**
-    +Difference: **GAMMA = 25,121**
+    + North American PBDB Occurrences: **489,776**
+    + Total Macrostrat occurrences: **464,655**
+    + Difference: **GAMMA = 25,121**
 + Total number of sedimentary, Phanerozoic formations in Macrostrat
 **EPSILON = 4,682**
 + Number of Macrostrat, sedimentary, Phanerozoic formations that do NOT have PBDB fossil occurrences (EPSILON-BETA=**ZETA**, perform in-app check with length(....))
