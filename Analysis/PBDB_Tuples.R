@@ -14,6 +14,8 @@ Genera<-Taxa[which(Taxa[,"taxon_rank"]=="genus"),"taxon_name"]
 PBDB_Tuples<-read.table("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_doc_terms", sep="\t")
 # Assign column names
 colnames(PBDB_Tuples)<-c("docid", "taxon_name")
+PBDB_Tuples[,"docid"]<-as.character(PBDB_Tuples[,"docid"])
+PBDB_Tuples[,"taxon_name"]<-as.character(PBDB_Tuples[,"taxon_name"])
 
 # Subset PBDB_Tuples to only include taxonomic names that are at the genus or species level
 PBDB_Tuples<-subset(PBDB_Tuples, PBDB_Tuples[,"taxon_name"]%in%Genera|PBDB_Tuples[,"taxon_name"]%in%Species)
@@ -22,17 +24,7 @@ PBDB_Tuples<-subset(PBDB_Tuples, PBDB_Tuples[,"taxon_name"]%in%Genera|PBDB_Tuple
 CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
     
 # Subset CleanedOutput to only include documents from PBDB_Tuples
-PBDB_Tuple_Output<-subset(CleanedOutput, CleanedOutput[,"docid"]%in%PBDB_Tuples[,"docid"])    
-    
-dim(PBDB_Tuple_Output)
-# 1348
-    
-length(unique(PBDB_Tuple_Output[,"docid"]))
-# 724
-    
-length(unique(PBDB_Tuple_Output[,"Formation"]))
-# 353
-    
+PBDB_Tuple_Output<-subset(CleanedOutput, CleanedOutput[,"docid"]%in%PBDB_Tuples[,"docid"])        
 ############################################## ATTACH LOCATION DATA ##############################################
 # Download all sedimentary unit names from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
