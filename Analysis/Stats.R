@@ -1,5 +1,56 @@
 library("RCurl")
 
+# Download outputs from app run
+PaperStats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/PaperStats.csv")
+AllDocuments<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/AllDocuments.csv")
+Stats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/Stats.csv")
+
+# Run date
+PaperStats[which(PaperStats[,"Text"]=="Fidelity run date"),"X"]
+#2017-04-12 12:52:44
+
+# Number of documents the application was run on
+length(unique(as.character(AllDocuments[,"x"])))
+# 77,679
+
+# How many fossil occurrences are in PBDB in North America at app run date (From PBDB API)
+PaperStats[which(PaperStats[,"Text"]=="Number of North American occurrences in PBDB"),"X"]
+# 489,776
+
+# How many North American fossil occurrences are NOT matched to Macrostrat
+PBDB_Occs<-as.numeric(as.character(PaperStats[which(PaperStats[,"Text"]=="Number of North American occurrences in PBDB"),"X"]))
+Macrostrat_Occs<-as.numeric(as.character(PaperStats[which(PaperStats[,"Text"]=="Number of PBDB occurrences in Macrostrat"),"X"]))
+
+PBDB_Occs-Macrostrat_Occs
+# 25,121
+
+# Total number of sedimentary, Phanerozoic formations in Macrostrat
+as.numeric(as.character(PaperStats[which(PaperStats[,"Text"]=="Total number of sedimentary, Phanerozoic formations in Macrostrat"),"X"]))
+# 4,682
+
+# How many Phanerozoic sedimentary rock formations in Macrostrat have PBDB fossil occurrences
+as.numeric(as.character(PaperStats[which(PaperStats[,"Text"]=="Number of Phanerozoic sedimentary formations in Macrostrat that have PBDB fossil occurrences"),"X"]))
+# 2,021
+
+# Number of Macrostrat, sedimentary, Phanerozoic formations that do NOT have PBDB fossil occurrences (EPSILON-BETA=ZETA, perform in-app check with length(....))
+as.numeric(as.character(PaperStats[which(PaperStats[,"Text"]=="Number of candidate units (Phanerozoic sedimentary formations in Macrostrat that do not have PBDB fossil occurrences)"),"X"]))
+# 2,661
+#Check: 4682 - 2021 = 2661
+
+# How much data is cut down from geolocation check
+LocationCheckRow<-which(Stats[,"StepDescription"]=="Validate unit locations")
+PostCheckDocs<-Stats[LocationCheckRow,"NumberDocuments"]
+PostCheckCandidates<-Stats[LocationCheckRow,"Candidate_Units"]
+PreCheckDocs<-Stats[LocationCheckRow-1,"NumberDocuments"]
+PreCheckCandidates<-Stats[LocationCheckRow-1,"Candidate_Units"]
+
+PreCheckDocs-PostCheckDocs
+# 293 documents removed
+
+PreCheckCandidates-PostCheckCandidates
+# 28 candidate units removed
+
+##########################################################################################################################
 # Download output
 output_master<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/output_master.csv")
 stats_master<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Final_Outputs/fidelity_13Mar2017_results/Master/stats_master.csv")
