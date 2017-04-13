@@ -1,8 +1,7 @@
 # Load output data from application
-# InitialOutput<-readRDS("")
+InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/Fidelity_OutputData.csv")
 
-# Remove hits for microfossils and trace fossils within the output sentences
-Micro<-grep("microfossil", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+# Remove hits for trace fossils within the output sentences
 Trace<-grep("trace fossil", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # Remove words or phrases that are likely to cause reading errors creating false hits
 NoFossils<-grep(" no fossils", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -22,13 +21,9 @@ Underlain<-grep("underlain", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=
 Underlie<-grep("underlie", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlying<-grep("underlying", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Ichno<-grep("ichno", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Spore<-grep("spore", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
-NoisySentences<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
-Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying, Ichno, Spore))
+NoisySentences<-unique(c(Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
+Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying, Ichno))
                          
 CleanedOutput<-InitialOutput[-NoisySentences,]
-
-# Remove ambiguously named formations
-CleanedOutput<-CleanedOutput[-which(CleanedOutput[,"Formation"]=="Sandy Limestone"),]
 
