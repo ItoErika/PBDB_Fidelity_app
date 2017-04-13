@@ -11,7 +11,7 @@ Species<-Taxa[which(Taxa[,"taxon_rank"]=="species"),"taxon_name"]
 Genera<-Taxa[which(Taxa[,"taxon_rank"]=="genus"),"taxon_name"]
 
 # Load taxonomic name, docid tuples
-PBDB_Tuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_docid_terms.csv", header=FALSE)
+PBDB_Tuples<-read.table("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_doc_terms", sep="\t")
 # Assign column names
 colnames(PBDB_Tuples)<-c("docid", "taxon_name")
 
