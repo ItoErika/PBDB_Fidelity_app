@@ -1,3 +1,5 @@
+See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analysis/Stats.R) for script.
+
 + Run Date \
 **2017-04-12 = DELTA**
 + Number of documents in total corpus on run date\
