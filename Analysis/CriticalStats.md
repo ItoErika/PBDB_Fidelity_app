@@ -33,4 +33,5 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
     + **935 documents in cleaned output mentioning candidate units**
     + **1,032 non-candidate formations (in PBDB)**
     + **3,368 documents in cleaned output mentioning non-candidate units**
++ Number of candidate units, non-candidate units (in PBDB), and documents in final output (subset to documents with mention of genus or species taxonomic names). [Click here](https://github.com/ItoErika/PBDB_Fidelity_app/blob/master/Analysis/PBDB_Tuples.R) to see script.
     
