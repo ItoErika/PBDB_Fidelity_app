@@ -78,7 +78,7 @@ length(unique(as.character(PBDB_Tuple_Output[which(PBDB_Tuple_Output[,"PBDB_occ"
 length(unique(PBDB_Tuple_Output[which(PBDB_Tuple_Output[,"PBDB_occ"]==FALSE),"docid"]))
 # 935 documents in cleaned output mentioning candidate units
 length(unique(as.character(PBDB_Tuple_Output[which(PBDB_Tuple_Output[,"PBDB_occ"]==TRUE),"Formation"])))
-# 1,032 non-candidate formations (in PBDB)
+# 1,031 non-candidate formations (in PBDB)
 length(unique(PBDB_Tuple_Output[which(PBDB_Tuple_Output[,"PBDB_occ"]==TRUE),"docid"]))
-# 3,368 documents in cleaned output mentioning non-candidate units
+# 3,358 documents in cleaned output mentioning non-candidate units
 
