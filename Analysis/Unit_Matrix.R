@@ -10,41 +10,9 @@ GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 #Load all of the candidate units (unfossiliferous, sedimentary) that were matched in the documents
-MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/fidelity_13Mar2017_results/Master/matchdata_master.csv")
-# Load the final fidelity output
-FinalOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/fidelity_13Mar2017_results/Master/output_master.csv")
-
-# Clean the output data
-# Remove hits for microfossils and trace fossils within the output sentences
-Micro<-grep("microfossil", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Trace<-grep("trace fossil", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-# Remove words or phrases that are likely to cause reading errors creating false hits
-NoFossils<-grep(" no fossils", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Lack<-grep(" lack ", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Lacks<-grep(" lacks ", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-AbsentFossils<-grep("absence of fossils", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-VoidFossils<-grep("void of fossils", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Correlative<-grep("correlative", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Equivalent<-grep("equivalent", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Above<-grep("above", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Below<-grep("below", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlain<-grep("overlain", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-# NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
-Overlie<-grep("overlie", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Overlying<-grep("overlying", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlain<-grep("underlain", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlie<-grep("underlie", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Underlying<-grep("underlying", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Ichno<-grep("ichno", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Spore<-grep("spore", FinalOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-
-NoisySentences<-unique(c(Micro, Trace, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative, Equivalent, Above, 
-Below, Overlain, Overlie, Underlain, Underlie, Underlying, Overlying, Ichno, Spore))
-                         
-CleanedOutput<-FinalOutput[-NoisySentences,]
-
-# Remove ambiguously named formations
-CleanedOutput<-CleanedOutput[-which(CleanedOutput[,"Formation"]=="Sandy Limestone"),]
+MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/MatchData.csv")
+# Load the cleaned fidelity output
+CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
 
 # Add a column to MatchData showing if the formation was captured in the final cleaned output
 MatchData[which(MatchData[,"Formation"]%in%CleanedOutput[,"Formation"]),"GDD_occ"]<-"TRUE"
