@@ -1,9 +1,7 @@
 Start<-print(Sys.time()) # Record the app start time
 
 # Record app run date for output
-Text<-"Fidelity run date"
-Date<-Sys.time()
-PaperStats<-cbind(Text, as.character(Date))
+PaperStats<-cbind("Fidelity run date", as.character(Sys.time()))
 
 # Custom functions are camelCase. Arrays, parameters, and arguments are PascalCase
 # Dependency functions are not embedded in master functions, and are marked with the flag dependency in the documentation
@@ -42,7 +40,7 @@ Credentials<-as.matrix(read.table("Credentials.yml", row.names=1))
 Driver <- dbDriver("PostgreSQL") # Establish database driver
 Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Credentials["host:",], port = Credentials["port:",], user = Credentials["user:",])
 
-# If Testing: 
+# For 402 test: 
 #Driver <- dbDriver("PostgreSQL") # Establish database driver
 #Connection <- dbConnect(Driver, dbname = "labuser", host = "localhost", port = 5432, user = "labuser")
 
@@ -53,7 +51,7 @@ Connection <- dbConnect(Driver, dbname = Credentials["database:",], host = Crede
 
 ########################################### Data Download Script ############################################
 # Step 1: Load DeepDiveData 
-# For test:
+# For 402 test:
 #DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM pbdb_fidelity.pbdb_fidelity_data") # make an SQL query
 # For Ian:
 DeepDiveData<-dbGetQuery(Connection, "SELECT docid, sentid, words FROM nlp_sentences_352") # make an SQL query
@@ -96,7 +94,7 @@ OccurrencesData<-read.csv(text=PBDBURL)
 # Record the number of North American occurrences in PBDB for the output
 PaperStats<-rbind(PaperStats, cbind("Number of North American occurrences in PBDB", length(unique(OccurrencesData[,"occurrence_no"]))))
 
-# Step 3: Download geologic unit data from the Macrostrat database. 
+# Step 4: Download geologic unit data from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
 print(paste("Download Macrostrat unit and age data",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
@@ -135,9 +133,7 @@ Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 # Make sure the top age of the formations are less than the max age (less than the Cambrian-Proterozoic boundary age)
 FormationUnits<-FormationUnits[which(FormationUnits[,"t_int_age"]<Max_age),]
 # Record the number of sedimentary, Phanerozoic formations in Macrostrat for the output
-SedPhanMacro<-length(unique(FormationUnits[,"strat_name_long"]))
-# Bind text to stat
-PaperStats<-rbind(PaperStats, cbind("Total number of sedimentary, Phanerozoic formations in Macrostrat", SedPhanMacro))
+PaperStats<-rbind(PaperStats, cbind("Total number of sedimentary, Phanerozoic formations in Macrostrat", length(unique(FormationUnits[,"strat_name_long"]))))
 
 # Create three dictionaries:
 # (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
@@ -165,7 +161,7 @@ Candidates3<-length(CandidateUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
-# Step 4: Subset tuples to those which have units that are in Formations, and subset Formations to units found in tuples.
+# Step 5: Subset tuples to those which have units that are in Formations, and subset Formations to units found in tuples.
 print(paste("Subset tuples to dictionary formations, and subset dictionary formations to tuple units",Sys.time()))
 # Subset doc, term tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
@@ -184,7 +180,7 @@ Fossils4<-length(FossilUnits)
 # Number of tuples after subsetting to dictionary formation tuples only
 Tuples4<-nrow(SubsetTuples)
 
-# Step 5: Subset DeepDive data to include only documents that are found in the updated tuples.
+# Step 6: Subset DeepDive data to include only documents that are found in the updated tuples.
 print(paste("Subset DeepDiveData to docids in updated tuples", Sys.time()))
 SubsetDeepDive<-subset(DeepDiveData, DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])) 
 
@@ -255,6 +251,72 @@ Rows6<-length(unique(MatchData[,"SubsetDDRow"]))
 Candidates6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE),"Formation"]))
 Fossils6<-length(unique(MatchData[which(MatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples6<-"NA"
+    
+#############################################################################################################
+###################################### LOCATION SEARCH FUNCTIONS, FIDELITY ##################################
+#############################################################################################################
+# Search for the locations from FossilData[,"location"] column in SubsetDeepDive documents are referenced by docid in FossilData
+locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"name"])) {
+    # Subset SubsetDeepDive to only documents referenced in MatchData
+    DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Documents)
+    # Clean sentences so grep can run
+    CleanedWords<-gsub(",", " ", DeepDive[,"words"])
+    # Search for locations in DeepDive
+    LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE, perl=TRUE), CleanedWords)
+    # Make a column of location names for each associated hit
+    LocationHitsLength<-sapply(LocationHits,length)
+    names(LocationHits)<-unique(LocationTuples[,"name"])
+    doc_location<-rep(names(LocationHits), times=LocationHitsLength)
+    # make a column for each document the location name is found in
+    docid<-DeepDive[unlist(LocationHits), "docid"]
+    # create an output matrix which contains each location and the document in which it appears
+    return(unique(cbind(docid, doc_location)))
+    } 
+
+########################################### Location Search Script ##########################################  
+# Step 7: Search for locations within the MatchData documents
+print(paste("Begin location search", Sys.time()))
+# Load col_id, location tuple data
+LocationTuples<-read.csv("input/LocationTuples.csv") 
+# for 402 test: LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app-master/input/LocationTuples.csv")
+# Reformat data
+LocationTuples[,"col_name"]<-as.character(LocationTuples[,"col_name"])
+LocationTuples[,"name"]<-as.character(LocationTuples[,"name"])
+colnames(LocationTuples)<-c("col_id","col_name","tar_location")
+                         
+# Run the locationSearch function on MatchData documents
+LocationHits<-locationSearch(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"tar_location"]))
+                       
+# Make a list of every location that was found in each document
+LocationList<-sapply(unique(LocationHits[,"docid"]), function(x) LocationHits[which(LocationHits[,"docid"]==x),"doc_location"])
+# Collapse the list elements into character vectors 
+doc_locations<-sapply(LocationList, function(x) paste(x, collapse=", "))
+# Create a matrix of docids and associated locations collapsed
+DocLocations<-cbind(names(doc_locations), as.character(doc_location))
+# Assign column names
+colnames(DocLocations)<-c("docid", "doc_locations")                         
+                                                 
+# Bind the searched locations to MatchData by docid    
+MatchData<-merge(MatchData, DocLocations, by="docid", all.x=TRUE)
+# Remove rows from MatchData with no location hits
+MatchData<-MatchData[-which(is.na(MatchData[,"doc_locations"])),]
+    
+# Step 8: Varify that the unit matches are valid by making sure their correct locations appeared in the document
+print(paste("Begin location check.", Sys.time()))
+    
+# Bind all of locations found in the grep search to MatchData (created duplicate rows)
+MatchData<-merge(MatchData, LocationHits, by="docid", all.x=TRUE)    
+    
+# Bind col_id to MatchData by strat_name_long
+# Subset UnitsFrame so it only includes MatchData units
+DictionaryFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%in%MatchData[,"Formation"]),]
+MatchData<-merge(MatchData, unique(UnitsFrame[,c("strat_name_long", "col_id")]), by.x="Formation", by.y="strat_name_long")    
+    
+# Bind target formations (correct formation/location intersection match) by col_id
+MatchData<-merge(MatchData, LocationTuples[,c("col_id","tar_location")], by="col_id")
+    
+
+    
     
 #############################################################################################################
 ####################################### MATCH CLEANING FUNCTIONS, FIDELITY ##################################
@@ -373,29 +435,19 @@ Fossils10<-length(unique(FossilData[which(FossilData[,"PBDB_occ"]==TRUE),"Format
 Tuples10<-"NA"
 
 #############################################################################################################
-###################################### LOCATION SEARCH FUNCTIONS, FIDELITY ##################################
+###################################### LOCATION CHECK FUNCTIONS, FIDELITY ###################################
 #############################################################################################################      
-# Search for the locations from FossilData[,"location"] column in SubsetDeepDive documents are referenced by docid in FossilData
-locationSearch<-function(SubsetDeepDive,Document=FidelityData[,"docid"], location=unique(FidelityData[,"location"])) {
-    # Subset SubsetDeepDive to only documents referenced in OutputData
-    DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Document)
-    # Clean sentences so grep can run
-    CleanedWords<-gsub(","," ",DeepDive[,"words"])
-    # search for locations in SubsetDeepDive
-    LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE,perl=TRUE), CleanedWords)
-    # make a column of location names for each associated hit
-    LocationHitsLength<-sapply(LocationHits,length)
-    names(LocationHits)<-unique(FidelityData[,"location"])
-    Location<-rep(names(LocationHits),times=LocationHitsLength)
-    # make a column for each document the location name is found in
-    LocationDocs<-DeepDive[unlist(LocationHits),"docid"]
-    # create an output matrix which contains each location and the document in which it appears
-    return(cbind(LocationDocs,Location))
-    } 
+# No functions at this time
 
 ########################################### Location Search Script ##########################################    
 # Step 11: Clean and subset the output. Try to varify that the unit matches are valid by searching for their locations.
 print(paste("Begin location check.", Sys.time()))
+    
+    
+    
+    
+    
+    
 # Remove all rows from UnitsFrame with blank "strat_name_long" columns
 UnitsFrame<-UnitsFrame[which(nchar(as.character(UnitsFrame[,"strat_name_long"]))>0),]
 # Subset UnitsFrame so it only includes formation dictionary units
