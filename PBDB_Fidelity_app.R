@@ -295,28 +295,50 @@ doc_locations<-sapply(LocationList, function(x) paste(x, collapse=", "))
 DocLocations<-cbind(names(doc_locations), as.character(doc_location))
 # Assign column names
 colnames(DocLocations)<-c("docid", "doc_locations")                         
-                                                 
+
+# Bind col_id to MatchData by strat_name_long
+MatchData<-merge(MatchData, unique(UnitsFrame[,c("strat_name_long", "col_id")]), by.x="Formation", by.y="strat_name_long", all.x=TRUE)  
 # Bind the searched locations to MatchData by docid    
 MatchData<-merge(MatchData, DocLocations, by="docid", all.x=TRUE)
-# Remove rows from MatchData with no location hits
-MatchData<-MatchData[-which(is.na(MatchData[,"doc_locations"])),]
     
 # Step 8: Varify that the unit matches are valid by making sure their correct locations appeared in the document
 print(paste("Begin location check.", Sys.time()))
     
-# Bind all of locations found in the grep search to MatchData (created duplicate rows)
-MatchData<-merge(MatchData, LocationHits, by="docid", all.x=TRUE)    
+# Remove rows from MatchData with no location hits
+MatchLocationData<-MatchData[-which(is.na(MatchData[,"doc_locations"])),]
+# Bind all of locations found in the grep search to MatchData (create duplicate rows)
+MatchLocationData<-merge(MatchLocationData, LocationHits, by="docid", all.x=TRUE)      
     
-# Bind col_id to MatchData by strat_name_long
-# Subset UnitsFrame so it only includes MatchData units
-DictionaryFrame<-UnitsFrame[which(as.character(UnitsFrame[,"strat_name_long"])%in%MatchData[,"Formation"]),]
-MatchData<-merge(MatchData, unique(UnitsFrame[,c("strat_name_long", "col_id")]), by.x="Formation", by.y="strat_name_long")    
-    
-# Bind target formations (correct formation/location intersection match) by col_id
-MatchData<-merge(MatchData, LocationTuples[,c("col_id","tar_location")], by="col_id")
-    
+# Create a list of target location, docid tuples 
+# Note: we have a list of target col_id, location LocationTuples created from a spatial intersection.
+# We also know what col_id is associated with which document based on the formations' strat_name_long
+# Merge docids known to be associated with specific col_ids (documents contain a strat name tied to that col_d) to LocationTuples
+LocationTuples<-merge(LocationTuples, unique(MatchLocationData[,c("docid", "col_id")]), by="col_id")
 
+# Create collapsed target docid, location tuples
+TargetTuples<-paste(LocationTuples[,"docid"], LocationTuples[,"tar_location"], sep=".")    
+# Create collased docid, location tuples created from the grep search
+SearchedTuples<-paste(MatchLocationData[,"docid"], MatchLocationData[,"doc_location"], sep=".")
     
+# Determine which SearchedTuples are found in the TargetTuples
+# Remove rows from MatchLocationData where the SearchedTuples pair was not found in TargetTuples
+MatchLocationData<-MatchLocationData[which(SearchedTuples%in%TargetTuples),] 
+    
+# Remove unnecessary columns from MatchLocationData
+MatchLocationData<-unique(MatchLocationData[,c("docid", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "doc_locations")])
+    
+print(paste("Finish location check.",Sys.time()))
+                         
+# Update the stats table
+Description7<-"Validate unit locations"
+# Number of documents of interest
+Docs7<-length(unique(MatchLocationData[,"docid"]))
+# Number of unique rows from SubsetDeepDive
+Rows7<-length(unique(MatchLocationData[,"sentid"]))
+# Number of unit matches
+Candidates7<-length(unique(MatchLocationData[which(MatchLocationData[,"PBDB_occ"]==FALSE),"Formation"]))
+Fossils7<-length(unique(MatchLocationData[which(MatchLocationData[,"PBDB_occ"]==TRUE),"Formation"]))
+Tuples7<-"NA"     
     
 #############################################################################################################
 ####################################### MATCH CLEANING FUNCTIONS, FIDELITY ##################################
@@ -327,7 +349,7 @@ MatchData<-merge(MatchData, LocationTuples[,c("col_id","tar_location")], by="col
 # Step 7: Eliminate sentences from MatchData which contain more than one formation unit name.
 print(paste("Remove sentences with more than one dictionary formation name", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
-RowHitsTable<-table(MatchData[,"SubsetDDRow"])
+RowHitsTable<-table(MatchLocationData[,"SubsetDDRow"])
 # Locate and extract rows which contain only one long unit
 # Remember that the names of RowHitsTable correspond to rows within CleanedWords
 SingleHits<-as.numeric(names(RowHitsTable)[which((RowHitsTable)==1)])    
