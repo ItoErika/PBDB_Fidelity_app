@@ -283,6 +283,31 @@ LocationTuples[,"col_name"]<-as.character(LocationTuples[,"col_name"])
 LocationTuples[,"name"]<-as.character(LocationTuples[,"name"])
 colnames(LocationTuples)<-c("col_id","col_name","tar_location")
                          
+# Make a vector of unique col_ids
+col_ids<-unique(LocationTuples[,"col_id"])
+# Make a list of every location associated with each col_id
+LocationList<-sapply(col_ids, function(x) LocationTuples[which(LocationTuples[,"col_id"]==x),"tar_location"])
+# Collapse the list elements into character vectors 
+col_locations<-sapply(LocationList, function(x) paste(x, collapse=", "))
+# Create a matrix of col_ids and associated locations collapsed
+ColLocations<-as.data.frame(cbind(col_ids, as.character(col_locations)))
+# Assign column names
+colnames(ColLocations)<-c("col_id", "col_locations")
+# Reformat ColLocations
+ColLocations[,"col_id"]<-as.integer(as.character(ColLocations[,"col_id"]))
+ColLocations[,"col_locations"]<-as.character(ColLocations[,"col_locations"])
+    
+# Subset UnitsFrame to only include units in MatchData
+MatchFrame<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%MatchData[,"Formation"])
+# Bind col_id to MatchData by strat_name_long
+MatchData<-merge(MatchData, unique(MatchFrame[,c("strat_name_long", "col_id")]), by.x="Formation", by.y="strat_name_long", all.x=TRUE)  
+
+# Bind target locations created from the spatial intersect between col_id and provinces to MatchData
+MatchData<-merge(MatchData, ColLocations, by="col_id")
+    
+# Varify that the unit matches are valid by making sure their correct locations appeared in the document
+print(paste("Begin location check.", Sys.time()))
+    
 # Run the locationSearch function on MatchData documents
 LocationHits<-locationSearch(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"tar_location"]))
                        
@@ -291,37 +316,25 @@ LocationList<-sapply(unique(LocationHits[,"docid"]), function(x) LocationHits[wh
 # Collapse the list elements into character vectors 
 doc_locations<-sapply(LocationList, function(x) paste(x, collapse=", "))
 # Create a matrix of docids and associated locations collapsed
-DocLocations<-cbind(names(doc_locations), as.character(doc_location))
+DocLocations<-cbind(names(doc_locations), as.character(doc_locations))
 # Assign column names
 colnames(DocLocations)<-c("docid", "doc_locations")                         
 
-# Bind col_id to MatchData by strat_name_long
-MatchData<-merge(MatchData, unique(UnitsFrame[,c("strat_name_long", "col_id")]), by.x="Formation", by.y="strat_name_long", all.x=TRUE)  
 # Bind the searched locations to MatchData by docid    
-MatchData<-merge(MatchData, DocLocations, by="docid", all.x=TRUE)
-    
-# Varify that the unit matches are valid by making sure their correct locations appeared in the document
-print(paste("Begin location check.", Sys.time()))
+MatchData<-merge(MatchData, DocLocations, by="docid", all.x=TRUE)    
     
 # Remove rows from MatchData with no location hits
 LocationMatchData<-MatchData[-which(is.na(MatchData[,"doc_locations"])),]
-# Bind all of locations found in the grep search to MatchData (create duplicate rows)
-LocationMatchData<-merge(LocationMatchData, LocationHits, by="docid", all.x=TRUE)      
-    
-# Create a list of target location, docid tuples 
-# Note: we have a list of target col_id, location LocationTuples created from a spatial intersection.
-# We also know what col_id is associated with which document based on the formations' strat_name_long
-# Merge docids known to be associated with specific col_ids (documents contain a strat name tied to that col_d) to LocationTuples
-LocationTuples<-merge(LocationTuples, unique(LocationMatchData[,c("docid", "col_id")]), by="col_id")
 
-# Create collapsed target docid, location tuples
-TargetTuples<-paste(LocationTuples[,"docid"], LocationTuples[,"tar_location"], sep=".")    
-# Create collased docid, location tuples created from the grep search
-SearchedTuples<-paste(LocationMatchData[,"docid"], LocationMatchData[,"doc_location"], sep=".")
-    
-# Determine which SearchedTuples are found in the TargetTuples
-# Remove rows from LocationMatchData where the SearchedTuples pair was not found in TargetTuples
-LocationMatchData<-LocationMatchData[which(SearchedTuples%in%TargetTuples),] 
+# For each row in LocationMatchData, search for each state/province in col_locations in doc_locations
+LocationMatch<-vector(length=nrow(LocationMatchData))
+for(i in 1:length(LocationMatch)){
+    # Determine if there is at least one location match from col_locations in doc_locations
+    LocationMatch[[i]]<-any(sapply(sapply(unlist(strsplit(LocationMatchData[i,"col_locations"], ", ")), function (x,y) grep (x, y, ignore.case=TRUE, perl=TRUE), LocationMatchData[i,"doc_locations"]),length)==1)
+    }  
+                                        
+# Remove rows from LocationMatchData for which none of the col_locations are in the doc_locations
+LocationMatchData<-LocationMatchData[which(LocationMatch==TRUE),]                                       
     
 # Remove unnecessary columns from MatchLocationData
 LocationMatchData<-unique(LocationMatchData[,c("docid", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "doc_locations")])
@@ -461,10 +474,17 @@ Tuples11<-"NA"
 # No functions at this time
 
 ########################################### Output Writing Script ##########################################    
-# Clean final output tables
-print(paste("Clean final output tables.", Sys.time()))
- 
+# Clean and update final output tables
+print(paste("Clean and update final output tables.", Sys.time()))
+
+# Subset UnitsFrame to only include units in FossilData
+DictionaryFrame<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FossilData[,"Formation"])
     
+# Re-merge col_id data to FossilData by strat_name_long
+FossilData<-merge(FossilData, DictionaryFrame[,c("strat_name_long", "col_id")], by.x="Formation", by.y="strat_name_long")
+    
+# Merge target location data into FossilData by col_id
+FossilData<-merge(FossilData, ColLocations, by="col_id")
                          
 # Return stats table 
 StepDescription<-c(Description1, Description2, Description3, Description4, Description5, Description6, Description7, Description8, Description9, Description10, Description11)
