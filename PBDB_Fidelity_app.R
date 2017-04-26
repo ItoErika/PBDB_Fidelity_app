@@ -394,14 +394,14 @@ MacroUnits<-MacroUnits[which(MacroUnits%in%Formations==FALSE)]
 
 # Run a search for MacroUnits on SingleMatchData sentences
 # Record start time
-print(paste("Search sentences for other formation macrostrat names", Sys.time()))
+print(paste("Search sentences for other macrostrat formation names.", Sys.time()))
 # Add spaces before and after formations names                                         
 MacroUnitsWS<-sapply(MacroUnits, function(x) paste(x, " ", sep=""))
 MacroUnitsWS<-sapply(MacroUnitsWS, function(x) paste(" ", x, sep=""))                                          
 # Apply grep SingleMatchData[,"Sentence"]
 MacroUnitHits<-parSapply(Cluster, MacroUnitsWS, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), SingleMatchData[,"Sentence"])
 # Record end time
-print(paste("Finish search for sentences with other formation macrostrat names.",Sys.time()))
+print(paste("Finish search for sentences with other macrostrat formation names.",Sys.time()))
     
 # Remove the rows in which macrostrat unit names appear
 # NOTE: write if statement in case MacroUnitHits is empty
