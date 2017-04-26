@@ -502,7 +502,7 @@ Stats<-cbind(StepDescription, NumberDocuments, NumberRows, Candidate_Units, Foss
 stopCluster(Cluster)
        
 ############################################## Output Data Script ###########################################    
-print(paste("Writing Outputs", Sys.time()))
+print(paste("Writing Outputs.", Sys.time()))
     
 CurrentDirectory<-getwd()
 setwd(paste(CurrentDirectory, "/output", sep=""))
@@ -516,4 +516,4 @@ write.csv(Stats, "Stats.csv", row.names=FALSE)
 write.csv(PaperStats, "PaperStats.csv", row.names=FALSE)
 write.csv(OutputData,"Fidelity_OutputData.csv")
     
-print(paste("Complete", Sys.time()))
+print(paste("Complete.", Sys.time()))
