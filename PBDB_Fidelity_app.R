@@ -492,11 +492,11 @@ OutputData<-merge(OutputData, ColLocations, by="col_id")
 StepDescription<-c(Description1, Description2, Description3, Description4, Description5, Description6, Description7, Description8, Description9, Description10, Description11)
 NumberDocuments<-c(Docs1, Docs2, Docs3, Docs4, Docs5, Docs6, Docs7, Docs8, Docs9, Docs10, Docs11)
 NumberRows<-c(Rows1, Rows2, Rows3, Rows4, Rows5, Rows6, Rows7, Rows8, Rows9, Rows10, Rows11)
-Candidate_Units<-c(Candidates1, Candidates2, Candidates3, Candidates4, Candidates5, Candidates6, Candidates7, Candidates8, Candidates9, Candidates10, Candidates11)
-Fossil_Units<-c(Fossils1, Fossils2, Fossils3, Fossils4, Fossils5, Fossils6, Fossils7, Fossils8, Fossils9, Fossils10, Fossils11)
+CandidateUnits<-c(Candidates1, Candidates2, Candidates3, Candidates4, Candidates5, Candidates6, Candidates7, Candidates8, Candidates9, Candidates10, Candidates11)
+FossilUnits<-c(Fossils1, Fossils2, Fossils3, Fossils4, Fossils5, Fossils6, Fossils7, Fossils8, Fossils9, Fossils10, Fossils11)
 NumberTuples<-c(Tuples1, Tuples2, Tuples3, Tuples4, Tuples5, Tuples6, Tuples7, Tuples8, Tuples9, Tuples10, Tuples11) 
 
-Stats<-cbind(StepDescription, NumberDocuments, NumberRows, Candidate_Units, Fossil_Units, NumberTuples)
+Stats<-cbind(StepDescription, NumberDocuments, NumberRows, CandidateUnits, FossilUnits, NumberTuples)
 
 # Stop the cluster
 stopCluster(Cluster)
