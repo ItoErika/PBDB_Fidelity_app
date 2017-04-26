@@ -68,7 +68,7 @@ Fossils1<-"NA"
 Tuples1<-"NA"
 
 # Step 2: Load strat-name dictionary and docid tuples
-print(paste("Load strat name-docid tuples",Sys.time()))
+print(paste("Load strat name-docid tuples.",Sys.time()))
 DocUnitTuples<-as.matrix(dbGetQuery(Connection, "SELECT * FROM doc_terms"))
 # Assign column names to DocUnitTuples matrix
 colnames(DocUnitTuples)[1]<-"docid"
@@ -84,7 +84,7 @@ Fossils2<-"NA"
 Tuples2<-nrow(DocUnitTuples)
 
 # Step 3: Download occurrences data from the Paleobiology Database
-print(paste("Download PBDB occurrence data",Sys.time()))
+print(paste("Download PBDB occurrence data.",Sys.time()))
 PBDBURL<-"https://paleobiodb.org/data1.2/occs/list.csv?&cc=NOA"
 PBDBURL<-RCurl::getURL(PBDBURL)
 OccurrencesData<-read.csv(text=PBDBURL)
@@ -94,7 +94,7 @@ PaperStats<-rbind(PaperStats, cbind("Number of North American occurrences in PBD
 
 # Step 4: Download geologic unit data from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
-print(paste("Download Macrostrat unit and age data",Sys.time()))
+print(paste("Download Macrostrat unit and age data.",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-RCurl::getURL(UnitsURL)
@@ -160,7 +160,7 @@ Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
 # Step 6: Subset tuples to those which have units from the Formations dictionary, and subset Formations dictionary to units found in tuples.
-print(paste("Subset tuples to dictionary formations, and subset dictionary formations to tuple units",Sys.time()))
+print(paste("Subset tuples to dictionary formations, and subset dictionary formations to tuple units.",Sys.time()))
 # Subset doc, term tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
 # Subset formations
@@ -179,7 +179,7 @@ Fossils4<-length(FossilUnits)
 Tuples4<-nrow(SubsetTuples)
 
 # Step 7: Subset DeepDive data to include only documents that are found in the updated tuples.
-print(paste("Subset DeepDiveData to docids in updated tuples", Sys.time()))
+print(paste("Subset DeepDiveData to docids in updated tuples.", Sys.time()))
 SubsetDeepDive<-subset(DeepDiveData, DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])) 
 
 # Update the stats table
@@ -209,7 +209,7 @@ CleanedWords<-gsub(" Fm", " Formation", CleanedWords)
 ########################################### Formation Search Script #########################################
 # Step 8: Search for formations known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
-print(paste("Begin search for dictionary formations", Sys.time()))
+print(paste("Begin search for dictionary formations.", Sys.time()))
 # Add a space before and after each unit name to improve grep accuracy
 FormationsWS<-sapply(Formations, function(x) paste(x, " ", sep=""))
 FormationsWS<-sapply(FormationsWS, function(x) paste(" ", x, sep=""))
@@ -273,7 +273,7 @@ locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), 
 
 ########################################### Location Search Script ##########################################  
 # Step 9: Search for locations within the MatchData documents
-print(paste("Begin location search", Sys.time()))
+print(paste("Begin location search.", Sys.time()))
 # Load col_id, location tuple data
 LocationTuples<-read.csv("input/LocationTuples.csv") 
 # for 402 test: LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app-master/input/LocationTuples.csv")
@@ -358,7 +358,7 @@ Tuples7<-"NA"
 
 #############################################################################################################     
 # Step 10: Eliminate sentences from LocationMatchData which contain more than one formation unit name.
-print(paste("Remove sentences with more than one dictionary formation name", Sys.time()))
+print(paste("Remove sentences with more than one dictionary formation name.", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
 RowHitsTable<-table(LocationMatchData[,"SubsetDDRow"])
 # Locate and extract rows which contain only one formation from the Formations dictionary
@@ -384,7 +384,7 @@ Fossils8<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==TRUE
 Tuples8<-"NA"
 
 # Step 11: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in Formations.
-print(paste("Remove sentences with a formation name from Macrostrat that was not already searched for", Sys.time()))
+print(paste("Remove sentences with a formation name from Macrostrat that was not already searched for.", Sys.time()))
 # Run another search for ALL macrostrat database formation names (except dictionary formations) in SingleMatchData sentences
 MacroUnits<-unique(as.character(FormationsFrame[,"strat_name_long"]))
 # Remove any unnamed Macrostrat columns from MacroUnits
@@ -421,7 +421,7 @@ Fossils9<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==TRUE),"Formation"]
 Tuples9<-"NA"
 
 # Step 12: Eliminate rows/sentences that are more than 350 characters in length.
-print(paste("Remove sentences > 350 characters in length",Sys.time()))
+print(paste("Remove sentences > 350 characters in length.",Sys.time()))
 # Find the character length for each character string in UnitData sentences
 Chars<-sapply(as.character(UnitData[,"Sentence"]),nchar)
 # Locate the rows which have UnitData sentences with less than or equal to 350 characters
