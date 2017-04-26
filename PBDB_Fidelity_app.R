@@ -483,10 +483,10 @@ print(paste("Clean and update final output tables.", Sys.time()))
 DictionaryFrame<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FossilData[,"Formation"])
     
 # Re-merge col_id data to FossilData by strat_name_long
-FossilData<-merge(FossilData, DictionaryFrame[,c("strat_name_long", "col_id")], by.x="Formation", by.y="strat_name_long")
+OutputData<-merge(FossilData, DictionaryFrame[,c("strat_name_long", "col_id")], by.x="Formation", by.y="strat_name_long")
     
 # Merge target location data into FossilData by col_id
-FossilData<-merge(FossilData, ColLocations, by="col_id")
+OutputData<-merge(OutputData, ColLocations, by="col_id")
                          
 # Return stats table 
 StepDescription<-c(Description1, Description2, Description3, Description4, Description5, Description6, Description7, Description8, Description9, Description10, Description11)
