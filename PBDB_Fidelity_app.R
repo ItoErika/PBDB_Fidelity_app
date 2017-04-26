@@ -69,8 +69,7 @@ Tuples1<-"NA"
 
 # Step 2: Load strat-name dictionary and docid tuples
 print(paste("Load strat name-docid tuples",Sys.time()))
-DocUnitTuples<-dbGetQuery(Connection, "SELECT * FROM doc_terms")
-DocUnitTuples<-as.matrix(DocUnitTuples)
+DocUnitTuples<-as.matrix(dbGetQuery(Connection, "SELECT * FROM doc_terms"))
 # Assign column names to DocUnitTuples matrix
 colnames(DocUnitTuples)[1]<-"docid"
 colnames(DocUnitTuples)[2]<-"unit"
@@ -134,7 +133,7 @@ FormationUnits<-FormationUnits[which(FormationUnits[,"t_int_age"]<Max_age),]
 # Record the number of sedimentary, Phanerozoic formations in Macrostrat for the output
 PaperStats<-rbind(PaperStats, cbind("Total number of sedimentary, Phanerozoic formations in Macrostrat", length(unique(FormationUnits[,"strat_name_long"]))))
 
-# Create three dictionaries:
+# Step 5: Create three dictionaries:
 # (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
 # Convert the strat_name_long column of formation units to character
 FormationUnits[,"strat_name_long"]<-as.character(FormationUnits[,"strat_name_long"])
@@ -160,7 +159,7 @@ Candidates3<-length(CandidateUnits)
 Fossils3<-length(FossilUnits)
 Tuples3<-Tuples2
 
-# Step 5: Subset tuples to those which have units that are in Formations, and subset Formations to units found in tuples.
+# Step 6: Subset tuples to those which have units from the Formations dictionary, and subset Formations dictionary to units found in tuples.
 print(paste("Subset tuples to dictionary formations, and subset dictionary formations to tuple units",Sys.time()))
 # Subset doc, term tuples
 SubsetTuples<-subset(DocUnitTuples, DocUnitTuples[,"unit"]%in%Formations)
@@ -179,7 +178,7 @@ Fossils4<-length(FossilUnits)
 # Number of tuples after subsetting to dictionary formation tuples only
 Tuples4<-nrow(SubsetTuples)
 
-# Step 6: Subset DeepDive data to include only documents that are found in the updated tuples.
+# Step 7: Subset DeepDive data to include only documents that are found in the updated tuples.
 print(paste("Subset DeepDiveData to docids in updated tuples", Sys.time()))
 SubsetDeepDive<-subset(DeepDiveData, DeepDiveData[,"docid"]%in%unique(SubsetTuples[,"docid"])) 
 
@@ -208,7 +207,7 @@ CleanedWords<-gsub(" Fm", " Formation", CleanedWords)
 # No functions at this time.
 
 ########################################### Formation Search Script #########################################
-# Step 6: Search for formations known to be in the tuples in SubsetDeepDive data.
+# Step 8: Search for formations known to be in the tuples in SubsetDeepDive data.
 # Record Start Time
 print(paste("Begin search for dictionary formations", Sys.time()))
 # Add a space before and after each unit name to improve grep accuracy
@@ -254,8 +253,8 @@ Tuples6<-"NA"
 #############################################################################################################
 ###################################### LOCATION SEARCH FUNCTIONS, FIDELITY ##################################
 #############################################################################################################
-# Search for the locations from FossilData[,"location"] column in SubsetDeepDive documents are referenced by docid in FossilData
-locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"tar_location"])) {
+# Search for locations in MatchData documents to create found docid, location tuples
+locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"col_location"])) {
     # Subset SubsetDeepDive to only documents referenced in MatchData
     DeepDive<-subset(SubsetDeepDive, SubsetDeepDive[,"docid"]%in%Documents)
     # Clean sentences so grep can run
@@ -264,7 +263,7 @@ locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), 
     LocationHits<-sapply(location, function (x,y) grep (x,y, ignore.case=TRUE, perl=TRUE), CleanedWords)
     # Make a column of location names for each associated hit
     LocationHitsLength<-sapply(LocationHits,length)
-    names(LocationHits)<-unique(LocationTuples[,"tar_location"])
+    names(LocationHits)<-unique(LocationTuples[,"col_location"])
     doc_location<-rep(names(LocationHits), times=LocationHitsLength)
     # make a column for each document the location name is found in
     docid<-DeepDive[unlist(LocationHits), "docid"]
@@ -273,7 +272,7 @@ locationSearch<-function(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), 
     } 
 
 ########################################### Location Search Script ##########################################  
-# Step 7: Search for locations within the MatchData documents
+# Step 9: Search for locations within the MatchData documents
 print(paste("Begin location search", Sys.time()))
 # Load col_id, location tuple data
 LocationTuples<-read.csv("input/LocationTuples.csv") 
@@ -281,12 +280,12 @@ LocationTuples<-read.csv("input/LocationTuples.csv")
 # Reformat data
 LocationTuples[,"col_name"]<-as.character(LocationTuples[,"col_name"])
 LocationTuples[,"name"]<-as.character(LocationTuples[,"name"])
-colnames(LocationTuples)<-c("col_id","col_name","tar_location")
+colnames(LocationTuples)<-c("col_id","col_name","col_location")
                          
 # Make a vector of unique col_ids
 col_ids<-unique(LocationTuples[,"col_id"])
 # Make a list of every location associated with each col_id
-LocationList<-sapply(col_ids, function(x) LocationTuples[which(LocationTuples[,"col_id"]==x),"tar_location"])
+LocationList<-sapply(col_ids, function(x) LocationTuples[which(LocationTuples[,"col_id"]==x),"col_location"])
 # Collapse the list elements into character vectors 
 col_locations<-sapply(LocationList, function(x) paste(x, collapse=", "))
 # Create a matrix of col_ids and associated locations collapsed
@@ -309,7 +308,7 @@ MatchData<-merge(MatchData, ColLocations, by="col_id")
 print(paste("Begin location check.", Sys.time()))
     
 # Run the locationSearch function on MatchData documents
-LocationHits<-locationSearch(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"tar_location"]))
+LocationHits<-locationSearch(SubsetDeepDive, Documents=unique(MatchData[,"docid"]), location=unique(LocationTuples[,"col_location"]))
                        
 # Make a list of every location that was found in each document
 LocationList<-sapply(unique(LocationHits[,"docid"]), function(x) LocationHits[which(LocationHits[,"docid"]==x),"doc_location"])
@@ -336,7 +335,7 @@ for(i in 1:length(LocationMatch)){
 # Remove rows from LocationMatchData for which none of the col_locations are in the doc_locations
 LocationMatchData<-LocationMatchData[which(LocationMatch==TRUE),]                                       
     
-# Remove unnecessary columns from MatchLocationData
+# Remove unnecessary columns from LocationMatchData
 LocationMatchData<-unique(LocationMatchData[,c("docid", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "doc_locations")])
     
 print(paste("Finish location check.",Sys.time()))
@@ -358,11 +357,11 @@ Tuples7<-"NA"
 # No functions at this time.    
 
 #############################################################################################################     
-# Step 8: Eliminate sentences from LocationMatchData which contain more than one formation unit name.
+# Step 10: Eliminate sentences from LocationMatchData which contain more than one formation unit name.
 print(paste("Remove sentences with more than one dictionary formation name", Sys.time()))
 # Make a table showing the number of unit names which occur in each DeepDiveData row that we know has at least one unit match
 RowHitsTable<-table(LocationMatchData[,"SubsetDDRow"])
-# Locate and extract rows which contain only one long unit
+# Locate and extract rows which contain only one formation from the Formations dictionary
 # Remember that the names of RowHitsTable correspond to rows within CleanedWords
 SingleHits<-as.numeric(names(RowHitsTable)[which((RowHitsTable)==1)])    
     
@@ -384,7 +383,7 @@ Candidates8<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==F
 Fossils8<-length(unique(SingleMatchData[which(SingleMatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples8<-"NA"
 
-# Step 9: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in Formations.
+# Step 11: Remove sentences from SingleMatchData that contain macrostrat unit names which are NOT in Formations.
 print(paste("Remove sentences with a formation name from Macrostrat that was not already searched for", Sys.time()))
 # Run another search for ALL macrostrat database formation names (except dictionary formations) in SingleMatchData sentences
 MacroUnits<-unique(as.character(FormationsFrame[,"strat_name_long"]))
@@ -396,8 +395,11 @@ MacroUnits<-MacroUnits[which(MacroUnits%in%Formations==FALSE)]
 # Run a search for MacroUnits on SingleMatchData sentences
 # Record start time
 print(paste("Search sentences for other formation macrostrat names", Sys.time()))
+# Add spaces before and after formations names                                         
+MacroUnitsWS<-sapply(MacroUnits, function(x) paste(x, " ", sep=""))
+MacroUnitsWS<-sapply(MacroUnitsWS, function(x) paste(" ", x, sep=""))                                          
 # Apply grep SingleMatchData[,"Sentence"]
-MacroUnitHits<-parSapply(Cluster, MacroUnits, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), SingleMatchData[,"Sentence"])
+MacroUnitHits<-parSapply(Cluster, MacroUnitsWS, function(x,y) grep(x,y, ignore.case=TRUE, perl = TRUE), SingleMatchData[,"Sentence"])
 # Record end time
 print(paste("Finish search for sentences with other formation macrostrat names.",Sys.time()))
     
@@ -418,7 +420,7 @@ Candidates9<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==FALSE),"Formati
 Fossils9<-length(unique(UnitData[which(UnitData[,"PBDB_occ"]==TRUE),"Formation"]))
 Tuples9<-"NA"
 
-# Step 10: Eliminate rows/sentences that are more than 350 characters in length.
+# Step 12: Eliminate rows/sentences that are more than 350 characters in length.
 print(paste("Remove sentences > 350 characters in length",Sys.time()))
 # Find the character length for each character string in UnitData sentences
 Chars<-sapply(as.character(UnitData[,"Sentence"]),nchar)
@@ -444,7 +446,7 @@ Tuples10<-"NA"
 
 ########################################## Fossil Match Script ##############################################  
     
-# Step 11: Search for words indicating fossil occurrences in units.
+# Step 13: Search for words indicating fossil occurrences in units.
 # Search for the word "fossil" in UnitDataCut sentences 
 # Record start time
 print(paste("Begin search for unit and fossil matches.", Sys.time()))
