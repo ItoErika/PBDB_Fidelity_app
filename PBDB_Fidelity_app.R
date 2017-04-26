@@ -431,7 +431,7 @@ UnitDataCut<-UnitData[ShortSents,]
 # Update the stats table
 Description10<-"Eliminate sentences > 350 characters in length"
 # Number of documents of interest after cutting out long rows
-Docs10<-length(unique(UnitDataCut["docid"]))
+Docs10<-length(unique(UnitDataCut[,"docid"]))
 # Number of short sentences in SubsetDeepDive with single formation dictionary unit hits and no MacroUnits names
 Rows10<-length(unique(UnitDataCut[,"SubsetDDRow"]))
 # Number of unit matches after narrowing to only short sentences
