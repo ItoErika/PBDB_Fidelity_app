@@ -405,7 +405,7 @@ print(paste("Finish search for sentences with other macrostrat formation names."
     
 # Remove the rows in which macrostrat unit names appear
 # NOTE: write if statement in case MacroUnitHits is empty
-if (do.call(sum, MacroUnitHits)>0) {
+if (sum(sapply(MacroUnitHits,length))>0) {
     UnitData<-SingleMatchData[-unique(unlist(MacroUnitHits)),]
     } else {UnitData<-SingleMatchData}
 
