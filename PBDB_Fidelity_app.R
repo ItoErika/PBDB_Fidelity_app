@@ -510,10 +510,10 @@ setwd(paste(CurrentDirectory, "/output", sep=""))
 # Clear any old output files
 unlink("*")
 
-write.csv(AllDocuments,"AllDocuments.csv")
-write.csv(MatchData, "MatchData.csv")
+write.csv(AllDocuments,"AllDocuments.csv", row.names=FALSE)
+write.csv(MatchData, "MatchData.csv", row.names=FALSE)
 write.csv(Stats, "Stats.csv", row.names=FALSE)
 write.csv(PaperStats, "PaperStats.csv", row.names=FALSE)
-write.csv(OutputData,"Fidelity_OutputData.csv")
+write.csv(OutputData,"Fidelity_OutputData.csv", row.names=FALSE)
     
 print(paste("Complete.", Sys.time()))
