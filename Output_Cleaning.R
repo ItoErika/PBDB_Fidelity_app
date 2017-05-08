@@ -1,12 +1,6 @@
 # Load output data from application
 InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv")
 
-# Remove hits for trace fossils within the output sentences
-Trace<-grep("trace fossil", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Ichno<-grep("ichno", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-# Remove hits for microfossils within the output sentences
-Micro<-grep("microfossil", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Spore<-grep("spore", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # Remove words or phrases that are likely to cause reading errors creating false hits
 NoFossils<-grep(" no fossils", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Lack<-grep(" lack ", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -25,20 +19,31 @@ Underlie<-grep("underlie", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TR
 Underlying<-grep("underlying", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Underlain<-grep("underlain", InitialOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
-NoisySentences<-unique(c(Trace, Ichno, Micro, Spore, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative,
-Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain))                        
+NoisySentences<-unique(c(NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative,
+Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
 
-# Create a cleaned output with no micro or trace fossils
-NoMicroNoTraceOutput<-InitialOutput[-NoisySentences,]
+# Remove rows with noisy sentences from InitialOutput
+CleanedOutput<-InitialOutput[-NoisySentences,]
+
+# Find instances of micro and trace fossils in CleanedOutput sentences
+# Locate hits for trace fossils within the output sentences
+Trace<-grep("trace fossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Ichno<-grep("ichno", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+# Locate hits for microfossils within the output sentences
+Micro<-grep("microfossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+
+TraceSentences<-unique(c(Trace, Ichno)) 
+MicroSentences<-unique(c(Micro, Spore)) 
+TraceOrMicroSentences<-unique(c(TraceSentences, MicroSentences)) 
 
 # Create a cleaned output with no trace fossils, but including microfossils
-NoisySentences<-unique(c(Trace, Ichno, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative,
-Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain))
-
-NoTraceOutput<-InitialOutput[-NoisySentences,]
+NoTraceOutput<-CleanedOutput[-TraceSentences,]
 
 # Create a cleaned output with no microfossils, but including trace fossils
-NoisySentences<-unique(c(Micro, Spore, NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative,
-Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain))
+NoMicroOutput<-CleanedOutput[-MicroSentences,]
 
-NoMicroOutput<-InitialOutput[-NoisySentences,]
+# Create a cleaned output with no micro or trace fossils
+NoMicroNoTraceOutput<-CleanedOutput[-TraceOrMicroSentences,]
+
+
