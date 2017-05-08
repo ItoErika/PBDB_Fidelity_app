@@ -1,5 +1,8 @@
-# Load libraries
+#################################################  LOAD LIBRARIES ##########################################################
+
 library("RCurl")
+
+################################## SUBSET INITIAL OUTPUT USING PBDB TAXA, DOCID TUPLES #####################################
 
 # Download taxanomic names (genus and below) from the Paleobiology Database
 TaxaURL<-"https://paleobiodb.org/data1.2/taxa/list.csv?rank=max_genus&all_records"
@@ -35,6 +38,8 @@ PBDBTupleOutput<-subset(InitialOutput, InitialOutput[,"docid"]%in%PBDB_Tuples[,"
 
 PBDBTupleOutput[,"Sentence"]<-as.character(PBDBTupleOutput[,"Sentence"])
 
+############################# REMOVE SENTENCES WITH WORDS LIKELY TO CAUSE READING ERRORS ##################################
+
 # Remove words or phrases that are likely to cause reading errors creating false hits
 NoFossils<-grep(" no fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Lack<-grep(" lack ", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -59,6 +64,8 @@ Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Un
 
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
+
+############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS #####################################
 
 # Find instances of micro and trace fossils in CleanedOutput sentences
 # Locate hits for trace fossils within the output sentences
