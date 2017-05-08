@@ -10,13 +10,29 @@ GotURL<-getURL(UnitsURL)
 UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 #Load all of the candidate units (unfossiliferous, sedimentary) that were matched in the documents
-MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_12Apr2017/MatchData.csv")
+MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/MatchData.csv", row.names=1)
 # Load the cleaned fidelity output
 CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
+# Load output with no trace hits
+NoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoTraceOutput.csv")
+# Load output with no micro hits
+NoMicroOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroOutput.csv")
+# Load output with no trace hits and no micro hits
+NoMicroNoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroNoTraceOutput.csv")
 
 # Add a column to MatchData showing if the formation was captured in the final cleaned output
 MatchData[which(MatchData[,"Formation"]%in%CleanedOutput[,"Formation"]),"GDD_occ"]<-"TRUE"
 MatchData[which(is.na(MatchData[,"GDD_occ"])),"GDD_occ"]<-"FALSE"
+
+# Add a column to MatchData showing if the formation appeared in sentences with the word "micro" or "spore"
+# Tag formations in CleanedOutput which are NOT found in the NoMicroOutput as TRUE
+MicroFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoMicroOutput[,"Formation"])==TRUE),"Formation"]))
+MatchData[which(as.character(MatchData[,"Formation"])%in%MicroFormations),"Micro"]<-"TRUE"
+
+# Add a column to MatchData showing if the formation appeared in sentences with the words "trace fossil" or "ichno"
+# Tag formations in CleanedOutput which are NOT found in the NoTraceOutput as TRUE
+TraceFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoTraceOutput[,"Formation"])==TRUE),"Formation"]))
+MatchData[which(as.character(MatchData[,"Formation"])%in%TraceFormations),"Trace"]<-"TRUE"
 
 # Create a new column showing if the 
 # Extract all unit name matches
@@ -42,21 +58,21 @@ SubsetUnitsFrame[,"environ"]<-paste(" ", SubsetUnitsFrame[,"environ"], sep="")
 LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app-master/input/LocationTuples.csv")
 
 # Group LocationTuple data by "col_id" column
-GroupedLocations<-tapply(LocationTuples[,"location"],LocationTuples[,"col_id"],as.character)
+GroupedLocations<-tapply(LocationTuples[,"name"],LocationTuples[,"col_id"],as.character)
 # Collapse the elements for each "col_id" in the list so that a vector is returned
-GroupedLocations<-setNames(as.data.frame(sapply(GroupedLocations, function(x) paste(x, collapse=' '))),"States")
+GroupedLocations<-setNames(as.data.frame(sapply(GroupedLocations, function(x) paste(x, collapse=' '))),"Locations")
 # Convert the GroupedLocations column to character data
-GroupedLocations[,"States"]<-as.character(GroupedLocations[,"States"])
+GroupedLocations[,"Locations"]<-as.character(GroupedLocations[,"Locations"])
   
 # merge the GroupedLocationsData to SubsetUnitsFrame by col_id
-SubsetUnitsFrame<-merge(SubsetUnitsFrame,GroupedLocations,by.x="col_id",by.y="row.names", all.x=TRUE)
+SubsetUnitsFrame<-merge(SubsetUnitsFrame, GroupedLocations, by.x="col_id", by.y="row.names", all.x=TRUE)
   
 # Create a vector of locations
-Locations<-unique(LocationTuples[,"location"])
+Locations<-unique(LocationTuples[,"name"])
 # Remove blanks
 Locations<-Locations[which(Locations!="")]
 # Create a matrix showing whether or not each location corresponds with each row in SubsetUnitsFrame
-LocationMatrix<-sapply(Locations,function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE),as.character(SubsetUnitsFrame[,"States"]))
+LocationMatrix<-sapply(Locations, function(x,y) grepl(x,y,ignore.case=FALSE, perl = TRUE), as.character(SubsetUnitsFrame[,"Locations"]))
 # Convert the logical data into numerical data
 LocationMatrix[,1:ncol(LocationMatrix)]<-as.numeric(LocationMatrix[,1:ncol(LocationMatrix)])
 colnames(LocationMatrix)<-paste("location_", Locations, sep="")
