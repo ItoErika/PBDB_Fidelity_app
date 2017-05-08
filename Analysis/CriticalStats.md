@@ -18,7 +18,7 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
 **EPSILON = 4,682**
 + How many  Phanerozoic sedimentary rock **formations** in Macrostrat have PBDB fossil occurrences:\
 **BETA = 2,021**
-+ Number of Macrostrat, sedimentary, Phanerozoic formations that do NOT have PBDB fossil occurrences (EPSILON-BETA=**ZETA**, perform in-app check with length(....)):\
++ Number of candidate formations (Macrostrat, sedimentary, Phanerozoic formations that do NOT have PBDB fossil occurrences) (EPSILON-BETA=**ZETA**, perform in-app check with length(....)):\
 **ZETA = 2,661**
 + How much data is cut down from geolocation check:\
 **Went from 31,402 to 26,817 documents (4,585 documents removed)**\
