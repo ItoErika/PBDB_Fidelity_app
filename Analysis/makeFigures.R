@@ -14,6 +14,11 @@ if (suppressWarnings(require("velociraptr"))==FALSE) {
     library("velociraptr");
     }
 
+if (suppressWarnings(require("pbapply"))==FALSE) {
+    install.packages("pbapply",repos="http://cran.cnr.berkeley.edu/");
+    library("pbapply");
+    }
+
 # Currently mac only
 if (suppressWarnings(require("doParallel"))==FALSE) {
     install.packages("doParallel",repos="http://cran.cnr.berkeley.edu/");
@@ -37,8 +42,8 @@ if (suppressWarnings(require("doParallel"))==FALSE) {
 ############################################### Download Datasets ###########################################
 # Load in the data processed from the initial Fidelity app and preparation
 # This should eventually be moved to postgres tables in the long-term
-FormationMatrix<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/March2017Files/FormationMatrix.csv",row.names=1)
-FormationKey<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/March2017Files/FormationKey.csv",row.names=1)
+FormationMatrix<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/May2017Files/FormationMatrix.csv",row.names=1)
+FormationKey<-read.csv("~/Box Sync/FidelityManuscripts/NationalFidelity/May2017Files/FormationKey.csv",stringsAsFactors=FALSE)
 
 # Download timescale information
 Epochs<-downloadTime("international%20epochs")
@@ -75,7 +80,7 @@ keyMatrix<-function(FormationMatrix) {
     }
 
 # Create separate sub matrices using assign
-# Standard R protocal would suggest a list, but it is convenient in this case to have separate objects for each submatrix
+# Standard R protocol would suggest a list, but it is convenient in this case to have separate objects for each submatrix
 splitMatrix<-function(FormationMatrix,MatrixKey) {
     # Change the column names
     colnames(FormationMatrix)<-sapply(strsplit(colnames(FormationMatrix),"_"),function(x) x[[2]])
@@ -88,6 +93,18 @@ splitMatrix<-function(FormationMatrix,MatrixKey) {
     print(rownames(MatrixKey))
     }
 
+# Remove matches that do not pass the location check
+checkLocation<-function(FormationKey) {
+	ColLocations<-strsplit(FormationKey[,"col_locations"],", ")
+	DocLocations<-strsplit(FormationKey[,"doc_locations"],", ")
+	FinalVector<-vector("logical",length=nrow(FormationKey))
+	for (i in 1:nrow(FormationKey)) {
+		FinalVector[i]<-any(is.na(match(ColLocations[[i]],DocLocations[[i]]))!=TRUE)
+		}
+	FormationKey<-FormationKey[which(FinalVector),]
+	return(FormationKey)
+	}
+				      
 ################################################## Format Data ##############################################
 # Bind the ConceptKey to the unit_id
 ConceptKey<-merge(ConceptKey,UnitsFrame[,c("strat_name_id","unit_id")],by="strat_name_id",all=FALSE)
@@ -106,27 +123,53 @@ MatrixKey<-keyMatrix(FormationMatrix)
 # Split Formation matrix into distinct units
 splitMatrix(FormationMatrix,MatrixKey)                                      
 
-# For two distinct stratigraphic units (concept_id) with the same name
-# perform a location check to see which unit is being referred to in the document
-# This step is currently on hold while waiting for the docid_region_tuples to process from GDD
-
-# Subset out Fossiliferous and Unfossiliferous Candidate Units
-
-	
-# subset TimeScaleColors to only include epochs
+# Check to see if the location of a macrostrat column is mentioned in the document
+FormationKey<-checkLocation(FormationKey)
+# Attach the concept_id names to make the FormationKey compatible with the Formation Matrix
+FormationKey<-merge(FormationKey,ConceptKey,by="unit_id")
+		    
+# Break down the Formation Key into the different categories (no fossils, pbdb fossils, gdd fossils)
+FossilsNA<-subset(FormationKey,FormationKey[,"GDD_occ"]!=TRUE & FormationKey[,"PBDB_occ"]!=TRUE)
+FossilsPBDB<-subset(FormationKey,FormationKey[,"GDD_occ"]!=TRUE & FormationKey[,"PBDB_occ"]==TRUE)
+FossilsGDD<-subset(FormationKey,FormationKey[,"GDD_occ"]==TRUE & FormationKey[,"PBDB_occ"]!=TRUE)
+		    
+#############################################################################################################
+########################################### MAKE FIGURES, FIDELITY ##########################################
+#############################################################################################################
+# No functions at this time
+		    
+################################################# Make Figures ##############################################
+# subset TimeScaleColors to only include Epochs
 EpochColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Epochs))
 # extract only name and color columns from EpochColors
 EpochColors<-EpochColors[,c("name","color")]
 # create a color palette of colors for each epoch
 EpochColors<-setNames(as.character(EpochColors[,"color"]),EpochColors[,"name"])
 	
-# subset TimeScaleColors to only include epochs
-PeriodColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Periods))
+# subset TimeScaleColors to only include Periods
+# PeriodColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Periods))
 # extract only name and color columns from EpochColors
-PeriodColors<-PeriodColors[,c("name","color")]
+# PeriodColors<-PeriodColors[,c("name","color")]
 # create a color palette of colors for each epoch
-PeriodColors<-setNames(as.character(PeriodColors[,"color"]),PeriodColors[,"name"])
+# PeriodColors<-setNames(as.character(PeriodColors[,"color"]),PeriodColors[,"name"])
 
+# Find the age distribution of fossiliferous candidate units
+EpochGDD<-Epoch[which(rownames(Epoch)%in%FossilsGDD[,"V2"]),]
+EpochGDD<-apply(EpochGDD,2,sum)		    
+# Divide by the total number of candidate units
+EpochNA<-Epoch[which(rownames(Epoch)%in%FossilsNA[,"V2"]),]
+EpochNA<-apply(EpochNA,2,sum)+EpochGDD
+EpochPercent<-EpochGDD/EpochNA
+		    
+# Make a bar plot showing the age distribution of gdd_occs units  
+quartz(height=10,width=12)
+layout(matrix(c(1,1,2,2),2,2,byrow=TRUE))
+par(oma=c(4,1,0.5,0),mar=c(3,3,2,0.5),mgp=c(1.5,0.5,0))
+barplot(rev(EpochRaw), names.arg=rev(colnames(Epoch)),ylab="geologic formations",col=rev(EpochColors),las=2,ylim=c(0,100))
+barplot(rev(EpochPercent), names.arg=rev(colnames(Epoch)),ylab="geologic formations",col=rev(EpochColors),las=2,ylim=c(0,1))
+abline(h=mean(EpochPercent),col="black",lty=3,lwd=4); abline(h=mean(EpochPercent)+(2*sd(EpochPercent)),col="grey",lty=3,lwd=2); abline(h=mean(EpochPercent)-(2*sd(EpochPercent)),col="grey",lty=3,lwd=2)
+		    
+		    
 # Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
 # take the sum of all of the columns of EpochOutputMatrix
 EpochSums<-apply(Epoch,2,sum)
