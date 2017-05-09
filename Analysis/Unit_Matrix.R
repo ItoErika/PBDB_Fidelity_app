@@ -49,7 +49,10 @@ MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], s
 
 # Merge unit_id data to MatchData, and remove the temporary column
 MatchData<-merge(MatchData, UnitIDTable[,c("unit_id","Name_ColID")], by="Name_ColID")
-MatchData<-MatchData[,c("docid", "col_id", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "col_locations", "doc_locations", "GDD_occ", "Micro", "Trace", "unit_id")]
+MatrixData<-MatchData[,c("docid", "col_id", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "col_locations", "doc_locations", "GDD_occ", "Micro", "Trace", "unit_id")]
+
+# Save MatrixData
+# write.csv(MatrixData, "~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/MatrixData.csv", row.names=FALSE)
 
 ########################################### CLEAN SUBSETUNITSFRAME COLUMNS ##############################################
 
