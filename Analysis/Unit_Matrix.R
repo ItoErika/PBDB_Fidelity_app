@@ -34,11 +34,22 @@ MatchData[which(as.character(MatchData[,"Formation"])%in%MicroFormations),"Micro
 TraceFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoTraceOutput[,"Formation"])==TRUE),"Formation"]))
 MatchData[which(as.character(MatchData[,"Formation"])%in%TraceFormations),"Trace"]<-"TRUE"
 
-# Create a new column showing if the 
 # Extract all unit name matches
 MatrixUnits<-unique(MatchData[,"Formation"])
 # Subset UnitsFrame to only include units from MatchData
 SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits),]
+
+# Attach unit_id data to MatchData
+# Extract unique strat_name_long, unit_id, col_id thruples from SubsetUnitsFrame
+UnitIDTable<-unique(SubsetUnitsFrame[,c("strat_name_long","unit_id","col_id")])
+# Add a column of the strat name and col_id pasted together to UnitIDTable
+UnitIDTable[,"Name_ColID"]<-paste(UnitIDTable[,"strat_name_long"], UnitIDTable[,"col_id"], sep=".")
+# Temporarily add a column of the strat name and col_id pasted together to MatchData
+MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep=".")
+
+# Merge unit_id data to MatchData, and remove the temporary column
+MatchData<-merge(MatchData, UnitIDTable[,c("unit_id","Name_ColID")], by="Name_ColID")
+MatchData<-MatchData[,c("docid", "col_id", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "col_locations", "doc_locations", "GDD_occ", "Micro", "Trace", "unit_id")]
 
 ########################################### CLEAN SUBSETUNITSFRAME COLUMNS ##############################################
 
