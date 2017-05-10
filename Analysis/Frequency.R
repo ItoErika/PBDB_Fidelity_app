@@ -18,6 +18,7 @@ length(unique(MatchData[which(MatchData[,"PBDB_occ"]==TRUE),"Formation"]))
 # 1,962 (97.1% of all non-candidates)
 
 # Determine the number of documents which contained candidate formations
+length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE),"docid"]))
 # 15,519
 
 # Determine the number of candidate formations found in our search of the literature
