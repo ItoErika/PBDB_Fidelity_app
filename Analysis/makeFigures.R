@@ -19,6 +19,11 @@ if (suppressWarnings(require("pbapply"))==FALSE) {
     library("pbapply");
     }
 
+if (suppressWarnings(require("RPostgreSQL"))==FALSE) {
+    install.packages("RPostgreSQL",repos="http://cran.cnr.berkeley.edu/");
+    library("RPostgreSQL");
+    }
+
 # Currently mac only
 if (suppressWarnings(require("doParallel"))==FALSE) {
     install.packages("doParallel",repos="http://cran.cnr.berkeley.edu/");
@@ -134,7 +139,7 @@ FossilsPBDB<-subset(FormationKey,FormationKey[,"GDD_occ"]!=TRUE & FormationKey[,
 FossilsGDD<-subset(FormationKey,FormationKey[,"GDD_occ"]==TRUE & FormationKey[,"PBDB_occ"]!=TRUE)
 		    
 #############################################################################################################
-########################################### MAKE FIGURES, FIDELITY ##########################################
+########################################### MAKE BARPLOT, FIDELITY ##########################################
 #############################################################################################################
 # No functions at this time
 		    
@@ -165,67 +170,50 @@ EpochPercent<-EpochGDD/EpochNA
 quartz(height=10,width=12)
 layout(matrix(c(1,1,2,2),2,2,byrow=TRUE))
 par(oma=c(4,1,0.5,0),mar=c(3,3,2,0.5),mgp=c(1.5,0.5,0))
-barplot(rev(EpochRaw), names.arg=rev(colnames(Epoch)),ylab="geologic formations",col=rev(EpochColors),las=2,ylim=c(0,100))
+barplot(rev(EpochGDD), names.arg=rev(colnames(Epoch)),ylab="geologic formations",col=rev(EpochColors),las=2,ylim=c(0,100))
 barplot(rev(EpochPercent), names.arg=rev(colnames(Epoch)),ylab="geologic formations",col=rev(EpochColors),las=2,ylim=c(0,1))
 abline(h=mean(EpochPercent),col="black",lty=3,lwd=4); abline(h=mean(EpochPercent)+(2*sd(EpochPercent)),col="grey",lty=3,lwd=2); abline(h=mean(EpochPercent)-(2*sd(EpochPercent)),col="grey",lty=3,lwd=2)
-		    
-		    
-# Make a bar plot showing the RAW NUMBER of units in the EpochOutputMatrix that fall into each epoch category
-# take the sum of all of the columns of EpochOutputMatrix
-EpochSums<-apply(Epoch,2,sum)
-# make raw data bar plot
-quartz(height=10,width=12)
-layout(matrix(c(1,1,2,2),2,2,byrow=TRUE))
-par(oma=c(4,1,0.5,0),mar=c(3,3,2,0.5),mgp=c(1.5,0.5,0))
-barplot(EpochSums, names.arg=colnames(Epoch),ylab="# of Fidelity Output Units",col=EpochColors,las=2)
-abline(h=mean(EpochSums),lwd=5,col="dark grey",lty=3)
-	
-# make a bar plot showing the PERCENTAGE of units in EpochOutputMatrix which fall into each epoch category
-# subset UnitMatrix to only include epoch columns
-EpochMatrix<-UnitMatrix[,rownames(Epochs)]
-# find the total number of units in UnitMatrix that fall into each epoch category
-EpochTotalSums<-apply(EpochMatrix,2,sum)
-# divide EpochSums by EpochTotalSums
-EpochPercentages<-EpochSums/EpochTotalSums
-# make percentages barplot
-barplot(EpochPercentages,names.arg=colnames(EpochOutputMatrix),ylab="% of Fidelity Output Units", col=colors,las=2)
-abline(h=mean(EpochPercentages),lwd=5,col="dark grey",lty=3)
-	
-################################################### PERIODS BAR PLOT ##################################################
 
-Periods<-downloadTime("international%20periods")
-# get rid of preCambrian rows
-# make a vector of preCambrian Periods
-PreCambrian<-c("Ediacaran","Cryogenian","Tonian","Stenian","Ectasian","Calymmian","Statherian","Orosirian","Rhyacian",
-"Siderian")
-# remove PreCambrian rows
-Periods<-Periods[-which(rownames(Periods)%in%PreCambrian),]
+#############################################################################################################
+############################################# MAKE MAP, FIDELITY ############################################
+#############################################################################################################
+# No functions at this time
+		    
+################################################# Make Figures ##############################################
+# Establish a remote connection to teststrata
+system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sys.sleep(1);
 
-# subset OutputUnitMatrix to only epoch columns (NOTE: rownames of Periods are period names)
-PeriodOutputMatrix<-OutputUnitMatrix[,rownames(Periods)]
-	
-# subset TimeScaleColors to only include periods
-PeriodColors<-subset(TimeScaleColors,TimeScaleColors[,"name"]%in%rownames(Periods))
-# extract only name and color columns from EpochColors
-PeriodColors<-PeriodColors[,c("name","color")]	
-# create a color palette of colors for each period
-colors<-as.character(PeriodColors[,"color"])
-names(colors)<-PeriodColors[,"name"]	
-	
-# Make a bar plot showing the RAW NUMBER of units in the PeriodOutputMatrix that fall into each period category
-# take the sum of all of the columns of PeriodOutputMatrix
-PeriodSums<-apply(PeriodOutputMatrix,2,sum)
-# make raw data bar plot
-barplot(PeriodSums, names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="# of Fidelity Output Units",col=colors)	
-	
-# make a bar plot showing the PERCENTAGE of units in PeriodOutputMatrix which fall into each period category
-# subset UnitMatrix to only include period columns
-PeriodMatrix<-UnitMatrix[,rownames(Periods)]
-# find the total number of units in UnitMatrix that fall into each epoch category
-PeriodTotalSums<-apply(PeriodMatrix,2,sum)
-# divide PeriodSums by PeriodTotalSums
-PeriodPercentages<-PeriodSums/PeriodTotalSums
-# make percentages barplot
-barplot(PeriodPercentages,names.arg=colnames(PeriodOutputMatrix),xlab="Period",ylab="% of Fidelity Output Units", col=colors)
-                        
+# Establish postgresql driver
+Driver<-dbDriver("PostgreSQL") # Establish database driver		    
+# Establish a postgres connection
+Burwell<-dbConnect(Driver, dbname = "burwell", host = "localhost", port = 5439, user = "john")
+		    
+# Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
+MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
+
+# This deals with the ridiculous y-limit issue with the sp plot methods
+Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
+Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
+Aspect <- Height / Width
+# Plot the raw map
+quartz(width = 10, height = 10*Aspect)
+par(mar = rep(0, 4), xaxs='i', yaxs='i')
+plot(MacrostratColumns)
+
+# Extract the age of each column's polygons
+PolygonAges<-dbGetQuery(Burwell,"SELECT B.id,A.best_age_bottom, A.best_age_bottom FROM carto.large AS A JOIN macrostrat.cols AS B ON ST_Intersects(A.geom,B.poly_geom) WHERE B.project_id=1;")
+
+# To end the connection, find the pid of the process
+GrepResults<-system2("ps",c("ax | grep teststrata"),stdout=TRUE)
+# Parse the pids from your grep into a numeric vector
+Processes<-as.numeric(sub(" .*","",GrepResults)) 
+# Kill all pids identified in the grep
+tools::pskill(Processes)		    
+		    
+#############################################################################################################
+############################################# MAKE DCA, FIDELITY ############################################
+#############################################################################################################
+# No functions at this time
+		    
+################################################# Make Figures ##############################################
                         
