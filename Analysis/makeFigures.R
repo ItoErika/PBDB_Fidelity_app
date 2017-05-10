@@ -201,7 +201,7 @@ par(mar = rep(0, 4), xaxs='i', yaxs='i')
 plot(MacrostratColumns)
 
 # Extract the age of each column's polygons
-PolygonAges<-dbGetQuery(Burwell,"SELECT B.id,A.best_age_bottom, A.best_age_bottom FROM carto.large AS A JOIN macrostrat.cols AS B ON ST_Intersects(A.geom,B.poly_geom) WHERE B.project_id=1;")
+PolygonAges<-dbGetQuery(Burwell,"SELECT B.id,A.best_age_top, A.best_age_bottom FROM carto.large AS A JOIN macrostrat.cols AS B ON ST_Intersects(A.geom,B.poly_geom) WHERE B.project_id=1;")
 
 # To end the connection, find the pid of the process
 GrepResults<-system2("ps",c("ax | grep teststrata"),stdout=TRUE)
