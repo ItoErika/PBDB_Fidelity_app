@@ -2,7 +2,7 @@
 # vs. non-candidate units (sedimentary, Phanerozoic formations with at least one PBDB occurrence in Macrostrat)
 
 # Load the data collected from the first pass document search for all candidate and non-candidate formations
-# NOTE: This is the output for the first search for all 4,682 formations of interest (candidate and non-candidate)
+# NOTE: This is the output for the first search for all formations of interest (candidate and non-candidate)
 # We started with 2,661 candidate units and 2,021 non-candidate units
 MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/MatchData.csv", row.names=1)
 
