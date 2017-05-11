@@ -126,8 +126,8 @@ FormationMatrix<-do.call(rbind,FormationMatrix)
 # Create the sub-matrix key
 MatrixKey<-keyMatrix(FormationMatrix)
 # Split Formation matrix into distinct units
-splitMatrix(FormationMatrix,MatrixKey)                                      
-
+splitMatrix(FormationMatrix,MatrixKey)
+		    
 # Check to see if the location of a macrostrat column is mentioned in the document
 FormationKey<-checkLocation(FormationKey)
 # Attach the concept_id names to make the FormationKey compatible with the Formation Matrix
@@ -178,13 +178,13 @@ abline(h=mean(EpochPercent),col="black",lty=3,lwd=4); abline(h=mean(EpochPercent
 ############################################# MAKE MAP, FIDELITY ############################################
 #############################################################################################################
 # Find which epochs/periods/stages intersect which polygons
-intersectAges<-function(Epochs,PolygonAges) {
+intersectSurface<-function(Epochs,PolygonAges) {
 	FinalMatrix<-matrix(NA,nrow=length(unique(PolygonAges[,"id"])),ncol=nrow(Epochs))
 	rownames(FinalMatrix)<-sort(unique(PolygonAges[,"id"]),decreasing=FALSE)
 	colnames(FinalMatrix)<-Epochs[,"name"]
 	for (i in 1:nrow(Epochs)) {
 		AgeMatch<-by(PolygonAges,PolygonAges[,"id"], function(x,t,b) any(t<x[,"best_age_bottom"] & x[,"best_age_top"] <b) | any(t==x[,"best_age_top"] & b==x[,"best_age_bottom"]),Epochs[i,"t_age"],Epochs[i,"b_age"])
-		FinalMatrix[,Epochs[i,"name"]]<-as.numeric(do.call(c, as.list(AgeMatch)))
+		FinalMatrix[,i]<-as.numeric(do.call(c, as.list(AgeMatch)))
 		}
 	return(FinalMatrix)
 	}
@@ -201,15 +201,6 @@ Burwell<-dbConnect(Driver, dbname = "burwell", host = "localhost", port = 5439, 
 # Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
 
-# This deals with the ridiculous y-limit issue with the sp plot methods
-Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
-Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
-Aspect <- Height / Width
-# Plot the raw map
-quartz(width = 10, height = 10*Aspect)
-par(mar = rep(0, 4), xaxs='i', yaxs='i')
-plot(MacrostratColumns)
-
 # Extract the age of each column's polygons
 PolygonAges<-dbGetQuery(Burwell,"SELECT B.id,A.best_age_top, A.best_age_bottom FROM carto.large AS A JOIN macrostrat.cols AS B ON ST_Intersects(A.geom,B.poly_geom) WHERE B.project_id=1;")
 # Remove the bodies without ages. Most bodies without ages are water bodies or units of explicitly unknown age.
@@ -221,7 +212,23 @@ GrepResults<-system2("ps",c("ax | grep teststrata"),stdout=TRUE)
 Processes<-as.numeric(sub(" .*","",GrepResults)) 
 # Kill all pids identified in the grep
 tools::pskill(Processes)		    
-		    
+
+# Find the column-polygonage relationship
+SurfaceAges<-intersectSurface(Epochs,PolygonAges)
+# Create a matrix of formations by column
+FormationColumns<-presenceMatrix(FossilsGDD,"col_id","V2")
+
+# 
+			     
+# This deals with the ridiculous y-limit issue with the sp plot methods
+Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
+Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
+Aspect <- Height / Width
+# Plot the raw map
+quartz(width = 10, height = 10*Aspect)
+par(mar = rep(0, 4), xaxs='i', yaxs='i')
+plot(MacrostratColumns)			     
+			     
 #############################################################################################################
 ############################################# MAKE DCA, FIDELITY ############################################
 #############################################################################################################
