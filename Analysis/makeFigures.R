@@ -177,8 +177,18 @@ abline(h=mean(EpochPercent),col="black",lty=3,lwd=4); abline(h=mean(EpochPercent
 #############################################################################################################
 ############################################# MAKE MAP, FIDELITY ############################################
 #############################################################################################################
-# No functions at this time
-		    
+# Find which epochs/periods/stages intersect which polygons
+intersectAges<-function(Epochs,PolygonAges) {
+	FinalMatrix<-matrix(NA,nrow=length(unique(PolygonAges[,"id"])),ncol=nrow(Epochs))
+	rownames(FinalMatrix)<-sort(unique(PolygonAges[,"id"]),decreasing=FALSE)
+	colnames(FinalMatrix)<-Epochs[,"name"]
+	for (i in 1:nrow(Epochs)) {
+		AgeMatch<-by(PolygonAges,PolygonAges[,"id"], function(x,t,b) any(t<x[,"best_age_bottom"] & x[,"best_age_top"] <b) | any(t==x[,"best_age_top"] & b==x[,"best_age_bottom"]),Epochs[i,"t_age"],Epochs[i,"b_age"])
+		FinalMatrix[,Epochs[i,"name"]]<-as.numeric(do.call(c, as.list(AgeMatch)))
+		}
+	return(FinalMatrix)
+	}
+			  
 ################################################# Make Figures ##############################################
 # Establish a remote connection to teststrata
 system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sys.sleep(1);
@@ -202,7 +212,9 @@ plot(MacrostratColumns)
 
 # Extract the age of each column's polygons
 PolygonAges<-dbGetQuery(Burwell,"SELECT B.id,A.best_age_top, A.best_age_bottom FROM carto.large AS A JOIN macrostrat.cols AS B ON ST_Intersects(A.geom,B.poly_geom) WHERE B.project_id=1;")
-
+# Remove the bodies without ages. Most bodies without ages are water bodies or units of explicitly unknown age.
+PolygonAges<-na.omit(PolygonAges)
+		    
 # To end the connection, find the pid of the process
 GrepResults<-system2("ps",c("ax | grep teststrata"),stdout=TRUE)
 # Parse the pids from your grep into a numeric vector
