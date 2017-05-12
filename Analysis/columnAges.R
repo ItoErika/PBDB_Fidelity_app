@@ -55,7 +55,10 @@ COLUMN<-unique(SubsetUnitsFrame[which(SubsetUnitsFrame[,"col_id"]==col_ids[1]),c
 col_ids<-unique(sort(SubsetUnitsFrame[,"col_id"]))
 
 Bins<-seq(1,541)
-FinalVector<-vector("numeric",length=length(Bins))
-for(i in 1:length(Bins)){
-  FinalVector[i]<-any(COLUMN[,"t_int_age"]<=Bins[i]&COLUMN[,"b_int_age"]>=Bins[i])
-  }
+FinalMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
+for(j in 1:length(col_ids)){
+    for(i in 1:length(Bins)){
+        FinalMatrix[i,j]<-any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_int_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_int_age"]<=Bins[i])
+        }
+     }
+
