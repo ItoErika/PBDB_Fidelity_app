@@ -188,7 +188,19 @@ intersectSurface<-function(Epochs,PolygonAges) {
 		}
 	return(FinalMatrix)
 	}
-			  
+
+# Find the number of "valid" formations per column
+validFormations<-function(Epoch,SurfaceAges,FormationColumns) {
+	FinalVector<-setNames(vector("numeric",length=nrow(FormationColumns)),rownames(FormationColumns))
+	for (i in 1:nrow(FormationColumns)) {
+		Formations<-which(Epoch[names(which(FormationColumns[i,]==1)),]==1,arr.ind=TRUE)
+		if (is.vector(Formations)!=TRUE) {Formations<-Formations[,"col"]}
+		Ages<-which(SurfaceAges[i,]==1)
+		FinalVector[i]<-length(unique(names(Formations[which(Formations%in%Ages)])))
+		}
+	return(FinalVector)
+	}
+			     
 ################################################# Make Figures ##############################################
 # Establish a remote connection to teststrata
 system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sys.sleep(1);
@@ -218,7 +230,9 @@ SurfaceAges<-intersectSurface(Epochs,PolygonAges)
 # Create a matrix of formations by column
 FormationColumns<-presenceMatrix(FossilsGDD,"col_id","V2")
 
-# 
+# Account for the surface/subsurface relationships
+ColumnColors<-validFormations(Epoch,SurfaceAges,FormationColumns)
+Ramp<-colorRampPalette(c("#014636","white"))
 			     
 # This deals with the ridiculous y-limit issue with the sp plot methods
 Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
@@ -227,7 +241,7 @@ Aspect <- Height / Width
 # Plot the raw map
 quartz(width = 10, height = 10*Aspect)
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
-plot(MacrostratColumns)			     
+plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1])			     
 			     
 #############################################################################################################
 ############################################# MAKE DCA, FIDELITY ############################################
