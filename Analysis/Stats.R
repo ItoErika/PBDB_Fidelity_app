@@ -11,7 +11,7 @@ CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/Clea
 NoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoTraceOutput.csv")
 NoMicroOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroOutput.csv")
 NoMicroNoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroNoTraceOutput.csv")
-MatrixData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/MatrixData.csv", row.names=1)
+MatrixData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/MatrixData.csv")
 
 # Run date
 PaperStats[which(PaperStats[,"V1"]=="Fidelity run date"),"V2"]
@@ -92,7 +92,7 @@ length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE)
 length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))
 # 604
 # Double check: 
-length(unique(MatrixData[which(MatrixData[,"PBDB_occ"]==FALSE&MatchData[,"GDD_occ"]==TRUE),"Formation"]))
+length(unique(MatrixData[which(MatrixData[,"PBDB_occ"]==FALSE&MatrixData[,"GDD_occ"]==TRUE),"Formation"]))
 # 604
 # Number of formations we confirmed to be fossiliferous which WERE in PBDB:
 length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
@@ -103,7 +103,6 @@ length(unique(CleanedOutput[,"Formation"]))
 # Double check:
 length(unique(MatrixData[which(MatrixData[,"GDD_occ"]==TRUE),"Formation"]))
 # 1,647
-
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoTraceOutput
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
