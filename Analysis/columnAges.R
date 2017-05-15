@@ -48,13 +48,9 @@ ColumnAges<-unique(SubsetUnitsFrame[,c("col_id", "t_int_age", "b_int_age")])
 
 # Extract all col_ids in increasing order
 col_ids<-unique(sort(ColumnAges[,"col_id"]))
-
-COLUMN<-unique(SubsetUnitsFrame[which(SubsetUnitsFrame[,"col_id"]==col_ids[1]),c("t_int_age","b_int_age")])
-
-# Extract all col_ids in increasing order
-col_ids<-unique(sort(SubsetUnitsFrame[,"col_id"]))
-
+# Create time bins representing millions of years ago (Cenozoic-Paleozoic)
 Bins<-seq(1,541)
+# Create an empty matrix with a column for each col_id and a row for each time bin
 AgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(j in 1:length(col_ids)){
     for(i in 1:length(Bins)){
@@ -62,3 +58,6 @@ for(j in 1:length(col_ids)){
         }
      }
 
+# Assign appropriate row and column names
+rownames(AgesMatrix)<-1:541
+colnames(AgesMatrix)<-col_ids
