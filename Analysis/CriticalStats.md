@@ -44,6 +44,7 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
    
 + Percentage of formations we identified as fossiliferous that were unrecorded in the Paleobiology Database when we ran app: (# of fossiliferous formations in NOT in PBDB in CleanedOutput/ # of fossiliferous formations in CleanedOutput):
     + **Number of formations we found to be fossiliferous which were not in PBDB: 604**
+    + **Number of formations we confirmed to be fossiliferous which WERE in PBDB: 1,043**
     + **Total number of formations we were able to identify as fossiliferous through our application processes: 1,647**
     + **Division: 604 / 1,647 = 36.673%**
 
