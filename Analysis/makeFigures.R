@@ -237,7 +237,10 @@ FormationColumns<-presenceMatrix(FossilsGDD,"col_id","V2")
 
 # Account for the surface/subsurface relationships
 ColumnColors<-validFormations(Epoch,SurfaceAges,FormationColumns)
-Ramp<-colorRampPalette(c("#014636","white"))
+Ramp<-colorRampPalette(c("white","#014636"))
+
+# Reproject into albers equal area
+MacrostratColumns<-spTransform(MacrostratColumns,CRS("+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
 			     
 # This deals with the ridiculous y-limit issue with the sp plot methods
 Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
@@ -246,7 +249,7 @@ Aspect <- Height / Width
 # Plot the raw map
 quartz(width = 10, height = 10*Aspect)
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
-plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1])			     
+plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)			     
 			     
 #############################################################################################################
 ############################################# MAKE DCA, FIDELITY ############################################
