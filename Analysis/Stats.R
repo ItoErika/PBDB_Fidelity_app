@@ -87,6 +87,23 @@ length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE)
 length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"docid"])))
 # 2,666 documents in initial output mentioning non-candidate units
 
+# Number of formations we found to be fossiliferous which were not in PBDB:
+length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))
+# 604
+# Double check: 
+length(unique(MatchData[which(MatchData[,"PBDB_occ"]==FALSE&MatchData[,"GDD_occ"]==TRUE),"Formation"]))
+# 604
+# Number of formations we confirmed to be fossiliferous which WERE in PBDB:
+length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
+# 1,043
+# Total number of formations we were able to identify as fossiliferous through our application processes: 
+length(unique(CleanedOutput[,"Formation"]))
+# 1,647
+# Double check:
+length(unique(MatchData[which(MatchData[,"GDD_occ"]==TRUE),"Formation"]))
+# 1,647
+
+
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoTraceOutput
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
 # 588 candidate formations
