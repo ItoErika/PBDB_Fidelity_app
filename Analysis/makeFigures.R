@@ -237,7 +237,7 @@ FormationColumns<-presenceMatrix(FossilsGDD,"col_id","V2")
 
 # Account for the surface/subsurface relationships
 ColumnColors<-validFormations(Epoch,SurfaceAges,FormationColumns)
-Ramp<-colorRampPalette(c("white","#014636"))
+Ramp<-colorRampPalette(c("white","#CE3E3D"))
 
 # Reproject into albers equal area
 MacrostratColumns<-spTransform(MacrostratColumns,CRS("+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
