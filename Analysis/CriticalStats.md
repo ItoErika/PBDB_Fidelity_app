@@ -41,7 +41,12 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
     + **828 documents in cleaned output mentioning candidate units**
     + **1,043 non-candidate formations (in PBDB)**
     + **2,666 documents in cleaned output mentioning non-candidate units**
-    
+   
++ Percentage of formations we identified as fossiliferous that were unrecorded in the Paleobiology Database when we ran app: (# of fossiliferous formations in NOT in PBDB in CleanedOutput/ # of fossiliferous formations in CleanedOutput):
+    + **Number of formations we found to be fossiliferous which were not in PBDB: 604**
+    + **Total number of formations we were able to identify as fossiliferous through our application processes:1,647**
+    + **Division: 604 / 1,647 = 36.673%**
+
 + Number of candidate units, non-candidate units (in PBDB), and documents in [NoTraceOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R) (output with sentences including "trace fossil" or "ichno" removed):
     + **588 candidate formations**
     + **782 documents in cleaned output mentioning candidate units**
@@ -59,4 +64,6 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
     + **780 documents in cleaned output mentioning candidate units**
     + **1,025 non-candidate formations (in PBDB)**
     + **2,550 documents mentioning non-candidate units**
+    
+
     
