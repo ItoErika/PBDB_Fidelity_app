@@ -190,6 +190,8 @@ FormationMatrix<-data.matrix(cbind(FormationMatrix, LithTypeMatrix))
 ##################################################### PERIODS #########################################################
 
 Periods<-downloadTime("international%20periods")
+# Remove Precambrian ages
+Periods<-Periods[which(Periods[,"b_age"]<=541.000),]
 	
 # create a matrix showing whether or not each period from Periods corresponds with each unit of SubsetUnitsFrame  
 multipleAges<-function(SubsetUnitsFrame,Periods) {
