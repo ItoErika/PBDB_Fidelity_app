@@ -1,3 +1,4 @@
+############################################ LOAD CLEANEDOUTPUT ##################################################
 # Load CleanedOutput
 CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
 
@@ -27,3 +28,6 @@ CheckOutput<-CheckOutput[!duplicated(CheckOutput[,"Sentence"]),]
 
 # Take a random sample of 100 rows from CheckOutput
 Sample<-CheckOutput[sample(c(1:nrow(CheckOutput)), 100, replace=FALSE),]
+
+# Save the sample
+# write.csv(Sample, "~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/Sample.csv", row.names=FALSE)
