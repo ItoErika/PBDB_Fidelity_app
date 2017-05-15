@@ -209,6 +209,7 @@ system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sy
 Driver<-dbDriver("PostgreSQL") # Establish database driver		    
 # Establish a postgres connection
 Burwell<-dbConnect(Driver, dbname = "burwell", host = "localhost", port = 5439, user = "john")
+Obis<-dbConnect(Driver, dbname = "obis", host = "localhost", port = 5432, user = "zaffos")
 		    
 # Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
@@ -223,7 +224,11 @@ GrepResults<-system2("ps",c("ax | grep teststrata"),stdout=TRUE)
 # Parse the pids from your grep into a numeric vector
 Processes<-as.numeric(sub(" .*","",GrepResults)) 
 # Kill all pids identified in the grep
-tools::pskill(Processes)		    
+tools::pskill(Processes)
+			     
+# Write PolygonAges to postgres so we don't have to keep recalculating
+dbSendQuery(Obis,"DROP TABLE IF EXISTS polygon_ages CASCADE;")
+dbWriteTable(Obis,"polygon_ages",value=as.data.frame(PolygonAges),row.names=FALSE)
 
 # Find the column-polygonage relationship
 SurfaceAges<-intersectSurface(Epochs,PolygonAges)
