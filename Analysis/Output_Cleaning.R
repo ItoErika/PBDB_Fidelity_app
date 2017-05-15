@@ -64,6 +64,23 @@ Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Un
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
 
+########################################### REMOVE ROWS WITH INCORRECT LOCATIONS ##########################################
+
+# Remove rows where the col_locations are not in doc_locations (to improve accuracy of col_id to strat name match)
+# Reformat location columns
+CleanedOutput[,"col_locations"]<-as.character(CleanedOutput[,"col_locations"])
+CleanedOutput[,"doc_locations"]<-as.character(CleanedOutput[,"doc_locations"])
+
+# For each row in CleanedOutput, search for each state/province in col_locations in doc_locations
+LocationMatch<-vector(length=nrow(CleanedOutput))
+for(i in 1:length(LocationMatch)){
+    # Determine if there is at least one location match from col_locations in doc_locations
+    LocationMatch[[i]]<-any(sapply(sapply(unlist(strsplit(CleanedOutput[i,"col_locations"], ", ")), function (x,y) grep (x, y, ignore.case=TRUE, perl=TRUE), CleanedOutput[i,"doc_locations"]),length)==1)
+    }  
+
+# Remove rows from CleanedOutput for which none of the col_locations are in the doc_locations                                          
+CleanedOutput<-CleanedOutput[which(LocationMatch==TRUE),]                                       
+
 ############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS #####################################
 
 # Find instances of micro and trace fossils in CleanedOutput sentences
