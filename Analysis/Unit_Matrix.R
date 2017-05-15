@@ -20,8 +20,12 @@ NoMicroOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMi
 # Load output with no trace hits and no micro hits
 NoMicroNoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroNoTraceOutput.csv")
 
+# Create a temporary column of strat name, col_id tuples in CleanedOutput and in MatchData
+CleanedOutput[,"Name_ColID"]<-paste(CleanedOutput[,"Formation"],CleanedOutput[,"col_id"], sep=".")
+MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep=".")
+
 # Add a column to MatchData showing if the formation was captured in the final cleaned output
-MatchData[which(MatchData[,"Formation"]%in%CleanedOutput[,"Formation"]),"GDD_occ"]<-"TRUE"
+MatchData[which(MatchData[,"Name_ColID"]%in%CleanedOutput[,"Name_ColID"]),"GDD_occ"]<-"TRUE"
 MatchData[which(is.na(MatchData[,"GDD_occ"])),"GDD_occ"]<-"FALSE"
 
 # Add a column to MatchData showing if the formation appeared in sentences with the word "micro" or "spore"
@@ -44,8 +48,6 @@ SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits
 UnitIDTable<-unique(SubsetUnitsFrame[,c("strat_name_long","unit_id","col_id")])
 # Add a column of the strat name and col_id pasted together to UnitIDTable
 UnitIDTable[,"Name_ColID"]<-paste(UnitIDTable[,"strat_name_long"], UnitIDTable[,"col_id"], sep=".")
-# Temporarily add a column of the strat name and col_id pasted together to MatchData
-MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep=".")
 
 # Merge unit_id data to MatchData, and remove the temporary column
 MatchData<-merge(MatchData, UnitIDTable[,c("unit_id","Name_ColID")], by="Name_ColID")
