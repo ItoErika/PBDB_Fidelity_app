@@ -18,7 +18,10 @@ for(i in 1:length(LocationMatch)){
     }  
 
 # Remove rows from InitialOutput for which none of the col_locations are in the doc_locations                                          
-InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]                                       
+InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]      
+                                          
+# Remove ambiguously named formations from InitialOutput
+InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="White Dolomite"),]                                          
 
 ##################################### SUBSET OUTPUT USING PBDB TAXA, DOCID TUPLES #######################################
 
@@ -82,9 +85,6 @@ Above, Below, Beneath, NoRecognizable, Overlie, Overlying, Overlain, Underlie, U
 
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
-
-# Remove ambiguously named formations from CleanedOutput
-CleanedOutput<-CleanedOutput[-which(CleanedOutput[,"Formation"]=="White Dolomite"),]
                                           
 ############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS ###################################
 
