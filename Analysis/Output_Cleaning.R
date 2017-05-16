@@ -1,7 +1,7 @@
-#################################################  LOAD LIBRARIES ##########################################################
+#################################################  LOAD LIBRARIES #######################################################
 library("RCurl")
 
-########################################### REMOVE ROWS WITH INCORRECT LOCATIONS ##########################################
+############################### REMOVE ROWS WITH INCORRECT LOCATIONS FROM INITIAL OUTPUT ################################
 # Load output data from application
 InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
 
@@ -10,7 +10,7 @@ InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb
 InitialOutput[,"col_locations"]<-as.character(InitialOutput[,"col_locations"])
 InitialOutput[,"doc_locations"]<-as.character(InitialOutput[,"doc_locations"])
 
-# For each row in CleanedOutput, search for each state/province in col_locations in doc_locations
+# For each row in InitialOutput, search for each state/province in col_locations in doc_locations
 LocationMatch<-vector(length=nrow(InitialOutput))
 for(i in 1:length(LocationMatch)){
     # Determine if there is at least one location match from col_locations in doc_locations
@@ -20,7 +20,7 @@ for(i in 1:length(LocationMatch)){
 # Remove rows from CleanedOutput for which none of the col_locations are in the doc_locations                                          
 InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]                                       
 
-################################## SUBSET INITIAL OUTPUT USING PBDB TAXA, DOCID TUPLES #####################################
+##################################### SUBSET OUTPUT USING PBDB TAXA, DOCID TUPLES #######################################
 
 # Download taxanomic names (genus and below) from the Paleobiology Database
 TaxaURL<-"https://paleobiodb.org/data1.2/taxa/list.csv?rank=max_genus&all_records"
@@ -53,7 +53,7 @@ PBDBTupleOutput<-subset(InitialOutput, InitialOutput[,"docid"]%in%PBDB_Tuples[,"
 
 PBDBTupleOutput[,"Sentence"]<-as.character(PBDBTupleOutput[,"Sentence"])
 
-############################# REMOVE SENTENCES WITH WORDS LIKELY TO CAUSE READING ERRORS ##################################
+########################## REMOVE SENTENCES WITH WORDS/PHRASES LIKELY TO CAUSE READING ERRORS ##########################
 
 # Remove words or phrases that are likely to cause reading errors creating false hits
 NoFossils<-grep(" no fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -84,9 +84,9 @@ Above, Below, Beneath, NoRecognizable, Overlie, Overlying, Overlain, Underlie, U
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
 
 # Remove ambiguously named formations from CleanedOutput
-CleanedOutput<-
-
-############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS #####################################
+CleanedOutput<-CleanedOutput[-which(CleanedOutput[,"Formation"]=="White Dolomite"),]
+                                          
+############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS ###################################
 
 # Find instances of micro and trace fossils in CleanedOutput sentences
                                           
