@@ -6,11 +6,11 @@ CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/Clea
 # Locate hits for trace fossils within the output sentences
 Trace<-grep("trace fossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Ichno<-grep("ichno", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+TraceSentences<-unique(c(Trace, Ichno)) 
+
 # Locate hits for microfossils within the output sentences
 Micro<-grep("microfossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-
-TraceSentences<-unique(c(Trace, Ichno)) 
 MicroSentences<-unique(c(Micro, Spore)) 
 
 # Tag sentences with trace fossils
