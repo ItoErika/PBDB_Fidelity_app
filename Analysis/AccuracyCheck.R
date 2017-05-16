@@ -7,14 +7,21 @@ CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/Clea
 Trace<-grep("trace fossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Ichno<-grep("ichno", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Burrow<-grep("burrow", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-TraceSentences<-unique(c(Trace, Ichno, Burrow)) 
+Trackway<-grep("trackway", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+TraceSentences<-unique(c(Trace, Ichno, Burrow, Trackway)) 
 
 # Locate hits for microfossils within the output sentences
 Micro<-grep("microfossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Foram<-grep(" foram", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Radiolaria<-grep("radiolaria", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-MicroSentences<-unique(c(Micro, Spore, Foram, Radiolaria)) 
+Radiolaria<-grep("radiolaria", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)                                          
+Graptolite<-grep("graptolite", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Conodont<-grep("conodont", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Diatom<-grep("diatom", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Coccolith<-grep("coccolith", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Pollen<-grep("pollen", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Acritarch<-grep("acritarch", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+MicroSentences<-unique(c(Micro, Spore, Foram, Radiolaria, Graptolite, Conodont, Diatom, Coccolith, Pollen, Acritarch)) 
 
 # Tag sentences with trace fossils
 CleanedOutput[TraceSentences,"Trace"]<-"TRUE"
