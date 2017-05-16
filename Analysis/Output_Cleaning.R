@@ -43,12 +43,15 @@ PBDBTupleOutput[,"Sentence"]<-as.character(PBDBTupleOutput[,"Sentence"])
 NoFossils<-grep(" no fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Lack<-grep(" lack ", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Lacks<-grep(" lacks ", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-AbsentFossils<-grep("absence of fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Absence<-grep("absence", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Barren<-grep("barren", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 VoidFossils<-grep("void of fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Correlative<-grep("correlative", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Equivalent<-grep("equivalent", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Above<-grep("above", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Below<-grep("below", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Beneath<-grep("beneath", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+NoRecognizable<-grep("no recognizable fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
 Overlie<-grep("overlie", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Overlying<-grep("overlying", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -58,8 +61,8 @@ Underlying<-grep("underlying", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, p
 Underlain<-grep("underlain", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
 # Bind all noisy sentences
-NoisySentences<-unique(c(NoFossils, Lack, Lacks, AbsentFossils, VoidFossils, Correlative,
-Equivalent, Above, Below, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
+NoisySentences<-unique(c(NoFossils, Lack, Lacks, Absence, Barren, VoidFossils, Correlative, Equivalent,
+Above, Below, Beneath, NoRecognizable, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
 
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
@@ -84,15 +87,20 @@ CleanedOutput<-CleanedOutput[which(LocationMatch==TRUE),]
 ############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS #####################################
 
 # Find instances of micro and trace fossils in CleanedOutput sentences
+                                          
 # Locate hits for trace fossils within the output sentences
 Trace<-grep("trace fossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Ichno<-grep("ichno", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Burrow<-grep("burrow", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+                                          
 # Locate hits for microfossils within the output sentences
 Micro<-grep("microfossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Foram<-grep(" foram", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Radiolaria<-grep("radiolaria", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
-TraceSentences<-unique(c(Trace, Ichno)) 
-MicroSentences<-unique(c(Micro, Spore)) 
+TraceSentences<-unique(c(Trace, Ichno, Burrow)) 
+MicroSentences<-unique(c(Micro, Spore, Foram, Radiolaria)) 
 TraceOrMicroSentences<-unique(c(TraceSentences, MicroSentences)) 
 
 # Create a cleaned output with no trace fossils, but including microfossils
