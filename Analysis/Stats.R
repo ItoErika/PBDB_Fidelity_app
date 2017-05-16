@@ -6,6 +6,8 @@ PaperStats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fi
 AllDocuments<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/AllDocuments.csv", row.names=1)
 Stats<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Stats.csv")
 InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
+# Remove "white dolomite" from Initial Output
+InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="White Dolomite"),]
 PBDBTupleOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/PBDBTupleOutput.csv")
 CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
 NoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoTraceOutput.csv")
