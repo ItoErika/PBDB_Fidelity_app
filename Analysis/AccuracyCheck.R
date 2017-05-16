@@ -12,7 +12,6 @@ Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 
 TraceSentences<-unique(c(Trace, Ichno)) 
 MicroSentences<-unique(c(Micro, Spore)) 
-TraceOrMicroSentences<-unique(c(TraceSentences, MicroSentences)) 
 
 # Tag sentences with trace fossils
 CleanedOutput[TraceSentences,"Trace"]<-"TRUE"
