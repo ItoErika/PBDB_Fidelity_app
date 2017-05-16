@@ -31,12 +31,12 @@ MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], s
 MatchData[which(MatchData[,"Name_ColID"]%in%CleanedOutput[,"Name_ColID"]),"GDD_occ"]<-"TRUE"
 MatchData[which(is.na(MatchData[,"GDD_occ"])),"GDD_occ"]<-"FALSE"
 
-# Add a column to MatchData showing if the formation appeared in sentences with the word "micro" or "spore"
+# Add a column to MatchData showing if the formation appeared in sentences with the word "micro", "spore", "foram", or "radiolaria"
 # Tag formations in CleanedOutput which are NOT found in the NoMicroOutput as TRUE
 MicroFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoMicroOutput[,"Formation"])==TRUE),"Formation"]))
 MatchData[which(as.character(MatchData[,"Formation"])%in%MicroFormations),"Micro"]<-"TRUE"
 
-# Add a column to MatchData showing if the formation appeared in sentences with the words "trace fossil" or "ichno"
+# Add a column to MatchData showing if the formation appeared in sentences with the words "trace fossil", "ichno", or "burrow"
 # Tag formations in CleanedOutput which are NOT found in the NoTraceOutput as TRUE
 TraceFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoTraceOutput[,"Formation"])==TRUE),"Formation"]))
 MatchData[which(as.character(MatchData[,"Formation"])%in%TraceFormations),"Trace"]<-"TRUE"
