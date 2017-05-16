@@ -17,7 +17,7 @@ for(i in 1:length(LocationMatch)){
     LocationMatch[[i]]<-any(sapply(sapply(unlist(strsplit(InitialOutput[i,"col_locations"], ", ")), function (x,y) grep (x, y, ignore.case=TRUE, perl=TRUE), InitialOutput[i,"doc_locations"]),length)==1)
     }  
 
-# Remove rows from CleanedOutput for which none of the col_locations are in the doc_locations                                          
+# Remove rows from InitialOutput for which none of the col_locations are in the doc_locations                                          
 InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]                                       
 
 ##################################### SUBSET OUTPUT USING PBDB TAXA, DOCID TUPLES #######################################
