@@ -1,6 +1,25 @@
 #################################################  LOAD LIBRARIES ##########################################################
 library("RCurl")
 
+########################################### REMOVE ROWS WITH INCORRECT LOCATIONS ##########################################
+# Load output data from application
+InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
+
+# Remove rows where the col_locations are not in doc_locations (to improve accuracy of col_id to strat name match)
+# Reformat location columns
+InitialOutput[,"col_locations"]<-as.character(InitialOutput[,"col_locations"])
+InitialOutput[,"doc_locations"]<-as.character(InitialOutput[,"doc_locations"])
+
+# For each row in CleanedOutput, search for each state/province in col_locations in doc_locations
+LocationMatch<-vector(length=nrow(InitialOutput))
+for(i in 1:length(LocationMatch)){
+    # Determine if there is at least one location match from col_locations in doc_locations
+    LocationMatch[[i]]<-any(sapply(sapply(unlist(strsplit(InitialOutput[i,"col_locations"], ", ")), function (x,y) grep (x, y, ignore.case=TRUE, perl=TRUE), InitialOutput[i,"doc_locations"]),length)==1)
+    }  
+
+# Remove rows from CleanedOutput for which none of the col_locations are in the doc_locations                                          
+InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]                                       
+
 ################################## SUBSET INITIAL OUTPUT USING PBDB TAXA, DOCID TUPLES #####################################
 
 # Download taxanomic names (genus and below) from the Paleobiology Database
@@ -28,10 +47,7 @@ PBDB_Tuples<-PBDB_Tuples[-which(PBDB_Tuples[,"taxon_name"]%in%BadTaxa),]
 
 # Subset PBDB_Tuples to only include taxonomic names that are at the genus or species level
 PBDB_Tuples<-subset(PBDB_Tuples, PBDB_Tuples[,"taxon_name"]%in%Genera|PBDB_Tuples[,"taxon_name"]%in%Species)
-    
-# Load output data from application
-InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
-    
+        
 # Subset InitialOutput to only include documents from PBDB_Tuples
 PBDBTupleOutput<-subset(InitialOutput, InitialOutput[,"docid"]%in%PBDB_Tuples[,"docid"])  
 
@@ -67,22 +83,8 @@ Above, Below, Beneath, NoRecognizable, Overlie, Overlying, Overlain, Underlie, U
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
 
-########################################### REMOVE ROWS WITH INCORRECT LOCATIONS ##########################################
-
-# Remove rows where the col_locations are not in doc_locations (to improve accuracy of col_id to strat name match)
-# Reformat location columns
-CleanedOutput[,"col_locations"]<-as.character(CleanedOutput[,"col_locations"])
-CleanedOutput[,"doc_locations"]<-as.character(CleanedOutput[,"doc_locations"])
-
-# For each row in CleanedOutput, search for each state/province in col_locations in doc_locations
-LocationMatch<-vector(length=nrow(CleanedOutput))
-for(i in 1:length(LocationMatch)){
-    # Determine if there is at least one location match from col_locations in doc_locations
-    LocationMatch[[i]]<-any(sapply(sapply(unlist(strsplit(CleanedOutput[i,"col_locations"], ", ")), function (x,y) grep (x, y, ignore.case=TRUE, perl=TRUE), CleanedOutput[i,"doc_locations"]),length)==1)
-    }  
-
-# Remove rows from CleanedOutput for which none of the col_locations are in the doc_locations                                          
-CleanedOutput<-CleanedOutput[which(LocationMatch==TRUE),]                                       
+# Remove ambiguously named formations from CleanedOutput
+CleanedOutput<-
 
 ############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS #####################################
 
