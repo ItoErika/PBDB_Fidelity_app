@@ -25,46 +25,46 @@ See [Stats Page](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Analy
 **Went from 2,255 to 2,168 candidate units (87 candidate units removed)**
 
 + Number of candidate units, non-candidate units (in PBDB), and documents in initial output:
-    + **710 candidate units**
-    + **1,020 documents in initial output mentioning candidate units**
+    + **709 candidate units**
+    + **1,018 documents in initial output mentioning candidate units**
     + **1,119 non-candidate units (in PBDB)**
     + **2,974 documents in initial output mentioning non-candidate units**
     
 + Number of candidate units, non-candidate units (in PBDB), and documents in [PBDBTupleOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R) (InitialOutput after removing documents that do not contain either a species or genus taxonomic name):
-    + **702 candidate formations**
-    + **991 documents in cleaned output mentioning candidate units**
+    + **701 candidate formations**
+    + **989 documents in cleaned output mentioning candidate units**
     + **1,114 non-candidate formations (in PBDB)**
     + **2,913 documents mentioning non-candidate units**    
     
 + Number of candidate units, non-candidate units (in PBDB), and documents in [CleanedOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R) (PBDBTupleOutput with sentences with words or phrases likely to cause reading errors [e.g. "overlain", "underlain", "correlative", etc.] removed):
-    + **604 candidate formations**
-    + **828 documents in cleaned output mentioning candidate units**
-    + **1,043 non-candidate formations (in PBDB)**
-    + **2,666 documents in cleaned output mentioning non-candidate units**
+    + **589 candidate formations**
+    + **818 documents in cleaned output mentioning candidate units**
+    + **1,042 non-candidate formations (in PBDB)**
+    + **2,650 documents in cleaned output mentioning non-candidate units**
    
 + Percentage of formations we identified as fossiliferous that were unrecorded in the Paleobiology Database when we ran app: (# of fossiliferous formations in NOT in PBDB in CleanedOutput/ # of fossiliferous formations in CleanedOutput):
-    + **Number of formations we found to be fossiliferous which were not in PBDB: 604**
-    + **Number of formations we confirmed to be fossiliferous which WERE in PBDB: 1,043**
-    + **Total number of formations we were able to identify as fossiliferous through our application processes: 1,647**
-    + **Division: 604 / 1,647 = 36.673%**
+    + **Number of formations we found to be fossiliferous which were not in PBDB: 589**
+    + **Number of formations we confirmed to be fossiliferous which WERE in PBDB: 1,042**
+    + **Total number of formations we were able to identify as fossiliferous through our application processes: 1,631**
+    + **Division: 589 / 1,631 = 36.11%**
 
 + Number of candidate units, non-candidate units (in PBDB), and documents in [NoTraceOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R) (output with sentences including "trace fossil" or "ichno" removed):
-    + **588 candidate formations**
-    + **782 documents in cleaned output mentioning candidate units**
-    + **1,028 non-candidate formations (in PBDB)**
-    + **2,563 documents mentioning non-candidate units**
+    + **571 candidate formations**
+    + **768 documents in cleaned output mentioning candidate units**
+    + **1,025 non-candidate formations (in PBDB)**
+    + **2,528 documents mentioning non-candidate units**
     
 + Number of candidate units, non-candidate units (in PBDB), and documents in [NoMicroOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R) (output with sentences including "microfossil" or "spore" removed):
-    + **600 candidate formations**
-    + **826 documents in cleaned output mentioning candidate units**
-    + **1,040 non-candidate formations (in PBDB)**
-    + **2,653 documents mentioning non-candidate units**
+    + **583 candidate formations**
+    + **809 documents in cleaned output mentioning candidate units**
+    + **1,037 non-candidate formations (in PBDB)**
+    + **2,628 documents mentioning non-candidate units**
     
 + Number of candidate units, non-candidate units (in PBDB), and documents in [NoMicroNoTraceOutput](https://github.com/ItoErika/PBDB_Fidelity_app/edit/master/Output_Cleaning.R):
-    + **584 candidate formations**
-    + **780 documents in cleaned output mentioning candidate units**
-    + **1,025 non-candidate formations (in PBDB)**
-    + **2,550 documents mentioning non-candidate units**
+    + **565 candidate formations**
+    + **760 documents in cleaned output mentioning candidate units**
+    + **1,021 non-candidate formations (in PBDB)**
+    + **2,507 documents mentioning non-candidate units**
     
 
     
