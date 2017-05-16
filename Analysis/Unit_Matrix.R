@@ -20,6 +20,9 @@ NoMicroOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMi
 # Load output with no trace hits and no micro hits
 NoMicroNoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroNoTraceOutput.csv")
 
+# Remove "White Dolomite" from MatchData
+MatchData<-MatchData[-which(MatchData[,"Formation"]=="White Dolomite"),]
+
 # Create a temporary column of strat name, col_id tuples in CleanedOutput and in MatchData
 CleanedOutput[,"Name_ColID"]<-paste(CleanedOutput[,"Formation"],CleanedOutput[,"col_id"], sep=".")
 MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep=".")
