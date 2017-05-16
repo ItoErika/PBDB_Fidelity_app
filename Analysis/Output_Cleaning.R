@@ -70,7 +70,6 @@ Equivalent<-grep("equivalent", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, p
 Above<-grep("above", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Below<-grep("below", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Beneath<-grep("beneath", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-NoRecognizable<-grep("no recognizable fossils", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 # NOTE: removing "underlie" and "overlie" should also get rid of "underlies" and "overlies"
 Overlie<-grep("overlie", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
 Overlying<-grep("overlying", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
@@ -81,7 +80,7 @@ Underlain<-grep("underlain", PBDBTupleOutput[,"Sentence"], ignore.case=TRUE, per
 
 # Bind all noisy sentences
 NoisySentences<-unique(c(NoFossils, Lack, Lacks, Absence, Barren, VoidFossils, Correlative, Equivalent,
-Above, Below, Beneath, NoRecognizable, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
+Above, Below, Beneath, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
 
 # Remove rows with noisy sentences from InitialOutput
 CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
