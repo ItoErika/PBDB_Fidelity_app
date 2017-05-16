@@ -35,17 +35,19 @@ PBDB_Occs-Macrostrat_Occs
 # 26,525
 
 # Total number of sedimentary, Phanerozoic formations in Macrostrat
-as.numeric(as.character(PaperStats[which(PaperStats[,"V1"]=="Total number of sedimentary, Phanerozoic formations in Macrostrat"),"V2"]))
-# 4,682
+# Subtract 1 to account for "White Dolomite" formation removal
+as.numeric(as.character(PaperStats[which(PaperStats[,"V1"]=="Total number of sedimentary, Phanerozoic formations in Macrostrat"),"V2"]))-1
+# 4,681
 
 # How many Phanerozoic sedimentary rock formations in Macrostrat have PBDB fossil occurrences
 as.numeric(as.character(PaperStats[which(PaperStats[,"V1"]=="Number of Phanerozoic sedimentary formations in Macrostrat that have PBDB fossil occurrences"),"V2"]))
 # 2,021
 
 # Number of Macrostrat, sedimentary, Phanerozoic formations that do NOT have PBDB fossil occurrences (EPSILON-BETA=ZETA, perform in-app check with length(....))
-as.numeric(as.character(PaperStats[which(PaperStats[,"V1"]=="Number of candidate units (Phanerozoic sedimentary formations in Macrostrat that do not have PBDB fossil occurrences)"),"V2"]))
-# 2,661
-#Check: 4682 - 2021 = 2661
+# Subtract 1 to account for "White Dolomite" formation removal
+as.numeric(as.character(PaperStats[which(PaperStats[,"V1"]=="Number of candidate units (Phanerozoic sedimentary formations in Macrostrat that do not have PBDB fossil occurrences)"),"V2"]))-1
+# 2,660
+#Check: 4,681 - 20,21 = 2,660
 
 # How much data is cut down from geolocation check
 LocationCheckRow<-which(Stats[,"StepDescription"]=="Validate unit locations")
@@ -61,10 +63,11 @@ PreCheckCandidates-PostCheckCandidates
 # 87 candidate units removed
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in original output
+# Subtract 1 to account for "White Dolomite" formation removal
 length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 710 candidate formations
+# 709 candidate formations
 length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 1,020 documents in initial output mentioning candidate units
+# 1,018 documents in initial output mentioning candidate units
 length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==TRUE),"Formation"])))
 # 1,119 non-candidate formations (in PBDB)
 length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==TRUE),"docid"])))
@@ -72,9 +75,9 @@ length(unique(as.character(InitialOutput[which(InitialOutput[,"PBDB_occ"]==TRUE)
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in PBDBTupleOutput
 length(unique(as.character(PBDBTupleOutput[which(PBDBTupleOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 702 candidate formations
+# 701 candidate formations
 length(unique(as.character(PBDBTupleOutput[which(PBDBTupleOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 991 documents in initial output mentioning candidate units
+# 989 documents in initial output mentioning candidate units
 length(unique(as.character(PBDBTupleOutput[which(PBDBTupleOutput[,"PBDB_occ"]==TRUE),"Formation"])))
 # 1,114 non-candidate formations (in PBDB)
 length(unique(as.character(PBDBTupleOutput[which(PBDBTupleOutput[,"PBDB_occ"]==TRUE),"docid"])))
@@ -82,56 +85,56 @@ length(unique(as.character(PBDBTupleOutput[which(PBDBTupleOutput[,"PBDB_occ"]==T
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in CleanedOutput
 length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 604 candidate formations
+# 589 candidate formations
 length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 828 documents in cleaned output mentioning candidate units
+# 818 documents in cleaned output mentioning candidate units
 length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"])))
-# 1,043 non-candidate formations (in PBDB)
+# 1,042 non-candidate formations (in PBDB)
 length(unique(as.character(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,666 documents in initial output mentioning non-candidate units
+# 2,650 documents in initial output mentioning non-candidate units
 
 # Number of formations we found to be fossiliferous which were not in PBDB:
 length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))
-# 604
+# 589
 # Double check: 
 length(unique(MatrixData[which(MatrixData[,"PBDB_occ"]==FALSE&MatrixData[,"GDD_occ"]==TRUE),"Formation"]))
-# 604
+# 589
 # Number of formations we confirmed to be fossiliferous which WERE in PBDB:
 length(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
-# 1,043
+# 1,042
 # Total number of formations we were able to identify as fossiliferous through our application processes: 
 length(unique(CleanedOutput[,"Formation"]))
-# 1,647
+# 1,631
 # Double check:
 length(unique(MatrixData[which(MatrixData[,"GDD_occ"]==TRUE),"Formation"]))
-# 1,647
+# 1,631
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoTraceOutput
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 588 candidate formations
+# 571 candidate formations
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 782 documents in cleaned output mentioning candidate units
+# 768 documents in cleaned output mentioning candidate units
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==TRUE),"Formation"])))
-# 1,028 non-candidate formations (in PBDB)
+# 1,025 non-candidate formations (in PBDB)
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,563 documents in cleaned output mentioning non-candidate units
+# 2,528 documents in cleaned output mentioning non-candidate units
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoMicroOutput
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 600 candidate formations
+# 583 candidate formations
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 826 documents in cleaned output mentioning candidate units
+# 809 documents in cleaned output mentioning candidate units
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==TRUE),"Formation"])))
-# 1,040 non-candidate formations (in PBDB)
+# 1,037 non-candidate formations (in PBDB)
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,653 documents in cleaned output mentioning non-candidate units
+# 2,628 documents in cleaned output mentioning non-candidate units
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoMicroNoTraceOutput
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
-# 584 candidate formations
+# 565 candidate formations
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 780 documents in cleaned output mentioning candidate units
+# 760 documents in cleaned output mentioning candidate units
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==TRUE),"Formation"])))
-# 1,025 non-candidate formations (in PBDB)
+# 1,021 non-candidate formations (in PBDB)
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,550 documents in cleaned output mentioning non-candidate units
+# 2,507 documents in cleaned output mentioning non-candidate units
