@@ -71,7 +71,7 @@ SubsetUnitsFrame[,"environ"]<-paste(" ", SubsetUnitsFrame[,"environ"], sep="")
 	
 # Create a vector of all the state/location names
 # Load intersected location tuples table 
-LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app-master/input/LocationTuples.csv")
+LocationTuples<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/PBDB_Fidelity_app/input/LocationTuples.csv")
 
 # Group LocationTuple data by "col_id" column
 GroupedLocations<-tapply(LocationTuples[,"name"],LocationTuples[,"col_id"],as.character)
