@@ -81,7 +81,7 @@ AgeData<-AgeData[order(AgeData[,"t_age"]),]
 BinColors<-vector(length=length(Bins))
 for(i in 1:length(Bins)){
     BinColors[i]<-as.character(AgeData[min(which(AgeData[,"b_age"]>=Bins[i]&AgeData[,"t_age"]<=Bins[i])),"color"])
-}
+    }
 
 # Create a duplicate of AgesMatrix to replace with hex code color codes
 TempMatrix<-AgesMatrix
@@ -90,8 +90,8 @@ TempMatrix[TempMatrix==0]<-"#FFFFFF"
 # Replace each 1 in TempMatrix with the appropriate time bin color hex color code
 ColoredAgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
-ColoredAgesMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
-}
+    ColoredAgesMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
+    }
      
 # Download North American Macrostrat column data
 ColumnData<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
