@@ -247,7 +247,7 @@ Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
 Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
 Aspect <- Height / Width
 # Plot the raw map
-quartz(width = 10, height = 10*Aspect)
+quartz(width = 10, height = 10*Aspect ,units="in")
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
 plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)	
 			     
