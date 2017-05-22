@@ -1,5 +1,6 @@
 # Load libraries
 library("RCurl")
+library("rgdal")
 
 # Download the sedimentary units frame from Macrostrat
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
@@ -17,7 +18,8 @@ IntervalsURL<-RCurl::getURL(IntervalsURL)
 IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
 
 # Remove ambiguoulsy named formations from UnitsFrame and FormationsFrame
-UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone")|UnitsFrame[,"strat_name_long"]=="White Dolomite",]FormationsFrame<-FormationsFrame[-which(FormationsFrame[,"strat_name_long"]=="Muddy Sandstone"|FormationsFrame[,"strat_name_long"]=="Mutual Formation"|FormationsFrame[,"strat_name_long"]=="Sandy Limestone"),]
+UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone"|UnitsFrame[,"strat_name_long"]=="White Dolomite"),]
+FormationsFrame<-FormationsFrame[-which(FormationsFrame[,"strat_name_long"]=="Muddy Sandstone"|FormationsFrame[,"strat_name_long"]=="Mutual Formation"|FormationsFrame[,"strat_name_long"]=="Sandy Limestone"|FormationsFrame[,"strat_name_long"]=="White Dolomite"),]
 
 # Subset UnitsFrame to only include formations 
 FormationUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FormationsFrame[,"strat_name_long"])
@@ -53,10 +55,44 @@ Bins<-seq(1,541)
 AgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(j in 1:length(col_ids)){
     for(i in 1:length(Bins)){
-        AgesMatrix[i,j]<-any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_int_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_int_age"]<=Bins[i])
+        AgesMatrix[i,j]<-as.numeric(any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_int_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_int_age"]<=Bins[i]))
         }
      }
 
 # Assign appropriate row and column names
 rownames(AgesMatrix)<-1:541
 colnames(AgesMatrix)<-col_ids
+
+# Download official geologic time scale colors from macrostrat
+ColorsURL<-"https://macrostrat.org/api/defs/intervals?true_clors&format=csv"
+GotURL<-getURL(ColorsURL)
+TimeScaleData<-read.csv(text=GotURL,header=TRUE)
+
+# Download age names
+Ages<-downloadTime("international%20ages")
+# subset TimeScaleColors to only include ages
+AgeData<-subset(TimeScaleData,TimeScaleData[,"name"]%in%rownames(Ages))
+# Make sure AgeData is sorted in ascending age order (present to past)
+AgeData<-AgeData[order(AgeData[,"t_age"]),]
+
+# Extract appropriate hex color codes for each million year time bin (Cenozoic - Paleozoic)
+# Note: the min() in the loop below accounts for ages with integer boundaries (causes more than color code to be selected)
+# By adding min(), we always select hex color code for the younger age
+BinColors<-vector(length=length(Bins))
+for(i in 1:length(Bins)){
+    BinColors[i]<-as.character(AgeData[min(which(AgeData[,"b_age"]>=Bins[i]&AgeData[,"t_age"]<=Bins[i])),"color"])
+}
+
+# Create a duplicate of AgesMatrix to replace with hex code color codes
+TempMatrix<-AgesMatrix
+# Replace each 0 in TempMatrix with the hex color code for white
+TempMatrix[TempMatrix==0]<-"#FFFFFF"
+# Replace each 1 in TempMatrix with the appropriate time bin color hex color code
+ColoredAgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
+for(i in 1:length(Bins)){
+ColoredAgesMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
+}
+     
+# Download North American Macrostrat column data
+ColumnData<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
+#plot(ColumnData, col=ColoredAgesMatrix[1,])
