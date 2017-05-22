@@ -76,7 +76,7 @@ AgeData<-subset(TimeScaleData,TimeScaleData[,"name"]%in%rownames(Ages))
 AgeData<-AgeData[order(AgeData[,"t_age"]),]
 
 # Extract appropriate hex color codes for each million year time bin (Cenozoic - Paleozoic)
-# Note: the min() in the loop below accounts for ages with integer boundaries (causes more than color code to be selected)
+# Note: the min() in the loop below accounts for ages with integer boundaries (causes more than one color code to be selected)
 # By adding min(), we always select hex color code for the younger age
 BinColors<-vector(length=length(Bins))
 for(i in 1:length(Bins)){
