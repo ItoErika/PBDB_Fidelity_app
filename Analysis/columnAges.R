@@ -1,6 +1,7 @@
 # Load libraries
 library("RCurl")
 library("rgdal")
+library("velociraptr")
 
 # Download the sedimentary units frame from Macrostrat
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
@@ -88,11 +89,11 @@ TempMatrix<-AgesMatrix
 # Replace each 0 in TempMatrix with the hex color code for white
 TempMatrix[TempMatrix==0]<-"#FFFFFF"
 # Replace each 1 in TempMatrix with the appropriate time bin color hex color code
-ColoredAgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
+ColorMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
-    ColoredAgesMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
+    ColorMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
     }
      
 # Download North American Macrostrat column data
-ColumnData<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
-#plot(ColumnData, col=ColoredAgesMatrix[1,])
+MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
+#plot(MacrostratColumns, col=ColorMatrix[1,])
