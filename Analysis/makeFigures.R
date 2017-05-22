@@ -249,7 +249,34 @@ Aspect <- Height / Width
 # Plot the raw map
 quartz(width = 10, height = 10*Aspect)
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
-plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)			     
+plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)	
+			     
+#############################################################################################################
+############################################ MAKE 3D-MAP, FIDELITY ##########################################
+#############################################################################################################
+# Create the age by column matrix
+			     
+# Add the color hexcodes to the column matrix
+			     
+# Make the plot
+plot3D<-function(MacrostratColumns,ColorMatrix) {
+	Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
+	Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
+	Aspect <- Height / Width
+	for (i in 1:nrow(ColorMatrix)) {
+		jpeg(width=10, height=10*aspect)
+		par(mar = rep(0, 4), xaxs='i', yaxs='i')
+		plot(MacrostratColumns,col=ColorMatrix[i,],lwd=0.5)
+		dev.off()
+		}
+	}		
+
+################################################# Make Figures ##############################################			     
+# Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
+MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
+# Transform it to albers equal area north america projection
+MacrostratColumns<-spTransform(MacrostratColumns,CRS("+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
+			     			     
 			     
 #############################################################################################################
 ############################################# MAKE DCA, FIDELITY ############################################
