@@ -356,7 +356,7 @@ plot3D<-function(MacrostratColumns,ColorMatrix) {
 	Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
 	Aspect <- Height / Width
 	for (i in 1:nrow(ColorMatrix)) {
-		jpeg(sprintf("time_%03d.pdf",i),width=10, height=10*Aspect)
+		jpeg(sprintf("time_%03d.jpeg",i),width=10, height=10*Aspect)
 		par(mar = rep(0, 4), xaxs='i', yaxs='i')
 		plot(MacrostratColumns,col=ColorMatrix[i,],lwd=0.5)
 		dev.off()
