@@ -247,7 +247,7 @@ Width <- MacrostratColumns@bbox[3] - MacrostratColumns@bbox[1]
 Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
 Aspect <- Height / Width
 # Plot the raw map
-quartz(width = 10, height = 10*Aspect ,units="in")
+quartz(width = 10, height = 10*Aspect)
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
 plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)	
 			     
@@ -356,13 +356,15 @@ plot3D<-function(MacrostratColumns,ColorMatrix) {
 	Height <- MacrostratColumns@bbox[4] - MacrostratColumns@bbox[2]
 	Aspect <- Height / Width
 	for (i in 1:nrow(ColorMatrix)) {
-		jpeg(sprintf("time_%03d.jpeg",i),width=10, height=10*Aspect)
+		jpeg(sprintf("time_%03d.jpeg",i),width=10, height=10*Aspect, units="in", res=300)
 		par(mar = rep(0, 4), xaxs='i', yaxs='i')
-		plot(MacrostratColumns,col=ColorMatrix[i,],lwd=0.5)
+		plot(MacrostratColumns,col=ColorMatrix[i,],lty=0)
 		dev.off()
 		}
 	}		
 
+#  plot3D(MacrostratColumns,ColorMatrix)
+			     
 ################################################# Make Figures ##############################################			     
 # Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
