@@ -340,7 +340,7 @@ for(i in 1:length(Bins)){
 # Create a duplicate of AgesMatrix to replace with hex code color codes
 TempMatrix<-AgesMatrix
 # Replace each 0 in TempMatrix with the hex color code for transparent
-TempMatrix[TempMatrix==0]<-"##00FFFFFF"
+TempMatrix[TempMatrix==0]<-"#00FFFFFF"
 # Replace each 1 in TempMatrix with the appropriate time bin color hex color code
 ColorMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
