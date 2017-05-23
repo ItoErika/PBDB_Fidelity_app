@@ -339,13 +339,17 @@ for(i in 1:length(Bins)){
 
 # Create a duplicate of AgesMatrix to replace with hex code color codes
 TempMatrix<-AgesMatrix
-# Replace each 0 in TempMatrix with the hex color code for transparent
-TempMatrix[TempMatrix==0]<-"#00FFFFFF"
+# Replace each 0 in TempMatrix with NA
+TempMatrix[TempMatrix==0]<-NA
 # Replace each 1 in TempMatrix with the appropriate time bin color hex color code
 ColorMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
     ColorMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
     }
+			     
+# Assign appropriate row and column names
+rownames(ColorMatrix)<-1:541
+colnames(ColorMatrix)<-col_ids	 
      
 # Download North American Macrostrat column data
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
@@ -358,7 +362,9 @@ plot3D<-function(MacrostratColumns,ColorMatrix) {
 	for (i in 1:nrow(ColorMatrix)) {
 		jpeg(sprintf("time_%03d.jpeg",i),width=10, height=10*Aspect, units="in", res=300)
 		par(mar = rep(0, 4), xaxs='i', yaxs='i')
-		plot(MacrostratColumns,col=ColorMatrix[i,],lty=0)
+		Temp<-MacrostratColumns[which(!(is.na(ColorMatrix[i,]))),]
+		plot(MacrostratColumns,type="l", lty=0)
+		plot(Temp,col=unique(na.omit(ColorMatrix[i,])),lty=0, add=TRUE)
 		dev.off()
 		}
 	}		
