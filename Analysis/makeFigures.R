@@ -332,13 +332,27 @@ ColorMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
     ColorMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
     }
-			     
+
+# Bind a column of colors associated with each time bin in ColorMatrix			     
+ColorMatrix<-cbind(ColorMatrix, BinColors)
+			     			     
 # Assign appropriate row and column names
 rownames(ColorMatrix)<-1:541
-colnames(ColorMatrix)<-col_ids	 
+colnames(ColorMatrix)<-c(col_ids, "color")			    
      
 # Download North American Macrostrat column data
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
+
+# Make the plot
+writeSlices<-function(MacrostratColumns,ColorMatrix) {
+	ColorMatrix<-t(ColorMatrix)
+	for (i in 1:ncol(ColorMatrix)) {
+		ColorColumns<-MacrostratColumns[which(is.na(ColorMatrix[,i])!=TRUE),]
+		ColorSlice<-cbind(ColorColumns,ColorMatrix[which(is.na(ColorMatrix[,i])!=TRUE),i])
+		ColorSlice$height<-(541-i)*0.3
+		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i),layer="ColorSlice",driver="GeoJSON")
+		}
+	}			     
 			     
 # Make the plot
 plot3D<-function(MacrostratColumns,ColorMatrix) {
@@ -352,16 +366,6 @@ plot3D<-function(MacrostratColumns,ColorMatrix) {
 		plot(MacrostratColumns,type="l", lty=0)
 		plot(Temp,col=unique(na.omit(ColorMatrix[i,])),lty=0, add=TRUE)
 		dev.off()
-		}
-	}
-
-# Make the plot
-writeSlices<-function(MacrostratColumns,ColorMatrix) {
-	ColorMatrix<-t(ColorMatrix)
-	for (i in 1:ncol(ColorMatrix)) {
-		ColorColumns<-MacrostratColumns[which(is.na(ColorMatrix[,i])!=TRUE),]
-		ColorSlice<-cbind(ColorColumns,ColorMatrix[which(is.na(ColorMatrix[,i])!=TRUE),i])
-		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i),layer="ColorSlice",driver="GeoJSON")
 		}
 	}
 		  
