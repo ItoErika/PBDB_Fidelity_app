@@ -255,7 +255,7 @@ plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)
 ############################################ MAKE 3D-MAP, FIDELITY ##########################################
 #############################################################################################################
 # Create the age by column matrix
-# Download the sedimentary units frame from Macrostrat
+# Download the sedimentary units frame from the Macrostrat database API
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv"
 UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
@@ -265,7 +265,7 @@ FormationsURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
 FormationsURL<-RCurl::getURL(FormationsURL)
 FormationsFrame<-read.csv(text=FormationsURL, header=TRUE)
 
-# Download geologic time scale data from the Macrostrat API
+# Download geologic time scale data from the Macrostrat database API
 IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
 IntervalsURL<-RCurl::getURL(IntervalsURL)
 IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)
@@ -281,24 +281,10 @@ FormationUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FormationsF
 # Extract the maximum age for units of interest
 Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 # Make sure the top age of the formations are less than the max age (less than the Cambrian-Proterozoic boundary age)
-FormationUnits<-FormationUnits[which(FormationUnits[,"t_int_age"]<Max_age),]
-
-# Create three dictionaries: (1) formations without fossils, (2) formations with fossils, (3) the first two dictionaries combined
-# Convert the strat_name_long column of formation units to character
-FormationUnits[,"strat_name_long"]<-as.character(FormationUnits[,"strat_name_long"])
-# Take sum of pbdb_collections values associated with each strat name 
-Collections<-tapply(FormationUnits[,"pbdb_collections"], FormationUnits[,"strat_name_long"], sum)
-# Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
-CandidateUnits<-names(which(Collections==0))
-# Extract the strat names with a at least one pbdb collection record
-FossilUnits<-names(which(Collections>0))
-# Bind all formations together
-Formations<-c(CandidateUnits, FossilUnits)
-
-# Subset UnitsFrame to only includes units from the Formations dictionary
-SubsetUnitsFrame<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%Formations)
+FormationUnits<-FormationUnits[which(FormationUnits[,"t_age"]<Max_age),]			     
+			     
 # Extract data of interest
-ColumnAges<-unique(SubsetUnitsFrame[,c("col_id", "t_int_age", "b_int_age")])
+ColumnAges<-unique(FormationUnits[,c("col_id", "t_age", "b_age")])
 
 # Extract all col_ids in increasing order
 col_ids<-unique(sort(ColumnAges[,"col_id"]))
@@ -308,7 +294,7 @@ Bins<-seq(1,541)
 AgesMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(j in 1:length(col_ids)){
     for(i in 1:length(Bins)){
-        AgesMatrix[i,j]<-as.numeric(any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_int_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_int_age"]<=Bins[i]))
+        AgesMatrix[i,j]<-as.numeric(any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_age"]<=Bins[i]))
         }
      }
 
@@ -367,7 +353,22 @@ plot3D<-function(MacrostratColumns,ColorMatrix) {
 		plot(Temp,col=unique(na.omit(ColorMatrix[i,])),lty=0, add=TRUE)
 		dev.off()
 		}
-	}		
+	}
+
+# Make the plot
+writeSlices<-function(MacrostratColumns,ColorMatrix) {
+	ColorMatrix<-t(ColorMatrix)
+	for (i in 1:ncol(ColorMatrix)) {
+		ColorColumns<-MacrostratColumns[which(is.na(ColorMatrix[,i])!=TRUE),]
+		ColorSlice<-cbind(ColorColumns,ColorMatrix[which(is.na(ColorMatrix[,i])!=TRUE),i])
+		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i),layer="ColorSlice",driver="GeoJSON")
+		}
+	}
+		  
+# Make the map
+TColorMatrix<-t(ColorMatrix)			     
+ColorColumns<-cbind(MacrostratColumns[which(MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(TColorMatrix))),],TColorMatrix)			     
+ColorColumns<-writeOGR(ColorColumns, "ColorColumns.geojson", layer="ColorColumns", driver="GeoJSON")
 
 #  plot3D(MacrostratColumns,ColorMatrix)
 			     
