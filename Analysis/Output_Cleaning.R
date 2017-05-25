@@ -1,9 +1,18 @@
 #################################################  LOAD LIBRARIES #######################################################
 library("RCurl")
 
-############################### REMOVE ROWS WITH INCORRECT LOCATIONS FROM INITIAL OUTPUT ################################
+###############################################  REMOVE PRECAMBRIAN UNITS ################################################
+
 # Load output data from application
 InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
+
+# Remove units which have a t_age greater than or equal to the Precambrian upper boundary (541 Ma)
+# Note: this is to remove formations which we did not filter out using t_int_age rather than t_age 
+# Using t_age rather than t_int_age, we catch the following units which should be removed: 
+# Sandsuck Shale, Cochran Formation, Cambridge Argillite, and Deep Spring Formation
+InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="Sandsuck Shale"|InitialOutput[,"Formation"]=="Cochran Formation"|InitialOutput[,"Formation"]=="Cambridge Argillite"|InitialOutput[,"Formation"]=="Deep Spring Formation"),]
+
+############################### REMOVE ROWS WITH INCORRECT LOCATIONS FROM INITIAL OUTPUT ################################
 
 # Remove rows where the col_locations are not in doc_locations (to improve accuracy of col_id to strat name match)
 # Reformat location columns
