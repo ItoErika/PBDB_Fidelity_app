@@ -281,10 +281,41 @@ FormationUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%FormationsF
 # Extract the maximum age for units of interest
 Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 # Make sure the top age of the formations are less than the max age (less than the Cambrian-Proterozoic boundary age)
-FormationUnits<-FormationUnits[which(FormationUnits[,"t_age"]<Max_age),]			     
+FormationUnits<-FormationUnits[which(FormationUnits[,"t_age"]<Max_age),]
 			     
+# Subset FormationUnits to only include units that have occurrences in PBDB or we believe to have fossils according to GDD
+# Create two dictionaries:
+# (1) formations without fossils according to PBDB, (2) formations with fossils acording to PBDB
+# Convert the strat_name_long column of formation units to character
+FormationUnits[,"strat_name_long"]<-as.character(FormationUnits[,"strat_name_long"])
+# Take sum of pbdb_collections values associated with each strat name 
+Collections<-tapply(FormationUnits[,"pbdb_collections"], FormationUnits[,"strat_name_long"], sum)
+# Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
+CandidateUnits<-names(which(Collections==0))
+# Extract the strat names with a at least one pbdb collection record
+FossilUnits<-names(which(Collections>0))
+
+# Add a tag for formations which have fossils according to PBDB
+FormationUnits[which(FormationUnits[,"strat_name_long"]%in%FossilUnits),"PBDB_occ"]<-"TRUE"
+FormationUnits[which(is.na(FormationUnits[,"PBDB_occ"])),"PBDB_occ"]<-"FALSE"
+
+# Add a tag for formations which have fossils according to GDD which were fossiliferous according to PBDB
+# Load NoTraceOutput
+NoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoTraceOutput.csv")
+# Subset out rows from NoTraceOutput where PBDB_occ is true
+GDDHits<-subset(NoTraceOutput, NoTraceOutput[,"PBDB_occ"]==FALSE)
+# Create a column of pasted formation|col_id tuples for GDDHits and FormationUnits
+GDDHits[,"Fm|col"]<-paste(GDDHits[,"Formation"], GDDHits[,"col_id"], sep="|")
+FormationUnits[,"Fm|col"]<-paste(FormationUnits[,"strat_name_long"], FormationUnits[,"col_id"], sep="|")			     
+# Tag FormationUnits with GDD_occ as TRUE if the formation|col_id tuple is in GDDHits
+FormationUnits[which(FormationUnits[,"Fm|col"]%in%GDDHits[,"Fm|col"]),"GDD_occ"]<-"TRUE"
+FormationUnits[which(is.na(FormationUnits[,"GDD_occ"])),"GDD_occ"]<-"FALSE"
+			     
+# Subset out formations which do not have fossils according to GDD OR PBDB
+FossilUnits<-FormationUnits[-which(FormationUnits[,"PBDB_occ"]==FALSE&FormationUnits[,"GDD_occ"]==FALSE),]
+			     			     			     			     
 # Extract data of interest
-ColumnAges<-unique(FormationUnits[,c("col_id", "t_age", "b_age")])
+ColumnAges<-unique(FossilUnits[,c("col_id", "t_age", "b_age")])
 
 # Extract all col_ids in increasing order
 col_ids<-unique(sort(ColumnAges[,"col_id"]))
