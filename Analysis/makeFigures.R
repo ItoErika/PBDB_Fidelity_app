@@ -370,8 +370,6 @@ colnames(ColorMatrix)<-col_ids
      
 # Download North American Macrostrat column data
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
-
-subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(colnames(ColorMatrix)[which(is.na(ColorMatrix[2,])!=TRUE)]))
 			     
 # Make the plot
 writeSlices<-function(MacrostratColumns,ColorMatrix) {
@@ -379,7 +377,8 @@ writeSlices<-function(MacrostratColumns,ColorMatrix) {
 	for (i in 1:ncol(ColorMatrix)) {
 		ColorColumns<-subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(ColorMatrix)[which(is.na(ColorMatrix[,i])!=TRUE)]))
 		ColorSlice<-cbind(ColorColumns,ColorMatrix[which(is.na(ColorMatrix[,i])!=TRUE),i])
-		ColorSlice$height<-(541-i)*0.3
+		ColorSlice$height<-(541-i)*0.05
+		colnames(ColorSlice@data)<-c("col_id", "col_name", "col_group", "col_group_id", "group_col_id", "col_area", "project_id", "refs1", "color", "height")
 		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i),layer="ColorSlice",driver="GeoJSON")
 		}
 	}			     
