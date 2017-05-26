@@ -363,22 +363,21 @@ ColorMatrix<-matrix(data=NA, nrow=length(Bins), ncol=length(col_ids))
 for(i in 1:length(Bins)){
     ColorMatrix[i,]<-gsub("1", BinColors[i], TempMatrix[i,])
     }
-
-# Bind a column of colors associated with each time bin in ColorMatrix			     
-ColorMatrix<-cbind(ColorMatrix, BinColors)
 			     			     
 # Assign appropriate row and column names
 rownames(ColorMatrix)<-1:541
-colnames(ColorMatrix)<-c(col_ids, "color")			    
+colnames(ColorMatrix)<-col_ids			    
      
 # Download North American Macrostrat column data
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
 
+subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(colnames(ColorMatrix)[which(is.na(ColorMatrix[2,])!=TRUE)]))
+			     
 # Make the plot
 writeSlices<-function(MacrostratColumns,ColorMatrix) {
 	ColorMatrix<-t(ColorMatrix)
 	for (i in 1:ncol(ColorMatrix)) {
-		ColorColumns<-MacrostratColumns[which(is.na(ColorMatrix[,i])!=TRUE),]
+		ColorColumns<-subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(ColorMatrix)[which(is.na(ColorMatrix[,i])!=TRUE)]))
 		ColorSlice<-cbind(ColorColumns,ColorMatrix[which(is.na(ColorMatrix[,i])!=TRUE),i])
 		ColorSlice$height<-(541-i)*0.3
 		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i),layer="ColorSlice",driver="GeoJSON")
