@@ -11,8 +11,8 @@ UnitsFrame<-read.csv(text=GotURL,header=TRUE)
 
 #Load all of the candidate units (unfossiliferous, sedimentary) that were matched in the documents
 MatchData<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/MatchData.csv", row.names=1)
-# Load the cleaned fidelity output
-CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
+# Load the fidelity output with noisy words and phrases cleaned out
+NoNoiseOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoNoiseOutput.csv")
 # Load output with no trace hits
 NoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoTraceOutput.csv")
 # Load output with no micro hits
@@ -20,40 +20,40 @@ NoMicroOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMi
 # Load output with no trace hits and no micro hits
 NoMicroNoTraceOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoMicroNoTraceOutput.csv")
 
-# Remove "White Dolomite" from MatchData
-MatchData<-MatchData[-which(MatchData[,"Formation"]=="White Dolomite"),]
+# Remove "White Dolomite" "Sandsuck Shale", "Cochran Formation", "Cambridge Argillite", and "Deep Spring Formation" from MatchData
+MatchData<-MatchData[-which(MatchData[,"Formation"]=="White Dolomite"|MatchData[,"Formation"]=="Sandsuck Shale"|MatchData[,"Formation"]=="Cochran Formation"|MatchData[,"Formation"]=="Cambridge Argillite"|MatchData[,"Formation"]=="Deep Spring Formation"),]
 
-# Create a temporary column of strat name, col_id tuples in CleanedOutput and in MatchData
-CleanedOutput[,"Name_ColID"]<-paste(CleanedOutput[,"Formation"],CleanedOutput[,"col_id"], sep=".")
-MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep=".")
+# Create a temporary column of strat name | col_id tuples in NoNoiseOutput, NoTraceOutput, NoMicroOutput, and in MatchData
+NoNoiseOutput[,"Name_ColID"]<-paste(NoNoiseOutput[,"Formation"],NoNoiseOutput[,"col_id"], sep="|")
+NoMicroOutput[,"Name_ColID"]<-paste(NoMicroOutput[,"Formation"],NoMicroOutput[,"col_id"], sep="|")
+NoTraceOutput[,"Name_ColID"]<-paste(NoTraceOutput[,"Formation"],NoTraceOutput[,"col_id"], sep="|")
+MatchData[,"Name_ColID"]<-paste(MatchData[,"Formation"], MatchData[,"col_id"], sep="|")
 
-# Add a column to MatchData showing if the formation was captured in the final cleaned output
-MatchData[which(MatchData[,"Name_ColID"]%in%CleanedOutput[,"Name_ColID"]),"GDD_occ"]<-"TRUE"
+# Add a column to MatchData showing if the formation was captured in the final NoNoiseOutput
+MatchData[which(MatchData[,"Name_ColID"]%in%NoNoiseOutput[,"Name_ColID"]),"GDD_occ"]<-"TRUE"
 MatchData[which(is.na(MatchData[,"GDD_occ"])),"GDD_occ"]<-"FALSE"
 
-# Add a column to MatchData showing if the formation appeared in sentences with the word "micro", "spore", "foram", or "radiolaria"
-# Tag formations in CleanedOutput which are NOT found in the NoMicroOutput as TRUE
-MicroFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoMicroOutput[,"Formation"])==TRUE),"Formation"]))
-MatchData[which(as.character(MatchData[,"Formation"])%in%MicroFormations),"Micro"]<-"TRUE"
+# Add a column to MatchData showing if the formation appeared in sentences with the word "micro", "spore", "foram", 
+# "radiolaria", "graptolite", "conodont", "diatom", "coccolith", "pollen" or "acritarch"
+# Tag formations in NoNoiseOutput which are NOT found in the NoMicroOutput as TRUE
+MicroFormations<-unique(as.character(NoNoiseOutput[which(!(NoNoiseOutput[,"Name_ColID"]%in%NoMicroOutput[,"Name_ColID"])),"Name_ColID"]))
+MatchData[which(as.character(MatchData[,"Name_ColID"])%in%MicroFormations),"Micro"]<-"TRUE"
 
-# Add a column to MatchData showing if the formation appeared in sentences with the words "trace fossil", "ichno", or "burrow"
-# Tag formations in CleanedOutput which are NOT found in the NoTraceOutput as TRUE
-TraceFormations<-unique(as.character(CleanedOutput[which(!(CleanedOutput[,"Formation"]%in%NoTraceOutput[,"Formation"])==TRUE),"Formation"]))
-MatchData[which(as.character(MatchData[,"Formation"])%in%TraceFormations),"Trace"]<-"TRUE"
+# Add a column to MatchData showing if the formation appeared in sentences with the words "trace fossil", "ichno", "burrow", or "trackway"
+# Tag formations in NoNoiseOutput which are NOT found in the NoTraceOutput as TRUE
+TraceFormations<-unique(as.character(NoNoiseOutput[which(!(NoNoiseOutput[,"Name_ColID"]%in%NoTraceOutput[,"Name_ColID"])),"Name_ColID"]))
+MatchData[which(as.character(MatchData[,"Name_ColID"])%in%TraceFormations),"Trace"]<-"TRUE"
 
-# Extract all unit name matches
-MatrixUnits<-unique(MatchData[,"Formation"])
+# Extract all unit name | col_id matches
+MatrixUnits<-unique(MatchData[,"Name_ColID"])
+# Add a column of strat name | col_id tuples to UnitsFrame
+UnitsFrame[,"Name_ColID"]<-paste(UnitsFrame[,"strat_name_long"], UnitsFrame[,"col_id"], sep="|")
 # Subset UnitsFrame to only include units from MatchData
-SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"strat_name_long"]%in%MatrixUnits),]
+SubsetUnitsFrame<-UnitsFrame[which(UnitsFrame[,"Name_ColID"]%in%MatrixUnits),]
 
 # Attach unit_id data to MatchData
-# Extract unique strat_name_long, unit_id, col_id thruples from SubsetUnitsFrame
-UnitIDTable<-unique(SubsetUnitsFrame[,c("strat_name_long","unit_id","col_id")])
-# Add a column of the strat name and col_id pasted together to UnitIDTable
-UnitIDTable[,"Name_ColID"]<-paste(UnitIDTable[,"strat_name_long"], UnitIDTable[,"col_id"], sep=".")
-
 # Merge unit_id data to MatchData, and remove the temporary column
-MatchData<-merge(MatchData, UnitIDTable[,c("unit_id","Name_ColID")], by="Name_ColID")
+MatchData<-merge(MatchData, unique(SubsetUnitsFrame[,c("unit_id","Name_ColID")]), by="Name_ColID")
 MatrixData<-MatchData[,c("docid", "col_id", "Formation", "sentid", "SubsetDDRow", "PBDB_occ", "col_locations", "doc_locations", "GDD_occ", "Micro", "Trace", "unit_id")]
 
 # Save MatrixData
