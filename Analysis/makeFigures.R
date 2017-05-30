@@ -30,6 +30,11 @@ if (suppressWarnings(require("doParallel"))==FALSE) {
     library("doParallel");
     }
 
+if (suppressWarnings(require("vegan"))==FALSE) {
+    install.packages("vegan",repos="http://cran.cnr.berkeley.edu/");
+    library("vegan");
+    }
+
 # Start a cluster for multicore, 3 by default 
 # Can make it higher if passed as a command line argument through terminal
 # CommandArgument<-commandArgs(TRUE)
@@ -250,7 +255,62 @@ Aspect <- Height / Width
 quartz(width = 10, height = 10*Aspect)
 par(mar = rep(0, 4), xaxs='i', yaxs='i')
 plot(MacrostratColumns,col=Ramp(max(ColumnColors)+1)[ColumnColors+1],lwd=0.5)	
+
+#############################################################################################################
+############################################# MAKE DCA, FIDELITY ############################################
+#############################################################################################################
+# Make a convex hull
+makeHull<-function(SampleScores) {
+	DCA1<-SampleScores[,1]
+	DCA2<-SampleScores[,2]
+  	Index<-chull(DCA1, DCA2)
+  	Index<-c(Index, Index[1])
+  	polygon(DCA1[Index], DCA2[Index],col=rgb(0,0,1,0.1),lty=0)
+	}
 			     
+################################################# Make Figures ##############################################			     
+# Remove completely barren sediments from the DCA
+LithnameFossils<-subset(Lithname,rownames(Lithname)%in%FossilsNA[,"V2"]!=TRUE)
+# Remove broad archetypes
+LithnameFossils<-LithnameFossils[,-match(colnames(Lithtype)[which(colnames(Lithtype)%in%colnames(Lithname))],colnames(LithnameFossils))]
+# Cull out bad rows from lithtype
+LithnameCull<-cullMatrix(LithnameFossils,2,2)
+LithDCA<-decorana(LithnameCull,iweigh=0)
+# Extract the site and species scoresscores
+LithSamples<-scores(LithDCA,display="sites")
+LithSpecies<-scores(LithDCA,display="species")
+
+# Separate the sample scores for PBDB versus Non-PBDB formations
+LithGDD<-subset(LithSamples,rownames(LithSamples)%in%FossilsGDD[,"V2"]==TRUE)
+LithPBDB<-subset(LithSamples,rownames(LithSamples)%in%FossilsPBDB[,"V2"]==TRUE)
+			     
+# Make the plot
+plot(LithDCA,type="n")
+text(LithSpecies,labels=rownames(LithSpecies),col="lightgrey")
+points(LithPBDB[,1],LithPBDB[,2],pch=16,col="blue",cex=2)
+points(LithGDD[,1],LithGDD[,2],pch=17,col="#CC0000",cex=2)
+# makeHull(LithPBDB)
+			     
+# Remove completely barren sediments from the DCA
+EnvirontypeFossils<-subset(Environtype,rownames(Environtype)%in%FossilsNA[,"V2"]!=TRUE)
+# Cull out bad rows from lithtype
+EnvirontypeCull<-cullMatrix(EnvirontypeFossils,2,2)
+EnvDCA<-decorana(EnvirontypeCull,iweigh=0)
+# Extract the site and species scoresscores
+EnvSamples<-scores(EnvDCA,display="sites")
+EnvSpecies<-scores(EnvDCA,display="species")
+
+# Separate the sample scores for PBDB versus Non-PBDB formations
+EnvGDD<-subset(EnvSamples,rownames(EnvSamples)%in%FossilsGDD[,"V2"]==TRUE)
+EnvPBDB<-subset(EnvSamples,rownames(EnvSamples)%in%FossilsPBDB[,"V2"]==TRUE)
+			     
+# Make the plot
+plot(EnvDCA,type="n")
+text(EnvSpecies,labels=rownames(EnvSpecies),col="lightgrey")
+points(EnvPBDB[,1],EnvPBDB[,2],pch=16,col="blue",cex=2)
+points(EnvGDD[,1],EnvGDD[,2],pch=17,col="#CC0000",cex=2)
+# makeHull(LithPBDB)			     
+
 #############################################################################################################
 ############################################ MAKE 3D-MAP, FIDELITY ##########################################
 #############################################################################################################
@@ -410,12 +470,4 @@ ColorColumns<-writeOGR(ColorColumns, "ColorColumns.geojson", layer="ColorColumns
 MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?project_id=1&format=geojson_bare","OGRGeoJSON")
 # Transform it to albers equal area north america projection
 MacrostratColumns<-spTransform(MacrostratColumns,CRS("+proj=aea +lat_1=20 +lat_2=60 +lat_0=40 +lon_0=-96 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
-			     			     
-			     
-#############################################################################################################
-############################################# MAKE DCA, FIDELITY ############################################
-#############################################################################################################
-# No functions at this time
-		    
-################################################# Make Figures ##############################################
                         
