@@ -95,41 +95,41 @@ NoisySentences<-unique(c(NoFossils, Lack, Lacks, Absence, Barren, VoidFossils, C
 Below, Beneath, Relict, Rework, Unfossilierous, Overlie, Overlying, Overlain, Underlie, Underlying, Underlain)) 
 
 # Remove rows with noisy sentences from InitialOutput
-CleanedOutput<-PBDBTupleOutput[-NoisySentences,]
+NoNoiseOutput<-PBDBTupleOutput[-NoisySentences,]
                                           
 ############################### CREATE OUTPUT VERSIONS WITHOUT MICRO OR TRACE FOSSILS ###################################
 
-# Find instances of micro and trace fossils in CleanedOutput sentences
+# Find instances of micro and trace fossils in NoNoiseOutput sentences
                                           
 # Locate hits for trace fossils within the output sentences
-Trace<-grep("trace fossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Ichno<-grep("ichno", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Burrow<-grep("burrow", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Trackway<-grep("trackway", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Trace<-grep("trace fossil", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Ichno<-grep("ichno", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Burrow<-grep("burrow", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Trackway<-grep("trackway", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
                                           
 # Locate hits for microfossils within the output sentences
-Micro<-grep("microfossil", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Spore<-grep("spore", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Foram<-grep(" foram", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Radiolaria<-grep("radiolaria", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)                                          
-Graptolite<-grep("graptolite", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Conodont<-grep("conodont", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Diatom<-grep("diatom", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Coccolith<-grep("coccolith", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Pollen<-grep("pollen", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
-Acritarch<-grep("acritarch", CleanedOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Micro<-grep("microfossil", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Spore<-grep("spore", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Foram<-grep(" foram", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Radiolaria<-grep("radiolaria", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)                                          
+Graptolite<-grep("graptolite", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Conodont<-grep("conodont", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Diatom<-grep("diatom", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Coccolith<-grep("coccolith", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Pollen<-grep("pollen", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
+Acritarch<-grep("acritarch", NoNoiseOutput[,"Sentence"], ignore.case=TRUE, perl=TRUE)
                                         
 TraceSentences<-unique(c(Trace, Ichno, Burrow, Trackway)) 
 MicroSentences<-unique(c(Micro, Spore, Foram, Radiolaria, Graptolite, Conodont, Diatom, Coccolith, Pollen, Acritarch)) 
 TraceOrMicroSentences<-unique(c(TraceSentences, MicroSentences)) 
 
-# Create a cleaned output with no trace fossils, but including microfossils
-NoTraceOutput<-CleanedOutput[-TraceSentences,]
+# Create a NoNoiseOutput with no trace fossils, but including microfossils
+NoTraceOutput<-NoNoiseOutput[-TraceSentences,]
 
-# Create a cleaned output with no microfossils, but including trace fossils
-NoMicroOutput<-CleanedOutput[-MicroSentences,]
+# Create a NoNoiseOutput with no microfossils, but including trace fossils
+NoMicroOutput<-NoNoiseOutput[-MicroSentences,]
 
-# Create a cleaned output with no micro or trace fossils
-NoMicroNoTraceOutput<-CleanedOutput[-TraceOrMicroSentences,]
+# Create a NoNoiseOutput with no micro or trace fossils
+NoMicroNoTraceOutput<-NoNoiseOutput[-TraceOrMicroSentences,]
 
 
