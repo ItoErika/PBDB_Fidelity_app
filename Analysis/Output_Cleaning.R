@@ -9,7 +9,7 @@ InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb
 # Remove units which have a t_age greater than or equal to the Precambrian upper boundary (541 Ma)
 # Note: this is to remove formations which we did not filter out using t_int_age rather than t_age 
 # Using t_age rather than t_int_age, we catch the following units which should be removed: 
-# Sandsuck Shale, Cochran Formation, Cambridge Argillite, and Deep Spring Formation
+# Remove Sandsuck Shale, Cochran Formation, Cambridge Argillite, and Deep Spring Formation from InitialOutput
 InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="Sandsuck Shale"|InitialOutput[,"Formation"]=="Cochran Formation"|InitialOutput[,"Formation"]=="Cambridge Argillite"|InitialOutput[,"Formation"]=="Deep Spring Formation"),]
 # Remove ambiguously named formations from InitialOutput
 InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="White Dolomite"),]                                          
