@@ -1,7 +1,7 @@
 #################################################  LOAD LIBRARIES #######################################################
 library("RCurl")
 
-###############################################  REMOVE PRECAMBRIAN UNITS ################################################
+################################################  REMOVE UNWANTED UNITS #################################################
 
 # Load output data from application
 InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb_fidelity_05May2017/Fidelity_OutputData.csv", row.names=1)
@@ -11,6 +11,8 @@ InitialOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/pbdb
 # Using t_age rather than t_int_age, we catch the following units which should be removed: 
 # Sandsuck Shale, Cochran Formation, Cambridge Argillite, and Deep Spring Formation
 InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="Sandsuck Shale"|InitialOutput[,"Formation"]=="Cochran Formation"|InitialOutput[,"Formation"]=="Cambridge Argillite"|InitialOutput[,"Formation"]=="Deep Spring Formation"),]
+# Remove ambiguously named formations from InitialOutput
+InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="White Dolomite"),]                                          
 
 ############################### REMOVE ROWS WITH INCORRECT LOCATIONS FROM INITIAL OUTPUT ################################
 
@@ -29,9 +31,6 @@ for(i in 1:length(LocationMatch)){
 # Remove rows from InitialOutput for which none of the col_locations are in the doc_locations                                          
 InitialOutput<-InitialOutput[which(LocationMatch==TRUE),]      
                                           
-# Remove ambiguously named formations from InitialOutput
-InitialOutput<-InitialOutput[-which(InitialOutput[,"Formation"]=="White Dolomite"),]                                          
-
 ##################################### SUBSET OUTPUT USING PBDB TAXA, DOCID TUPLES #######################################
 
 # Download taxanomic names (genus and below) from the Paleobiology Database
