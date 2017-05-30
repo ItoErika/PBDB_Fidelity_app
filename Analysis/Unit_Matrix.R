@@ -275,12 +275,28 @@ colnames(EpochMatrix)<-paste("epoch_", colnames(EpochMatrix), sep="")
 FormationMatrix<-data.matrix(cbind(FormationMatrix, EpochMatrix))
 
 ########################################### ADD ENVIRONMENTS COLUMNS ################################################
-############################################## ENVIRONMENT TYPE #####################################################
-
-# Eownload a list of environmnets from Macrostrat database
+############################################## ENVIRONMENT NAME #####################################################
 EnvironsURL<-"https://macrostrat.org/api/defs/environments?all&format=csv"
 GotURL<-getURL(EnvironsURL)
-EnvironsFrame<-read.csv(text=GotURL,header=TRUE)
+EnvironsFrame<-read.csv(text=GotURL,header=TRUE)	    
+# Extract distinct environment names from EnvironsFrame
+EnvironNames<-unique(EnvironsFrame[,"name"])	       
+	       
+# Add a space at the beginning and end of each environment name to prepare for grep
+EnvironNamesWS<-paste(" ", EnvironNames, sep="")
+EnvironNamesWS<-paste(EnvironNamesWS, " ", sep="")
+
+# Create a matrix showing whether or not each environment name corresponds with each row of SubsetUnitsFrame[,"environ"]
+EnvironNameMatrix<-sapply(EnvironNamesWS, function(x,y) grepl(x,y,ignore.case=TRUE, perl = TRUE),SubsetUnitsFrame[,"environ"])
+# Assign column names
+colnames(EnvironNameMatrix)<-paste("environname_", EnvironNames, sep="")
+# Convert the logical data into numerical data
+EnvironNameMatrix[,1:ncol(EnvironNameMatrix)]<-as.numeric(EnvironNameMatrix[,1:ncol(EnvironNameMatrix)])
+
+# Bind the EnvironNameMatrix to FormationMatrix
+FormationMatrix<-data.matrix(cbind(FormationMatrix,EnvironNameMatrix))	       
+	       
+############################################## ENVIRONMENT TYPE #####################################################
 
 # Group environment names into their associated types based on the Macrostrat API (NOTE: this function creates a list)
 EnvironTypes<-split(EnvironsFrame[,"name"],EnvironsFrame[,"type"])
