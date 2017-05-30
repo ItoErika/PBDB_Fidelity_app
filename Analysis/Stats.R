@@ -113,28 +113,28 @@ length(unique(MatrixData[which(MatrixData[,"GDD_occ"]==TRUE),"Formation"]))
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
 # 571 candidate formations
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 764 documents in cleaned output mentioning candidate units
+# 764 documents in NoTraceOutput mentioning candidate units
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==TRUE),"Formation"])))
 # 1,024 non-candidate formations (in PBDB)
 length(unique(as.character(NoTraceOutput[which(NoTraceOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,515 documents in cleaned output mentioning non-candidate units
+# 2,515 documents in NoTraceOutput mentioning non-candidate units
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoMicroOutput
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==FALSE),"Formation"])))
 # 572 candidate formations
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 797 documents in cleaned output mentioning candidate units
+# 797 documents in NoMicroOutput mentioning candidate units
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==TRUE),"Formation"])))
 # 1,028 non-candidate formations (in PBDB)
 length(unique(as.character(NoMicroOutput[which(NoMicroOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,588 documents in cleaned output mentioning non-candidate units
+# 2,588 documents in NoMicroOutput mentioning non-candidate units
 
 # Number of candidate units, non-candidate units (in PBDB), and documents in NoMicroNoTraceOutput
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==FALSE),"Formation"])))
 # 552 candidate formations
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==FALSE),"docid"])))
-# 746 documents in cleaned output mentioning candidate units
+# 746 documents in NoMicroNoTraceOutput mentioning candidate units
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==TRUE),"Formation"])))
 # 1,013 non-candidate formations (in PBDB)
 length(unique(as.character(NoMicroNoTraceOutput[which(NoMicroNoTraceOutput[,"PBDB_occ"]==TRUE),"docid"])))
-# 2,468 documents in cleaned output mentioning non-candidate units
+# 2,468 documents in NoMicroNoTraceOutput mentioning non-candidate units
