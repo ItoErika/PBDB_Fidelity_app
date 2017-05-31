@@ -26,7 +26,9 @@ nGRAM<-function(Term, Publisher="", Journal=""){
     JSON<-RJSONIO::fromJSON(URL)
     ParsedJSON<-parseGDD(JSON)
     NumDocs<-length(unique(ParsedJSON[,"gddid"]))
-    MinYear<-min(as.numeric(as.character(ParsedJSON[,"year"])))
+    # Remove rows where the year is NULL for the min() function
+    JSONYears<-ParsedJSON[-which(ParsedJSON[,"year"]=="NULL"),"year"]
+    MinYear<-min(as.numeric(as.character(JSONYears)))
     Sys.sleep(1)
     return(cbind(NumDocs, MinYear))
     }
@@ -41,7 +43,7 @@ PBDBUnits<-as.character(unique(NoNoiseOutput[which(NoNoiseOutput[,"PBDB_occ"]==T
                 
 # Apply the nGRAM function to all candidate units
 CandidatesGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))      
-# Apply the nGRAM function to all non-candidate units
-NonCandidatesGram<-pbsapply(PBDBUnits, function(x) nGRAM(Term=x))  
+# Apply the nGRAM function to all PBDBUnits
+PBDBGram<-pbsapply(PBDBUnits, function(x) nGRAM(Term=x))  
 
 
