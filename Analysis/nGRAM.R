@@ -35,13 +35,13 @@ nGRAM<-function(Term, Publisher="", Journal=""){
 NoNoiseOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoNoiseOutput.csv")
 
 # Create a vector of candidate formations
-Candidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))                
+Candidates<-as.character(unique(NoNoiseOutput[which(NoNoiseOutput[,"PBDB_occ"]==FALSE),"Formation"]))                
 # Create a vector of non-candidate formations
-NonCandidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==TRUE),"Formation"]))
+PBDBUnits<-as.character(unique(NoNoiseOutput[which(NoNoiseOutput[,"PBDB_occ"]==TRUE),"Formation"]))
                 
 # Apply the nGRAM function to all candidate units
 CandidatesGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))      
 # Apply the nGRAM function to all non-candidate units
-NonCandidatesGram<-pbsapply(NonCandidates, function(x) nGRAM(Term=x))  
+NonCandidatesGram<-pbsapply(PBDBUnits, function(x) nGRAM(Term=x))  
 
 
