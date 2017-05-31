@@ -286,9 +286,9 @@ LithPBDB<-subset(LithSamples,rownames(LithSamples)%in%FossilsPBDB[,"V2"]==TRUE)
 			     
 # Make the plot
 plot(LithDCA,type="n")
-text(LithSpecies,labels=rownames(LithSpecies),col="lightgrey")
-points(LithPBDB[,1],LithPBDB[,2],pch=16,col="blue",cex=2)
-points(LithGDD[,1],LithGDD[,2],pch=17,col="#CC0000",cex=2)
+text(LithSpecies,labels=rownames(LithSpecies),col="darkgrey",cex.txt=1.1)
+points(LithPBDB[,1],LithPBDB[,2],pch=16,col=rgb(0,0,1,0.33),cex=2)
+points(LithGDD[,1],LithGDD[,2],pch=17,col=rgb(1,0,0,0.33),cex=2)
 # makeHull(LithPBDB)
 			     
 # Remove completely barren sediments from the DCA
