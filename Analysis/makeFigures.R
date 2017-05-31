@@ -273,6 +273,8 @@ makeHull<-function(SampleScores) {
 LithnameFossils<-subset(Lithname,rownames(Lithname)%in%FossilsNA[,"V2"]!=TRUE)
 # Remove broad archetypes
 LithnameFossils<-LithnameFossils[,-match(colnames(Lithtype)[which(colnames(Lithtype)%in%colnames(Lithname))],colnames(LithnameFossils))]
+# Fix the spaces
+colnames(LithnameFossils)<-sapply(strsplit(colnames(LithnameFossils),"[.]"),paste,collapse=" ")
 # Cull out bad rows from lithtype
 LithnameCull<-cullMatrix(LithnameFossils,2,2)
 LithDCA<-decorana(LithnameCull,iweigh=0)
@@ -379,6 +381,9 @@ ColumnAges<-unique(FossilUnits[,c("col_id", "t_age", "b_age")])
 
 # Extract all col_ids in increasing order
 col_ids<-unique(sort(ColumnAges[,"col_id"]))
+
+########################################### MILLION YEAR TIME BINS ##################################################
+			     
 # Create time bins representing millions of years ago (Cenozoic-Paleozoic)
 Bins<-seq(1,541)
 # Create an empty matrix with a column for each col_id and a row for each time bin
@@ -388,7 +393,7 @@ for(j in 1:length(col_ids)){
         AgesMatrix[i,j]<-as.numeric(any(ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"b_age"]>=Bins[i] & ColumnAges[which(ColumnAges[,"col_id"]==col_ids[j]),"t_age"]<=Bins[i]))
         }
      }
-
+			     			     
 # Assign appropriate row and column names
 rownames(AgesMatrix)<-1:541
 colnames(AgesMatrix)<-col_ids	
@@ -464,6 +469,17 @@ ColorColumns<-cbind(MacrostratColumns[which(MacrostratColumns@data[,"col_id"]%in
 ColorColumns<-writeOGR(ColorColumns, "ColorColumns.geojson", layer="ColorColumns", driver="GeoJSON")
 
 #  plot3D(MacrostratColumns,ColorMatrix)
+			     
+########################################### 5 MILLION YEAR TIME BINS ################################################
+FiveBins<-seq(1,540,5)
+FiveBinMatrix<-matrix(data=NA, nrow=length(FiveBins), ncol=length(col_ids))			     
+for(j in 1:length(col_ids)){
+    for(i in 1:length(FiveBins)){
+        FiveBinMatrix[i,j]<-max(AgesMatrix[(FiveBins[i]):(FiveBins[i]+4),col_ids[i]])
+	}
+}
+			     
+max(AgesMatrix[1:5,"2"])
 			     
 ################################################# Make Figures ##############################################			     
 # Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
