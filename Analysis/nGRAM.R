@@ -32,7 +32,7 @@ nGRAM<-function(Term, Publisher="", Journal=""){
     }
     
 # Load CleanedOutput
-CleanedOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/CleanedOutput.csv")
+NoNoiseOutput<-read.csv("~/Documents/DeepDive/PBDB_Fidelity/Paper_Materials/NoNoiseOutput.csv")
 
 # Create a vector of candidate formations
 Candidates<-as.character(unique(CleanedOutput[which(CleanedOutput[,"PBDB_occ"]==FALSE),"Formation"]))                
