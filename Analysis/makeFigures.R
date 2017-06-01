@@ -486,7 +486,7 @@ for(j in 1:length(col_ids)){
 rownames(FiveBinMatrix)<-FiveBins
 colnames(FiveBinMatrix)<-col_ids
 			     
-# Extract the color code for the earliest age in each time bin
+# Extract the color code for the youngest age in each time bin
 EarlyAge<-FiveBins-4			     
 FiveBinColors<-BinColors[EarlyAge]	
 			     
