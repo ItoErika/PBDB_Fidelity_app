@@ -486,9 +486,8 @@ for(j in 1:length(col_ids)){
 rownames(FiveBinMatrix)<-FiveBins
 colnames(FiveBinMatrix)<-col_ids
 			     
-# Extract the color code for the youngest age in each time bin
-EarlyAge<-FiveBins-4			     
-FiveBinColors<-BinColors[EarlyAge]	
+# Extract the color code for the earliest age in each time bin		     
+FiveBinColors<-BinColors[FiveBins]	
 			     
 # Create a duplicate of FiveBinMatrix to replace with hex code color codes
 TempFiveMatrix<-FiveBinMatrix
@@ -512,7 +511,7 @@ writeSlices<-function(MacrostratColumns,ColorFiveMatrix) {
 	for (i in 1:ncol(ColorFiveMatrix)) {
 		ColorColumns<-subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(ColorFiveMatrix)[which(is.na(ColorFiveMatrix[,i])!=TRUE)]))
 		ColorSlice<-cbind(ColorColumns,ColorFiveMatrix[which(is.na(ColorFiveMatrix[,i])!=TRUE),i])
-		ColorSlice$height<-(108-i)*0.2
+		ColorSlice$height<-(108-i)*0.25
 		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i*5),layer="ColorSlice",driver="GeoJSON")
 		}
 	}		
