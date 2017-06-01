@@ -44,4 +44,6 @@ CandidatesGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))
 # Apply the nGRAM function to all PBDBUnits
 PBDBGram<-pbsapply(PBDBUnits, function(x) nGRAM(Term=x))  
 
-
+# Assign row names
+rownames(CandidatesGram)<-c("NumDocs","MinYear")                   
+rownames(PBDBGram)<-c("NumDocs","MinYear")  
