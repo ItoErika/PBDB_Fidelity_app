@@ -468,18 +468,56 @@ TColorMatrix<-t(ColorMatrix)
 ColorColumns<-cbind(MacrostratColumns[which(MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(TColorMatrix))),],TColorMatrix)			     
 ColorColumns<-writeOGR(ColorColumns, "ColorColumns.geojson", layer="ColorColumns", driver="GeoJSON")
 
-#  plot3D(MacrostratColumns,ColorMatrix)
+#  writeSlices(MacrostratColumns,ColorMatrix)
 			     
 ########################################### 5 MILLION YEAR TIME BINS ################################################
-FiveBins<-seq(1,540,5)
+# Run 1 million year bin script through line 420
+# Create a matrix of five million year time bins
+# For each col_id, this matrix should display a 1 if it contains any fossiliferous formations in each time bin
+# Time bins are 1-5, 6-10, 11-15, 16-20, etc. 			    
+FiveBins<-seq(5,540,5)
 FiveBinMatrix<-matrix(data=NA, nrow=length(FiveBins), ncol=length(col_ids))			     
 for(j in 1:length(col_ids)){
     for(i in 1:length(FiveBins)){
-        FiveBinMatrix[i,j]<-max(AgesMatrix[(FiveBins[i]):(FiveBins[i]+4),col_ids[i]])
+        FiveBinMatrix[i,j]<-max(AgesMatrix[(FiveBins[i]-4):(FiveBins[i]), as.character(col_ids[j])])
 	}
 }
+
+rownames(FiveBinMatrix)<-FiveBins
+colnames(FiveBinMatrix)<-col_ids
 			     
-max(AgesMatrix[1:5,"2"])
+# Extract the color code for the earliest age in each time bin
+EarlyAge<-FiveBins-4			     
+FiveBinColors<-BinColors[EarlyAge]	
+			     
+# Create a duplicate of FiveBinMatrix to replace with hex code color codes
+TempFiveMatrix<-FiveBinMatrix
+# Replace each 0 in TempMatrix with NA
+TempFiveMatrix[TempFiveMatrix==0]<-NA
+# Replace each 1 in TempMatrix with the appropriate time bin color hex color code
+ColorFiveMatrix<-matrix(data=NA, nrow=length(FiveBins), ncol=length(col_ids))
+for(i in 1:length(FiveBins)){
+    ColorFiveMatrix[i,]<-gsub("1", FiveBinColors[i], TempFiveMatrix[i,])
+    }
+
+rownames(ColorFiveMatrix)<-FiveBins
+colnames(ColorFiveMatrix)<-col_ids
+
+# Download North American Macrostrat column data
+MacrostratColumns<-readOGR("https://macrostrat.org/api/columns?format=geojson_bare&project_id=1")
+
+# Make the plot
+writeSlices<-function(MacrostratColumns,ColorFiveMatrix) {
+	ColorFiveMatrix<-t(ColorFiveMatrix)
+	for (i in 1:ncol(ColorFiveMatrix)) {
+		ColorColumns<-subset(MacrostratColumns,MacrostratColumns@data[,"col_id"]%in%as.numeric(rownames(ColorFiveMatrix)[which(is.na(ColorFiveMatrix[,i])!=TRUE)]))
+		ColorSlice<-cbind(ColorColumns,ColorFiveMatrix[which(is.na(ColorFiveMatrix[,i])!=TRUE),i])
+		ColorSlice$height<-(108-i)*0.2
+		writeOGR(ColorSlice,sprintf("time_%03d.geojson",i*5),layer="ColorSlice",driver="GeoJSON")
+		}
+	}		
+			     
+#  writeSlices(MacrostratColumns,ColorFiveMatrix)
 			     
 ################################################# Make Figures ##############################################			     
 # Extract the map of macrostrat columns using the API (use rpostgis::pgGetGeom if you want to pull direct from the burwell table)
