@@ -39,11 +39,11 @@ Candidates<-as.character(unique(NoNoiseOutput[which(NoNoiseOutput[,"PBDB_occ"]==
 # Create a vector of non-candidate formations
 PBDBUnits<-as.character(unique(NoNoiseOutput[which(NoNoiseOutput[,"PBDB_occ"]==TRUE),"Formation"]))
                 
-# Apply the nGRAM function to all candidate units
-CandidatesGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))      
+# Apply the nGRAM function to all candidate units confirmed to have fossils
+GDDGram<-pbsapply(Candidates, function(x) nGRAM(Term=x))      
 # Apply the nGRAM function to all PBDBUnits
 PBDBGram<-pbsapply(PBDBUnits, function(x) nGRAM(Term=x))  
 
 # Assign row names
-rownames(CandidatesGram)<-c("NumDocs","MinYear")                   
+rownames(GDDGram)<-c("NumDocs","MinYear")                   
 rownames(PBDBGram)<-c("NumDocs","MinYear")  
