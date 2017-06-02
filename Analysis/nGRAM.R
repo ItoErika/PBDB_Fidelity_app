@@ -26,7 +26,10 @@ nGRAM<-function(Term, Publisher="", Journal=""){
     JSON<-RJSONIO::fromJSON(URL)
     ParsedJSON<-parseGDD(JSON)
     NumDocs<-length(unique(ParsedJSON[,"gddid"]))
-    MinYear<-min(as.numeric(as.character(unlist(ParsedJSON[,"year"]))))
+    Years<-as.numeric(as.character(unlist(ParsedJSON[,"year"])))
+    # Remove years that are NA
+    Years<-Years[-which(is.na(Years))]
+    MinYear<-min(as.numeric(as.character(Years)))
     Sys.sleep(1)
     return(cbind(NumDocs, MinYear))
     }
