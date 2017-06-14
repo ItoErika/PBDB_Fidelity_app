@@ -136,13 +136,17 @@ splitMatrix(FormationMatrix,MatrixKey)
 # Check to see if the location of a macrostrat column is mentioned in the document
 FormationKey<-checkLocation(FormationKey)
 # Attach the concept_id names to make the FormationKey compatible with the Formation Matrix
-FormationKey<-merge(FormationKey,ConceptKey,by="unit_id")
+FormationKey<-merge(FormationKey,ConceptKey,by="unit_id")		    
 		    
 # Break down the Formation Key into the different categories (no fossils, pbdb fossils, gdd fossils)
 FossilsNA<-subset(FormationKey,FormationKey[,"GDD_occ"]!=TRUE & FormationKey[,"PBDB_occ"]!=TRUE)
 FossilsPBDB<-subset(FormationKey,FormationKey[,"GDD_occ"]!=TRUE & FormationKey[,"PBDB_occ"]==TRUE)
 FossilsGDD<-subset(FormationKey,FormationKey[,"GDD_occ"]==TRUE & FormationKey[,"PBDB_occ"]!=TRUE)
-		    
+
+# Optional step to remove micro and trace from fossils GDD
+# There should be a comparable step to remove trace and micro from the FossilsPBDB set
+FossilsGDD<-subset(FossilsGDD,is.na(FossilsGDD[,"Micro"])==TRUE & is.na(FossilsGDD[,"Trace"])==TRUE)
+		   
 #############################################################################################################
 ########################################### MAKE BARPLOT, FIDELITY ##########################################
 #############################################################################################################
