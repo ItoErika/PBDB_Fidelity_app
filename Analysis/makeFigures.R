@@ -211,8 +211,8 @@ validFormations<-function(Epoch,SurfaceAges,FormationColumns) {
 	}
 			     
 ################################################# Make Figures ##############################################
-# Establish a remote connection to teststrata
-system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sys.sleep(1);
+# Establish a remote connection to teststrata, Needed to increase the sleep time because of increased login time
+system2("ssh",c("-L 5439:127.0.0.1:5432","-N","-T","teststrata"),wait=FALSE); Sys.sleep(5);
 
 # Establish postgresql driver
 Driver<-dbDriver("PostgreSQL") # Establish database driver		    
