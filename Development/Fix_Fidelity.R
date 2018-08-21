@@ -7,11 +7,11 @@ library(readr)
 ############################################################### FUNCTIONS ###############################################################
 ##########################################################################################################################################
 
-# Parse the NLP strings into a matrix format
 parseSentence<-function(Sentence,Parameters=c("words","dep_paths","dep_parents")) {
         Sentence<-setNames(cleanPunctuation(Sentence),names(Sentence))
         if ("words"%in%names(Sentence)) {Sentence["words"]<-trueCommas(Sentence["words"])}
         WordsMatrix<-sapply(Sentence[Parameters],function(x) strsplit(x,","))
+        if (sum(diff(sapply(WordsMatrix,length)))!=0) {return(NA)}
         WordsMatrix<-do.call(rbind,WordsMatrix)
         WordsMatrix[which(WordsMatrix=="COMMASUB")]<-","
         WordsMatrix[which(WordsMatrix=="SPACESUB")]<-""
@@ -34,6 +34,7 @@ trueCommas<-function(Words) {
 # Even though this is redundnat with trueCommas it applies to more fields
 cleanPunctuation<-function(Sentence) {
         Sentence<-gsub("\"\"","SPACESUB",Sentence)
+        Sentence<-gsub("\",\"","COMMASUB",Sentence) 
         Sentence<-gsub("\",\"","COMMASUB",Sentence) 
         Sentence<-gsub("\\{|\\}","",Sentence)
         Sentence<-gsub("-LRB-","(",Sentence)
@@ -59,11 +60,29 @@ findConsecutive<-function(NumericSequence) {
         return(ConsecutiveList)
         }
 
+##########################################################################################################################################
+############################################################### LOAD DATA ################################################################
+##########################################################################################################################################
 
-docs<-as.data.frame(read_delim('C:/Users/erikai94/Documents/UW_Madison/GDD/test_docs/sentences_nlp352', delim='\t', col_names = FALSE))
+# Set working directory
+setwd('C:/Users/erikai94/Documents/UW_Madison/GDD/test_docs')
+# Load in test documents
+docs<-as.data.frame(read_delim('sentences_nlp352', delim='\t', col_names = FALSE))
+
+##########################################################################################################################################
+############################################################### CLEAN DATA ###############################################################
+##########################################################################################################################################
+
+# Assign column names to the NLP documents
 colnames(docs)<-c('docid','sentid','wordidx','words','poses','ners','lemmas','dep_paths','dep_parents')
 
+# Subset the test document set (first 2 documents)
+docs<-docs[1:max(which(docs[,"docid"]==unique(docs[,"docid"])[2])),]
 
+# Clean the punctuation in all of the documents
+test<-t(apply(docs[1:4113,],1 , cleanPunctuation))
+                                
+parseSentence(test[1,])                                
 
                  
                  
@@ -91,7 +110,44 @@ clean_words <- function(x) {
 
 options(warn=2)
 
-for (i in 1:nrow(docs)){
-parseSentence(docs[i,])
+for (i in 296:nrow(test)){
+parseSentence(test[i,])
   print(i)
 }
+                                
+ParsedSentence<-vector("list", length=nrow(test))                           
+for (i in 1:nrow(test)){
+        tryCatch(ParsedSentence[[i]]<-parseSentence(test[i,]), warning=function(i) {print(i)})
+        }
+        
+        
+        
+        
+        parseSentence<-function(Sentence,Parameters=c("words","dep_paths","dep_parents")) {
+        Sentence<-setNames(cleanPunctuation(Sentence),names(Sentence))
+        if ("words"%in%names(Sentence)) {Sentence["words"]<-trueCommas(Sentence["words"])}
+        WordsMatrix<-sapply(Sentence[Parameters],function(x) strsplit(x,","))
+  if (sum(diff(sapply(WordsMatrix,length)))!=0) {return(NA)}
+        WordsMatrix<-do.call(rbind,WordsMatrix)
+        WordsMatrix[which(WordsMatrix=="COMMASUB")]<-","
+        WordsMatrix[which(WordsMatrix=="SPACESUB")]<-""
+        colnames(WordsMatrix)<-1:ncol(WordsMatrix)
+        return(WordsMatrix)
+        }
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+                
+trycatch(parseSentence(test[1,])                                
