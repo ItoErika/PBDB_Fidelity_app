@@ -7,34 +7,10 @@ library(readr)
 ############################################################### FUNCTIONS ###############################################################
 ##########################################################################################################################################
 
-parseSentence<-function(Sentence,Parameters=c("words","dep_paths","dep_parents")) {
-        Sentence<-setNames(cleanPunctuation(Sentence),names(Sentence))
-        if ("words"%in%names(Sentence)) {Sentence["words"]<-trueCommas(Sentence["words"])}
-        WordsMatrix<-sapply(Sentence[Parameters],function(x) strsplit(x,","))
-        if (sum(diff(sapply(WordsMatrix,length)))!=0) {return(NA)}
-        WordsMatrix<-do.call(rbind,WordsMatrix)
-        WordsMatrix[which(WordsMatrix=="COMMASUB")]<-","
-        WordsMatrix[which(WordsMatrix=="SPACESUB")]<-""
-        colnames(WordsMatrix)<-1:ncol(WordsMatrix)
-        return(WordsMatrix)
-        }                 
-
-# Account for actual phrases or numbersets with commas - e.g., "19,560,238" -> 19560238
-trueCommas<-function(Words) {
-        InsideQuotes<-regmatches(Words, gregexpr('"[^"]*"',Words))[[1]]
-        if (length(InsideQuotes)<1) {return(Words)}
-        Replacements<-gsub(",","",InsideQuotes)
-        for (i in 1:length(InsideQuotes)) {
-                Words<-noquote(gsub(InsideQuotes[i],Replacements[i],Words))
-                }
-        return(Words)
-        }
-
 # Remove or replace problematic punctuation
 # Even though this is redundnat with trueCommas it applies to more fields
 cleanPunctuation<-function(Sentence) {
         Sentence<-gsub("\"\"","SPACESUB",Sentence)
-        Sentence<-gsub("\",\"","COMMASUB",Sentence) 
         Sentence<-gsub("\",\"","COMMASUB",Sentence) 
         Sentence<-gsub("\\{|\\}","",Sentence)
         Sentence<-gsub("-LRB-","(",Sentence)
@@ -47,7 +23,7 @@ cleanPunctuation<-function(Sentence) {
 # A function to find proper noun clusters
 findCluster<-function(Sentence,Parameters=c("words","poses")) {
         ParsedSentence<-parseSentence(Sentence,Parameters)
-        if(all(is.na(ParsedSentence))) {return(setNames(rep(NA,3), c("docid", "sentid", "Proper")))}
+        if(all(is.na(ParsedSentence))) {return(setNames(c(Sentence["docid"], Sentence["sentid"],"parsing error"), c("docid", "sentid", "Proper")))}
         FindConsecutive<-findConsecutive(which(ParsedSentence["poses",]=="NNP"))
         Proper<-sapply(FindConsecutive,function(x) paste(unname(ParsedSentence["words",x]),collapse=" "))
         Proper<-unname(cbind(Sentence["docid"],Sentence["sentid"],Proper))
@@ -62,20 +38,46 @@ findConsecutive<-function(NumericSequence) {
         return(ConsecutiveList)
         }
 
+# Parse the NLP strings into a matrix format
+parseSentence<-function(Sentence,Parameters=c("words","dep_paths","dep_parents")) {
+        Sentence<-setNames(cleanPunctuation(Sentence),names(Sentence))
+        if ("words"%in%names(Sentence)) {Sentence["words"]<-trueCommas(Sentence["words"])}
+        WordsMatrix<-sapply(Sentence[Parameters],function(x) strsplit(x,","))
+        if (sum(diff(sapply(WordsMatrix,length)))!=0) {return(NA)}
+        WordsMatrix<-do.call(rbind,WordsMatrix)
+        WordsMatrix[which(WordsMatrix=="COMMASUB")]<-","
+        WordsMatrix[which(WordsMatrix=="SPACESUB")]<-""
+        colnames(WordsMatrix)<-1:ncol(WordsMatrix)
+        return(WordsMatrix)
+        }
+
+# R confuses 2,000,381 in a PostgreSQL array as 2 000 381, this function will convert those cases to 2000381.  
+trueCommas<-function(Words) {
+        InsideQuotes<-regmatches(Words, gregexpr('"[^"]*"',Words))[[1]]
+        if (length(InsideQuotes)<1) {return(Words)}
+        Replacements<-gsub(",","",InsideQuotes)
+        for (i in 1:length(InsideQuotes)) {
+               Words<-noquote(gsub(InsideQuotes[i],Replacements[i],Words))
+               }
+        return(Words)
+        }
+
+# A function to parse a sentence and extract any grammatically linked termspaired terms
+# In principle this should work with other path types, not just amod, but I have not tested it.
 adjacencyPath<-function(Sentence,Path="amod") {
         ParsedSentence<-parseSentence(Sentence,c("words","dep_paths","dep_parents"))
-        if (all(is.na(ParsedSentence))) {return(setNames(rep(NA,4),c("docid","sentid","child","parent")))}
+        if (all(is.na(ParsedSentence))) {return(setNames(c(Sentence["docid"], Sentence["sentid"],rep("parsing error",2)),c("docid","sentid","child","parent")))}
         PathMods<-as.matrix(ParsedSentence[,which(ParsedSentence["dep_paths",]==Path)])
         if (length(PathMods)<1) {return(setNames(rep(NA,4),c("docid","sentid","child","parent")))}
         FinalList<-vector("list")
         for (j in seq_len(ncol(PathMods))) {
-                FinalList[[length(FinalList)+1]]<-c(Sentence[1:2],PathMods["words",j],ParsedSentence["words",as.numeric(PathMods["dep_parents",j])])
-                }
+              FinalList[[length(FinalList)+1]]<-c(Sentence[1:2],PathMods["words",j],ParsedSentence["words",as.numeric(PathMods["dep_parents",j])])
+              }
         FinalTable<-do.call(rbind,FinalList)
         colnames(FinalTable)<-c("docid","sentid","child","parent")
         return(FinalTable)
         }
-
+                            
 ##########################################################################################################################################
 ############################################################### LOAD DATA ################################################################
 ##########################################################################################################################################
@@ -92,20 +94,60 @@ docs<-as.data.frame(read_delim('sentences_nlp352', delim='\t', col_names = FALSE
 # Assign column names to the NLP documents
 colnames(docs)<-c('docid','sentid','wordidx','words','poses','ners','lemmas','dep_paths','dep_parents')
 
-# Subset the test document set (first 2 documents)
-docs<-docs[1:max(which(docs[,"docid"]==unique(docs[,"docid"])[50])),]
+# Subset the test document set (first 300 documents)
+docs<-docs[1:max(which(docs[,"docid"]==unique(docs[,"docid"])[300])),]
 
 # Clean the punctuation in all of the documents
-docs<-t(apply(docs[1:4113,],1 , cleanPunctuation))
-                                
-parseSentence(docs[1,])                                
+docs<-t(apply(docs,1 , cleanPunctuation))
+
+# Download sedimentary lithologies from Macrostrat
+SedLiths<-read.csv("https://macrostrat.org/api/v1/defs/lithologies?lith_class=sedimentary&format=csv")
+ 
+# Run findCluster on docs                            
+Clusters<-apply(docs,1,findCluster)
+# Remove rows where there were no clusters found
+Clusters<-na.omit(do.call(rbind,Clusters))
+
+# Find linked words in docs
+LinkedWords<-apply(docs, 1, adjacencyPath)
+# Remove rows where there were no linked words
+LinkedWords<-na.omit(do.call(rbind,LinkedWords))
+
+# Search for the word "formation" in the proper noun clusters
+FmClusters<-grep(Clusters[,"Proper"], pattern=" Formation", perl=TRUE, ignore.case=TRUE)
 
 
-                 
-                 
+# Search for the word "fossil" in the proper noun clusters
+FossilChildren<-grep(LinkedWords[,"child"], pattern="fossil", perl=TRUE, ignore.case=TRUE)
+
+unique(LinkedWords[FossilChildren,"parent"])[1:100]                            
 
 
-                                
+
+                                  
+# Download occurrences data from the Paleobiology Database
+print(paste("Download PBDB occurrence data.",Sys.time()))
+PBDBURL<-"https://paleobiodb.org/data1.2/occs/list.csv?&cc=NOA"
+PBDBURL<-RCurl::getURL(PBDBURL)
+OccurrencesData<-read.csv(text=PBDBURL)
+
+# Step 4: Download geologic unit data from the Macrostrat database. 
+# Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
+print(paste("Download Macrostrat unit and age data.",Sys.time()))
+# Download all sedimentary unit data from Macrostrat Database
+UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv" 
+UnitURL<-RCurl::getURL(UnitsURL)
+UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
+
+# Download data for geologic formations from the Macrostrat database API
+FormationsURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
+FormationsURL<-RCurl::getURL(FormationsURL)
+FormationsFrame<-read.csv(text=FormationsURL, header=TRUE)
+
+# Download geologic time scale data from the Macrostrat API
+IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
+IntervalsURL<-RCurl::getURL(IntervalsURL)
+IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)                                
                                 
                                 
                                 
