@@ -107,11 +107,17 @@ SedLiths<-read.csv("https://macrostrat.org/api/v1/defs/lithologies?lith_class=se
 Clusters<-apply(docs,1,findCluster)
 # Remove rows where there were no clusters found
 Clusters<-na.omit(do.call(rbind,Clusters))
-
+# Convert Clusters into a data frame and change the format of sentid to be numeric
+Clusters<-as.data.frame(Clusters, stringsAsFactors=FALSE)
+Clusters[,"sentid"]<-as.numeric(as.character(Clusters[,"sentid"]))
+                            
 # Find linked words in docs
 LinkedWords<-apply(docs, 1, adjacencyPath)
 # Remove rows where there were no linked words
 LinkedWords<-na.omit(do.call(rbind,LinkedWords))
+# Convert LinkedWords into a data frame and change the format of sentid to be numeric
+LinkedWords<-as.data.frame(LinkedWords, stringsAsFactors=FALSE)
+LinkedWords[,"sentid"]<-as.numeric(as.character(LinkedWords[,"sentid"]))
 
 # Search for the word "formation" in the proper noun clusters
 FmClusters<-grep(Clusters[,"Proper"], pattern=" Formation", perl=TRUE, ignore.case=TRUE)
@@ -124,6 +130,9 @@ unique(LinkedWords[FossilChildren,"parent"])[1:100]
 
 
 
+|
+
+
                                   
 # Download occurrences data from the Paleobiology Database
 print(paste("Download PBDB occurrence data.",Sys.time()))
@@ -131,7 +140,7 @@ PBDBURL<-"https://paleobiodb.org/data1.2/occs/list.csv?&cc=NOA"
 PBDBURL<-RCurl::getURL(PBDBURL)
 OccurrencesData<-read.csv(text=PBDBURL)
 
-# Step 4: Download geologic unit data from the Macrostrat database. 
+# Download geologic unit data from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
 print(paste("Download Macrostrat unit and age data.",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
@@ -140,21 +149,50 @@ UnitURL<-RCurl::getURL(UnitsURL)
 UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
 
 # Download data for geologic formations from the Macrostrat database API
-FormationsURL<-"https://macrostrat.org/api/defs/strat_names?rank=fm&format=csv"
-FormationsURL<-RCurl::getURL(FormationsURL)
-FormationsFrame<-read.csv(text=FormationsURL, header=TRUE)
+StartNamesURL<-"https://macrostrat.org/api/defs/strat_names?&format=csv"
+StartNamesURL<-RCurl::getURL(StartNamesURL)
+StratNamesFrame<-read.csv(text=FormationsURL, header=TRUE)
 
 # Download geologic time scale data from the Macrostrat API
 IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
 IntervalsURL<-RCurl::getURL(IntervalsURL)
 IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)                                
-                                
-                                
-                                
-                                
-                                
-                                
-                                
+
+StratNamesFrame<-subset(StratNamesFrame, StratNamesFrame[,"rank"]%in%c("Mbr", "Fm", "Gp"))                                
+ 
+# First, remove ambiguoulsy named formations from UnitsFrame and FormationsFrame
+UnitsFrame<-UnitsFrame[-which(UnitsFrame[,"strat_name_long"]=="Muddy Sandstone"|UnitsFrame[,"strat_name_long"]=="Mutual Formation"|UnitsFrame[,"strat_name_long"]=="Sandy Limestone"),]
+FormationsFrame<-FormationsFrame[-which(FormationsFrame[,"strat_name_long"]=="Muddy Sandstone"|FormationsFrame[,"strat_name_long"]=="Mutual Formation"|FormationsFrame[,"strat_name_long"]=="Sandy Limestone"),]
+# Second, subset UnitsFrame to only include members, formations, and groups                               
+SubsetUnits<-subset(UnitsFrame, UnitsFrame[,"strat_name_long"]%in%StratNamesFrame[,"strat_name_long"])
+# Third, remove Precambrian units from FormationUnits
+# Extract the maximum age for units of interest
+Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
+# Make sure the top age of the formations are less than the max age (less than the Cambrian-Proterozoic boundary age)
+SubsetUnits<-SubsetUnits[which(SubsetUnits[,"t_int_age"]<Max_age),]
+
+# (1) geologic units without fossils, (2) geologic units with fossils, (3) the first two dictionaries combined
+# Convert the strat_name_long column of formation units to character
+SubsetUnits[,"strat_name_long"]<-as.character(SubsetUnits[,"strat_name_long"])
+# Take sum of pbdb_collections values associated with each strat name 
+Collections<-tapply(SubsetUnits[,"pbdb_collections"], SubsetUnits[,"strat_name_long"], sum)
+# Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
+CandidateUnits<-names(which(Collections==0))
+# Extract the strat names with a at least one pbdb collection record
+FossilUnits<-names(which(Collections>0))
+# Bind all units together
+AllUnits<-c(CandidateUnits, FossilUnits)   
+
+
+                            
+
+                            
+                            
+                            
+                            
+# Search for formal geologic unit names in the proper noun clusters                           
+UnitHits<-sapply(FormationUnits, function(x,y) agrep(x,y, ignore.case=TRUE, max.distance=0.2), Clusters[,"Proper"])
+                               
                                 
                                 
                                 
