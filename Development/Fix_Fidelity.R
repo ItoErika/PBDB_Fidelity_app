@@ -139,6 +139,7 @@ print(paste("Download PBDB occurrence data.",Sys.time()))
 PBDBURL<-"https://paleobiodb.org/data1.2/occs/list.csv?&cc=NOA"
 PBDBURL<-RCurl::getURL(PBDBURL)
 OccurrencesData<-read.csv(text=PBDBURL)
+read.csv('file:///C:/Users/erikai94/Documents/UW_Madison/GDD/Fidelity/OccurrencesData.csv:
 
 # Download geologic unit data from the Macrostrat database. 
 # Extract sedimentary units from the Macrostrat API which do not have fossils reported in the Paleobiology Database.
@@ -146,17 +147,17 @@ print(paste("Download Macrostrat unit and age data.",Sys.time()))
 # Download all sedimentary unit data from Macrostrat Database
 UnitsURL<-"https://macrostrat.org/api/units?lith_class=sedimentary&project_id=1&response=long&format=csv" 
 UnitURL<-RCurl::getURL(UnitsURL)
-UnitsFrame<-read.csv(text=UnitURL, header=TRUE)
+UnitsFrame<-read.csv(text=UnitURL, header=TRUE, stringsAsFactors=FALSE)
 
 # Download data for geologic formations from the Macrostrat database API
 StartNamesURL<-"https://macrostrat.org/api/defs/strat_names?&format=csv"
 StartNamesURL<-RCurl::getURL(StartNamesURL)
-StratNamesFrame<-read.csv(text=FormationsURL, header=TRUE)
+StratNamesFrame<-read.csv(text=FormationsURL, header=TRUE, stringsAsFactors=FALSE)
 
 # Download geologic time scale data from the Macrostrat API
 IntervalsURL<-"https://macrostrat.org/api/defs/intervals?all&format=csv"
 IntervalsURL<-RCurl::getURL(IntervalsURL)
-IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE)                                
+IntervalsFrame<-read.csv(text= IntervalsURL, header=TRUE, stringsAsFactors=FALSE)                                
 
 StratNamesFrame<-subset(StratNamesFrame, StratNamesFrame[,"rank"]%in%c("Mbr", "Fm", "Gp"))                                
  
@@ -172,26 +173,36 @@ Max_age<-IntervalsFrame[which(IntervalsFrame[,"name"]=="Precambrian"),"t_age"]
 SubsetUnits<-SubsetUnits[which(SubsetUnits[,"t_int_age"]<Max_age),]
 
 # (1) geologic units without fossils, (2) geologic units with fossils, (3) the first two dictionaries combined
+# Extract the short version of geologic unit names from the mbr, fm, and gp columns in SubsetUnits
+UnitsTemp<-SubsetUnits[,c("Mbr","Fm","Gp")]
+ShortNames<-apply(UnitsTemp, 1, function(x) which(x!=""))
+ShortNames<-vector(mode="character", length=nrow(SubsetUnits))
+for (i in 1:nrow(SubsetUnits)){
+        ShortNames[i]<-as.character(UnitsTemp[i,which(UnitsTemp[i,]!="")])[1]  
+        }
+# Bind ShortNames into the SubsetUnits data frame
+SubsetUnits[,"strat_name_short"]<-ShortNames                     
+                                                   
 # Convert the strat_name_long column of formation units to character
 SubsetUnits[,"strat_name_long"]<-as.character(SubsetUnits[,"strat_name_long"])
+
 # Take sum of pbdb_collections values associated with each strat name 
-Collections<-tapply(SubsetUnits[,"pbdb_collections"], SubsetUnits[,"strat_name_long"], sum)
-# Extract strat names with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)
-CandidateUnits<-names(which(Collections==0))
-# Extract the strat names with a at least one pbdb collection record
-FossilUnits<-names(which(Collections>0))
-# Bind all units together
-AllUnits<-c(CandidateUnits, FossilUnits)   
+CollectionsL<-tapply(SubsetUnits[,"pbdb_collections"], SubsetUnits[,"strat_name_long"], sum)
+CollectionsS<-tapply(SubsetUnits[,"pbdb_collections"], SubsetUnits[,"strat_name_short"], sum)
+# Extract the units with a sum of zero pbdb_collections (units with no fossil occurrences according to PBDB)              
+NOPBDBL<-names(which(CollectionsL==0))
+NOPBDBS<-names(which(CollectionsS==0))
+# Extract the units with a at least one pbdb collection record
+PBDBL<-names(which(CollectionsL>0))
+PBDBS<-names(which(CollectionsS>0))
 
-
-                            
-
-                            
-                            
-                            
-                            
+# Bind all long unit names together to make a long name dictionary
+AllUnitsL<-c(NOPBDBL,PBDBL)
+# Bind all short unit names together to make a short name dictionary
+AllUnitsS<-c(NOPBDBS,PBDBS)                            
+                                                                              
 # Search for formal geologic unit names in the proper noun clusters                           
-UnitHits<-sapply(FormationUnits, function(x,y) agrep(x,y, ignore.case=TRUE, max.distance=0.2), Clusters[,"Proper"])
+UnitHitsS<-sapply(AllUnitsS, function(x,y) agrep(x,y, ignore.case=TRUE, max.distance=0.2), Clusters[,"Proper"])
                                
                                 
                                 
